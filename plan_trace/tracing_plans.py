@@ -902,6 +902,23 @@ def gather_unique_tokens(
 
     return list(unique_ids)
 
+def find_logit_lens_clusters(model, saes, entries, inter_toks_BL, stop_tok, verbose=True):
+    # FIXIT: maybe remove the current token being predicted to not be here 
+    uniq_ids = gather_unique_tokens(model, inter_toks_BL, stop_tok=stop_tok)
+    prompt_str = model.to_string(inter_toks_BL[0, :])
+    filtered_uniq_ids = [tok for tok in uniq_ids if model.to_string(tok) not in prompt_str]
+    if verbose:
+        print(f"Found {len(filtered_uniq_ids)} tokens not in prompt: {[model.to_string(tok) for tok in filtered_uniq_ids]}")
+    saved_pair_dict = build_saved_pair_dict_fastest(
+        model,
+        saes,
+        entries,
+        filtered_uniq_ids,
+        tok_k_pos_logits=15,
+        batch_size=4096
+    )
+    return saved_pair_dict
+
 def _steer_dtype(activations: torch.Tensor) -> torch.dtype:
     """Return dtype used to apply steering (fp32 while debugging)."""
     # if USE_FP16_STEERING:
@@ -935,7 +952,7 @@ def steering_hook(
     return act_view.to(dtype=activations.dtype)
 
 def steering_effect_on_next_token(
-    model, toks_prefix, saes, interventions, coeff, stop_tok
+    model, inter_toks_BL, saes, interventions, coeff, stop_tok
 ):
     """
     Returns (changed: bool, new_id: int, baseline_id: int)
@@ -944,7 +961,7 @@ def steering_effect_on_next_token(
     # --- register hooks exactly once ------------------------------------
     model.reset_hooks(including_permanent=True)
     with torch.no_grad():
-        logits = model(toks_prefix)[:, -1]
+        logits = model(inter_toks_BL)[:, -1]
     baseline_id = logits.argmax(-1).item()
 
     for layer_idx, tok_pos, latent_idx in interventions:
@@ -959,15 +976,15 @@ def steering_effect_on_next_token(
         )
 
     with torch.no_grad():
-        logits = model(toks_prefix)[:, -1]        
+        logits = model(inter_toks_BL)[:, -1]        
     new_id      = logits.argmax(-1).item()
     
     model.reset_hooks(including_permanent=True)
     return new_id != baseline_id, new_id, baseline_id
 
-def generate_once(model, prompt: str, stop_tok: int, hooks: Optional[List] = None, *, max_tokens: int = 256, device: str = "cuda") -> str:  # type: ignore
+def generate_once(model, inter_toks_BL: torch.Tensor, stop_tok: int, hooks: Optional[List] = None, *, max_tokens: int = 256, device: str = "cuda") -> str:  # type: ignore
     """Same as before, but accepts an explicit *hooks* list (or None)."""
-    toks = model.to_tokens(prompt).to(device)
+    toks = inter_toks_BL.to(device)
     out  = toks.clone()
 
     if hooks:
@@ -994,7 +1011,7 @@ def sweep_coefficients_multi(
     saes: Dict[int, "SAE"],
     interventions: List[Tuple[int, int, int]],   # (layer, token_pos, latent)
     coefficients: List[float],
-    prompt: str,
+    inter_toks_BL: torch.Tensor,
     stop_tok: int = 1917,
     device: str = "cuda",
     max_tokens: int = 100,
@@ -1027,7 +1044,7 @@ def sweep_coefficients_multi(
     outputs: Dict[float, str] = {}
     for c in coefficients:
         changed, new_id, bl_id = steering_effect_on_next_token(
-            model, prompt, saes, interventions, c, STOP_TOKEN_ID
+            model, inter_toks_BL, saes, interventions, c, STOP_TOKEN_ID
         )
         if not changed:
             continue 
@@ -1052,7 +1069,7 @@ def sweep_coefficients_multi(
 
         # generate
         gen_suffix = generate_once(
-            model, prompt=prompt, stop_tok=stop_tok,
+            model, inter_toks_BL=inter_toks_BL, stop_tok=stop_tok,
             hooks=None, max_tokens=max_tokens, device=device,
         )
         outputs[c] = gen_suffix
@@ -1063,7 +1080,7 @@ def sweep_coefficients_multi(
 def run_steering_sweep(
     model,
     saes,
-    prompt: str,
+    inter_toks_BL: torch.Tensor,
     saved_pair_dict: Dict[str, List[Tuple[int, int, List[int]]]],
     baseline_text: str,
     *,
@@ -1074,7 +1091,7 @@ def run_steering_sweep(
     """Return per‑label sweep results without re-running baseline."""
     results: Dict[str, Dict[str, Any]] = {}
 
-    baseline_toks = baseline_text.split()
+    # baseline_toks = baseline_text.split()
 
     for label, latent_infos in tqdm(saved_pair_dict.items()):
         # build (layer, tok_pos, latent) triples
@@ -1088,7 +1105,7 @@ def run_steering_sweep(
             saes=saes,
             interventions=interventions,
             coefficients=list(coeff_grid),
-            prompt=prompt,
+            inter_toks_BL=inter_toks_BL,
             stop_tok=stop_tok,
             max_tokens=max_tokens,
         )
@@ -1196,23 +1213,6 @@ else:
 
 # %% STEP 2: LOGIT LENS
 
-def find_logit_lens_clusters(model, saes, entries, inter_toks_BL, stop_tok, verbose=True):
-    # FIXIT: maybe remove the current token being predicted to not be here 
-    uniq_ids = gather_unique_tokens(model, inter_toks_BL, stop_tok=stop_tok)
-    prompt_str = model.to_string(inter_toks_BL[0, :])
-    filtered_uniq_ids = [tok for tok in uniq_ids if model.to_string(tok) not in prompt_str]
-    if verbose:
-        print(f"Found {len(filtered_uniq_ids)} tokens not in prompt: {[model.to_string(tok) for tok in filtered_uniq_ids]}")
-    saved_pair_dict = build_saved_pair_dict_fastest(
-        model,
-        saes,
-        entries,
-        filtered_uniq_ids,
-        tok_k_pos_logits=15,
-        batch_size=4096
-    )
-    return saved_pair_dict
-
 logit_lens = True
 
 if logit_lens: 
@@ -1228,8 +1228,34 @@ else:
     saved_pair_dict = torch.load(save_path)
     print(f"Loaded {len(saved_pair_dict)} pairs from {save_path}")
 
+# %% STEP 3: STEERING SWEEP
+
+# prompt = model.to_string(out_BL[0, :inter_tok_id])
+# print(prompt)
+
+baseline_suffix = model.to_string(out_BL[0, inter_tok_id:])
+print(baseline_suffix)
+
+# %%
+sweep_metrics = run_steering_sweep(
+    model,
+    saes,
+    # prompt,
+    inter_toks_BL=out_BL[:, :inter_tok_id],
+    saved_pair_dict=saved_pair_dict,
+    baseline_text=baseline_suffix,
+    coeff_grid=COEFF_GRID,
+    stop_tok=STOP_TOKEN_ID,
+    max_tokens=100,
+)
 
 
-
-
+import pprint
+pprint.pprint(sweep_metrics)
+# %%
+out_trial = model(model.to_string(out_BL[0, :inter_tok_id]))
+print(out_trial.shape)
+# %%
+out_trial = model(out_BL[0, :inter_tok_id])
+print(out_trial.shape)
 # %%
