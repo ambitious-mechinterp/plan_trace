@@ -1,12 +1,13 @@
 # %% 
-# # for a given prompt and token index,
-# discover circuit with >60% perf recovery
-# cluster based on decoding directions logit lens 
-# test steering effect of clusters
-# test effect of each latent / position in cluster
 """
-Shape Suffix Definition: 
+GOALS: 
+for a given prompt and token index,
+- STEP1: discover circuit with >60% perf recovery
+- STEP2: cluster based on decoding directions logit lens 
+- STEP3: test steering effect of clusters
+- STEP4: test effect of each latent / position in cluster
 
+Shape Suffix Definition: 
 - B: batch size 
 - L: Num of Input Tokens 
 - O: Num of Output Tokens
@@ -17,7 +18,6 @@ Shape Suffix Definition:
 - S: Number of SAE neurons in a layer
 - A: Number of SAEs attached
 """
-
 # Imports 
 import os
 import gc
@@ -28,14 +28,14 @@ import itertools
 import pandas as pd
 from torch import nn
 from tqdm import tqdm
-import torch.nn.functional as F
-from typing import List, Optional, Dict, Any
-from sae_lens import SAE, HookedSAETransformer
-from sae_lens.toolkit.pretrained_saes_directory import get_pretrained_saes_directory
-
+from functools import partial
 from dotenv import load_dotenv
+import torch.nn.functional as F
 from huggingface_hub import login
-
+from collections import defaultdict
+from sae_lens import SAE, HookedSAETransformer
+from typing import List, Optional, Dict, Any, Sequence, Tuple, Iterable, Union
+from sae_lens.toolkit.pretrained_saes_directory import get_pretrained_saes_directory
 
 # %% ALL HELPER FUNCTIONS
 
@@ -724,67 +724,6 @@ def find_min_k_for_threshold(K_vals, metrics_negative, metrics_absolute, clean_p
     
     return min_k_negative, min_k_absolute
 
-# %% Loading and stuff 
-
-device = "cuda"
-model_name = "gemma-2-2b-it"
-model = load_model(model_name, device=device, use_custom_cache=False, dtype=torch.bfloat16)
-
-layers = list(range(model.cfg.n_layers))
-saes = load_pretrained_saes(layers=layers, release="gemma-scope-2b-pt-mlp-canonical", width="16k", device=device, canon=True)
-
-# %% params stuff and testing prompts to use for testing
-
-max_generation_length = 150
-STOP_TOKEN_ID = 1917
-COEFF_GRID = list(range(-100, 0, 20))
-IG_STEPS = 10 
-K_MAX = 90001
-K_STEP = 10000
-K_THRES = 0.6
-
-file_path = "../data/first_100_passing_examples.json"
-with open(file_path, 'r') as f:
-    data = json.load(f)
-
-# %% testing full generation for a task
-p_id = 15
-entry = data[p_id]
-
-prompt = (
-    "You are an expert Python programmer, and here is your task: "
-    f"{entry['prompt']} Your code should pass these tests:\n\n"
-    + "\n".join(entry["test_list"]) + "\nWrite your code below starting with \"```python\" and ending with \"```\".\n```python\n"
-)
-
-# find the tid of ym
-toks_BL = model.to_tokens(prompt).to(device)
-out_BL = toks_BL.clone()
-
-while out_BL.shape[-1] - toks_BL.shape[-1] < 150:
-    with torch.no_grad():
-        logits_V = model(out_BL)[0, -1]
-    next_id = logits_V.argmax(-1).item()
-    del logits_V
-    cleanup_cuda()
-    if next_id == STOP_TOKEN_ID:
-        break
-    out_BL = torch.cat([out_BL, torch.tensor([[next_id]], device=device)], dim=1)
-print(model.to_string(out_BL[0, toks_BL.shape[-1]:]))
-
-# %% selecting a specific forward pass
-
-inter_tok_id = 297
-with torch.no_grad():
-    inter_logits_V = model(out_BL[:, :inter_tok_id])[0, -1]
-inter_label = inter_logits_V.argmax(-1).item()
-del inter_logits_V
-cleanup_cuda()
-print(f"Inter token ID: {inter_tok_id}, Inter label: {inter_label}, Inter token: {model.to_string(inter_label)}")
-
-
-# %% STEP 1: CIRCUIT DISCOVERY
-
 def discover_circuit(model, saes, inter_toks_BL, device, ig_steps=10, k_max=7001, k_step=500, k_thres=0.6):
     """
     Orchestrate a full circuit discovery pipeline:
@@ -869,17 +808,428 @@ def discover_circuit(model, saes, inter_toks_BL, device, ig_steps=10, k_max=7001
 
     return entries
 
-entries = discover_circuit(
-    model=model,
-    saes=saes,
-    inter_toks_BL=toks_BL,
-    device=device,
-    ig_steps=IG_STEPS,
-    k_max=K_MAX,
-    k_step=K_STEP,
-    k_thres=K_THRES
+
+def build_saved_pair_dict_fastest(
+    model,
+    saes,
+    trial_entries: Sequence[Tuple[int, int, int, float]],
+    unique_token_ids: Sequence[int],
+    *,
+    tok_k_pos_logits: int = 15,
+    batch_size: int = 4096,
+) -> Dict[str, List[Tuple[int, int, List[int]]]]:
+    """Ultra-fast saved_pair_dict building, full GPU, vectorized."""
+
+    layer_to_latents: Dict[int, set[int]] = defaultdict(set)
+    for l, t, lat, _ in trial_entries:
+        layer_to_latents[l].add(lat)
+
+    unique_token_tensor = torch.tensor(unique_token_ids, device=device)  # stay on GPU
+    saved_pair_dict: Dict[str, List[Tuple[int, int, List[int]]]] = defaultdict(list)
+
+    with torch.no_grad():
+        W_U = model.W_U.float().to(device)
+
+        for layer_i, latents in tqdm(layer_to_latents.items()):
+            latents = sorted(latents)
+            W_dec = saes[layer_i].W_dec.to(device)
+
+            for start in range(0, len(latents), batch_size): #, desc=f"layer {layer_i} hit-mapping"):
+                batch = latents[start : start + batch_size]
+                dirs = W_dec[batch]            # [batch_size, d_model]
+
+                logits = dirs @ W_U            # [batch_size, vocab_size]
+                topk_scores, topk_idx = torch.topk(logits, tok_k_pos_logits, dim=1)  # [batch_size, topk]
+
+                # ---- GPU intersection ----
+                # For each latent's topk, find which match unique_token_ids
+                # Create: [batch_size, topk] -> True/False if in unique_token_ids
+
+                # broadcast: [batch_size, topk] vs [1, num_unique_ids]
+                topk_idx_exp = topk_idx.unsqueeze(-1)                   # [batch, topk, 1]
+                unique_tok_exp = unique_token_tensor.view(1, 1, -1)     # [1, 1, num_unique_ids]
+
+                matches = (topk_idx_exp == unique_tok_exp).any(-1)      # [batch, topk] -> True/False
+                matching_token_ids = topk_idx[matches]                  # flatten matches
+
+                if matching_token_ids.numel() > 0:
+                    matched_latents, matched_topk = torch.nonzero(matches, as_tuple=True)
+                    for latent_batch_idx, topk_pos in zip(matched_latents.tolist(), matched_topk.tolist()):
+                        latent_idx_in_batch = batch[latent_batch_idx]
+                        matched_token_id = topk_idx[latent_batch_idx, topk_pos].item()
+                        label_str = model.to_string([matched_token_id]).strip()
+
+                        if not label_str:
+                            continue
+
+                        matching_toks = [
+                            t for l, t, lat, _ in trial_entries
+                            if l == layer_i and lat == latent_idx_in_batch
+                        ]
+                        saved_pair_dict[label_str].append(
+                            (layer_i, latent_idx_in_batch, matching_toks)
+                        )
+
+                cleanup_cuda()
+
+    return dict(saved_pair_dict)
+
+def gather_unique_tokens(
+    model,
+    prompt: Union[str, torch.Tensor],
+    *,
+    stop_tok: int,
+    device: str = "cuda",
+) -> Tuple[Sequence[int], str]:
+    """Return *(unique_token_ids, full_suffix_str)* for prompt."""
+    if isinstance(prompt, str):
+        toks = model.to_tokens(prompt).to(device)
+    else:
+        toks = prompt.to(device)
+    out  = toks.clone()
+    unique_ids: set[int] = set()
+
+    while True:
+        with torch.no_grad():
+            logits = model(out)[:, -1, :]
+            next_id = logits.argmax(-1).item()
+        if next_id == stop_tok:
+            break
+        if model.to_string(next_id) == "<end_of_turn>" or model.to_string(next_id) == "<eos>":
+            break
+        unique_ids.add(next_id)
+        out = torch.cat([out, torch.tensor([[next_id]], device=device)], dim=1)
+
+    return list(unique_ids)
+
+def _steer_dtype(activations: torch.Tensor) -> torch.dtype:
+    """Return dtype used to apply steering (fp32 while debugging)."""
+    # if USE_FP16_STEERING:
+    #     return activations.dtype          # fp16 / bf16
+    return torch.float32                  # debug‑mode: high precision
+
+def steering_hook(
+    activations, hook, sae, latent_idx: int,
+    coeff: float, steering_token_index: Optional[int] = None
+):
+    """
+    Apply coeff · W_dec[latent_idx] either to the whole sequence or
+    a single position (steering_token_index), using a *single* high‑precision
+    add to avoid rounding‑order artefacts.
+    """
+    tgt_dtype = _steer_dtype(activations)
+    steer_vec = (
+        sae.W_dec[latent_idx]
+        .to(device=activations.device, dtype=tgt_dtype) * float(coeff)
+    )
+
+    # ——— cast activations to tgt_dtype only for the in‑place add ———
+    act_view = activations.to(dtype=tgt_dtype)
+
+    if steering_token_index is None:
+        act_view += steer_vec
+    else:
+        act_view[:, steering_token_index] += steer_vec
+
+    # In debug mode this casts back to original (fp16/bf16)   ↓↓↓
+    return act_view.to(dtype=activations.dtype)
+
+def steering_effect_on_next_token(
+    model, toks_prefix, saes, interventions, coeff, stop_tok
+):
+    """
+    Returns (changed: bool, new_id: int, baseline_id: int)
+    without sampling the whole sequence.
+    """
+    # --- register hooks exactly once ------------------------------------
+    model.reset_hooks(including_permanent=True)
+    with torch.no_grad():
+        logits = model(toks_prefix)[:, -1]
+    baseline_id = logits.argmax(-1).item()
+
+    for layer_idx, tok_pos, latent_idx in interventions:
+        sae = saes[layer_idx]
+        model.add_hook(
+            sae.cfg.hook_name,
+            partial(
+                steering_hook, sae=sae,
+                latent_idx=latent_idx, coeff=coeff,
+                steering_token_index=tok_pos,
+            ),
+        )
+
+    with torch.no_grad():
+        logits = model(toks_prefix)[:, -1]        
+    new_id      = logits.argmax(-1).item()
+    
+    model.reset_hooks(including_permanent=True)
+    return new_id != baseline_id, new_id, baseline_id
+
+def generate_once(model, prompt: str, stop_tok: int, hooks: Optional[List] = None, *, max_tokens: int = 256, device: str = "cuda") -> str:  # type: ignore
+    """Same as before, but accepts an explicit *hooks* list (or None)."""
+    toks = model.to_tokens(prompt).to(device)
+    out  = toks.clone()
+
+    if hooks:
+        for hook_name, fn in hooks:
+            model.add_hook(hook_name, fn)
+
+    while out.shape[-1] - toks.shape[-1] < max_tokens:
+        with torch.no_grad():
+            logits = model(out)[:, -1]
+        next_id = logits.argmax(-1).item()
+        if next_id == stop_tok:
+            break
+        if model.to_string(next_id) == "<end_of_turn>" or model.to_string(next_id) == "<eos>":
+            break
+        out = torch.cat([out, torch.tensor([[next_id]], device=device)], dim=1)
+
+    if hooks:
+        model.reset_hooks(including_permanent=True)
+
+    return model.to_string(out[0, toks.shape[-1]:])
+
+def sweep_coefficients_multi(
+    model,
+    saes: Dict[int, "SAE"],
+    interventions: List[Tuple[int, int, int]],   # (layer, token_pos, latent)
+    coefficients: List[float],
+    prompt: str,
+    stop_tok: int = 1917,
+    device: str = "cuda",
+    max_tokens: int = 100,
+) -> Dict[float, str]:
+
+    # ─── pre‑aggregate: (coeff  →  layer → {pos → steer_vec}) ─────────────
+    d_model   = saes[0].W_dec.shape[1]
+    act_dtype = next(model.parameters()).dtype    # fp16 / bf16 / fp32
+
+    steer_by_coeff: Dict[float, Dict[int, Dict[int, torch.Tensor]]] = {}
+    for c in coefficients:
+        per_coeff = defaultdict(                       # layer →
+            lambda: defaultdict(                       #   pos →
+                lambda: torch.zeros(                   #     steer_vec
+                    d_model, device=device,
+                    dtype=_steer_dtype(torch.empty((),dtype=act_dtype))
+                )
+            )
+        )
+        for layer_idx, pos, latent_idx in interventions:
+            vec = (
+                saes[layer_idx].W_dec[latent_idx]
+                .to(device=device, dtype=_steer_dtype(torch.empty((),dtype=act_dtype)))
+                * float(c)
+            )
+            per_coeff[layer_idx][pos] += vec
+        steer_by_coeff[c] = per_coeff
+
+    # ─── do the per‑coeff generation ──────────────────────────────────────
+    outputs: Dict[float, str] = {}
+    for c in coefficients:
+        changed, new_id, bl_id = steering_effect_on_next_token(
+            model, prompt, saes, interventions, c, STOP_TOKEN_ID
+        )
+        if not changed:
+            continue 
+        per_coeff = steer_by_coeff[c]
+
+        # register ONE hook per layer that adds the *summed* vector
+        for layer_idx, pos_dict in per_coeff.items():
+            hook_name = saes[layer_idx].cfg.hook_name
+
+            def make_layer_hook(pos_dict_local):
+                def layer_hook(activations, hook):
+                    for pos, vec in pos_dict_local.items():
+                        if pos < activations.size(1):
+                            act_view = activations.to(_steer_dtype(activations))
+                            act_view[:, pos] += vec
+                            # copy back (same dtype cast logic as above)
+                            activations.copy_(act_view.to(dtype=activations.dtype))
+                    return activations
+                return layer_hook
+
+            model.add_hook(hook_name, make_layer_hook(pos_dict))
+
+        # generate
+        gen_suffix = generate_once(
+            model, prompt=prompt, stop_tok=stop_tok,
+            hooks=None, max_tokens=max_tokens, device=device,
+        )
+        outputs[c] = gen_suffix
+        model.reset_hooks(including_permanent=True)
+
+    return outputs
+
+def run_steering_sweep(
+    model,
+    saes,
+    prompt: str,
+    saved_pair_dict: Dict[str, List[Tuple[int, int, List[int]]]],
+    baseline_text: str,
+    *,
+    coeff_grid: Sequence[int],
+    stop_tok: int,
+    max_tokens: int = 100,
+) -> Dict[str, Dict[str, Any]]:
+    """Return per‑label sweep results without re-running baseline."""
+    results: Dict[str, Dict[str, Any]] = {}
+
+    baseline_toks = baseline_text.split()
+
+    for label, latent_infos in tqdm(saved_pair_dict.items()):
+        # build (layer, tok_pos, latent) triples
+        interventions = [
+            (layer_i, tok_pos, latent_i)
+            for layer_i, latent_i, tok_positions in latent_infos
+            for tok_pos in tok_positions
+        ]
+        sweep_out = sweep_coefficients_multi(
+            model=model,
+            saes=saes,
+            interventions=interventions,
+            coefficients=list(coeff_grid),
+            prompt=prompt,
+            stop_tok=stop_tok,
+            max_tokens=max_tokens,
+        )
+
+        label_metrics: List[Dict[str, Any]] = []
+        for c in coeff_grid:
+            txt  = sweep_out.get(c, "")
+            # lev  = Levenshtein.normalized_distance(txt, baseline_text)
+            # jw   = 1 - JaroWinkler.normalized_similarity(txt, baseline_text)
+            # jac  = jaccard_dissim(txt.split(), baseline_toks)
+            # label_metrics.append(dict(coeff=c, levenshtein=lev, jaro_winkler=jw, jaccard=jac, steered_text=txt))
+            label_metrics.append(dict(coeff=c, steered_text=txt))
+
+        results[label] = {
+            "base_text": baseline_text,
+            "steered": label_metrics
+        }
+
+    return results
+
+
+# %% Loading and stuff 
+
+device = "cuda"
+model_name = "gemma-2-2b-it"
+model = load_model(model_name, device=device, use_custom_cache=False, dtype=torch.bfloat16)
+
+layers = list(range(model.cfg.n_layers))
+saes = load_pretrained_saes(layers=layers, release="gemma-scope-2b-pt-mlp-canonical", width="16k", device=device, canon=True)
+
+# %% params stuff and testing prompts to use for testing
+
+max_generation_length = 150
+STOP_TOKEN_ID = 1917
+COEFF_GRID = list(range(-100, 0, 20))
+IG_STEPS = 10 
+K_MAX = 90001
+K_STEP = 10000
+K_THRES = 0.6
+
+file_path = "../data/first_100_passing_examples.json"
+with open(file_path, 'r') as f:
+    data = json.load(f)
+
+# %% testing full generation for a task
+p_id = 15
+entry = data[p_id]
+
+prompt = (
+    "You are an expert Python programmer, and here is your task: "
+    f"{entry['prompt']} Your code should pass these tests:\n\n"
+    + "\n".join(entry["test_list"]) + "\nWrite your code below starting with \"```python\" and ending with \"```\".\n```python\n"
 )
-if entries is not None:
-    save_path = f"../outputs/circuit_prompt{p_id}_intertok{inter_tok_id}_k{len(entries)}_v3.pt"
-    torch.save(entries, save_path)
-    print(f"Saved {len(entries)} hits to {save_path}")
+
+# find the tid of ym
+toks_BL = model.to_tokens(prompt).to(device)
+out_BL = toks_BL.clone()
+
+while out_BL.shape[-1] - toks_BL.shape[-1] < 150:
+    with torch.no_grad():
+        logits_V = model(out_BL)[0, -1]
+    next_id = logits_V.argmax(-1).item()
+    del logits_V
+    cleanup_cuda()
+    if next_id == STOP_TOKEN_ID:
+        break
+    out_BL = torch.cat([out_BL, torch.tensor([[next_id]], device=device)], dim=1)
+print(model.to_string(out_BL[0, toks_BL.shape[-1]:]))
+
+# %% selecting a specific forward pass
+
+inter_tok_id = 297
+with torch.no_grad():
+    inter_logits_V = model(out_BL[:, :inter_tok_id])[0, -1]
+inter_label = inter_logits_V.argmax(-1).item()
+del inter_logits_V
+cleanup_cuda()
+print(f"Inter token ID: {inter_tok_id}, Inter label: {inter_label}, Inter token: {model.to_string(inter_label)}")
+
+# %% STEP 1: CIRCUIT DISCOVERY
+
+disc_circuit = True
+
+if disc_circuit:
+    # entries = [{layer, tok, latent, ie}, ...]
+    entries = discover_circuit(
+        model=model,
+        saes=saes,
+        inter_toks_BL=out_BL[:, :inter_tok_id], #toks_BL,
+        device=device,
+        ig_steps=IG_STEPS,
+        k_max=K_MAX,
+        k_step=K_STEP,
+        k_thres=K_THRES
+    )
+    if entries is not None:
+        save_path = f"../outputs/circuit_prompt{p_id}_intertok{inter_tok_id}_k{len(entries)}_v3.pt"
+        torch.save(entries, save_path)
+        print(f"Saved {len(entries)} hits to {save_path}")
+else:
+    # Load the saved circuit entries
+    save_path = f"../outputs/circuit_prompt{p_id}_intertok{inter_tok_id}_k50001_v3.pt"
+    entries = torch.load(save_path)
+    print(f"Loaded {len(entries)} hits from {save_path}")
+
+# %% STEP 2: LOGIT LENS
+
+def find_logit_lens_clusters(model, saes, entries, inter_toks_BL, stop_tok, verbose=True):
+    # FIXIT: maybe remove the current token being predicted to not be here 
+    uniq_ids = gather_unique_tokens(model, inter_toks_BL, stop_tok=stop_tok)
+    prompt_str = model.to_string(inter_toks_BL[0, :])
+    filtered_uniq_ids = [tok for tok in uniq_ids if model.to_string(tok) not in prompt_str]
+    if verbose:
+        print(f"Found {len(filtered_uniq_ids)} tokens not in prompt: {[model.to_string(tok) for tok in filtered_uniq_ids]}")
+    saved_pair_dict = build_saved_pair_dict_fastest(
+        model,
+        saes,
+        entries,
+        filtered_uniq_ids,
+        tok_k_pos_logits=15,
+        batch_size=4096
+    )
+    return saved_pair_dict
+
+logit_lens = True
+
+if logit_lens: 
+    saved_pair_dict = find_logit_lens_clusters(model, saes, entries, out_BL[:, :inter_tok_id], STOP_TOKEN_ID, verbose=True)
+    if saved_pair_dict is not None:
+        save_path = f"../outputs/saved_pair_dict_prompt{p_id}_intertok{inter_tok_id}_v3.pt"
+        torch.save(saved_pair_dict, save_path)
+        print(f"Saved {len(saved_pair_dict)} pairs to {save_path}")
+    else:
+        print("No saved pair dict found")
+else: 
+    save_path = f"../outputs/saved_pair_dict_prompt{p_id}_intertok{inter_tok_id}_v3.pt"
+    saved_pair_dict = torch.load(save_path)
+    print(f"Loaded {len(saved_pair_dict)} pairs from {save_path}")
+
+
+
+
+
+# %%
