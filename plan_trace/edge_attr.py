@@ -31,7 +31,6 @@ import copy
 
 from helpers.utils import (
     load_model, 
-    get_device,
     cleanup_cuda,
     clear_memory,
 )
@@ -217,8 +216,12 @@ def get_saes_cache(saes):
 
     return clean_sae_cache, clean_error_cache, corr_sae_cache, corr_error_cache
 
+# EDGE ATTRIBUTION
 
-def edge_attr(
+# ─────────────────────────────────────────────────────────────────────────────
+# JVP-based edge attribution helpers (B,L,S aware)
+# ─────────────────────────────────────────────────────────────────────────────
+def _jvp_edge_attr(
     model,
     base_saes,
     token_list,
@@ -229,17 +232,217 @@ def edge_attr(
     device,
     *,
     max_features_per_layer: int = 100,
-    jvp_steps: int = 5,
     use_mean_error: bool = True,
     logstats: bool = False,
     edge_includes_loss_grad: bool = True,
     feature_selection: str = "max",
 ):
-    """Compute JVP‑style edges between *adjacent* SAE layers.
+    """
+    Compute layer-to-layer edge attribution with a *forward-mode*
+    Jacobian-vector product (JVP).
 
-    The finite‑difference and full‑Jacobian   implementations have been removed;
-    only the perturb‑and‑measure JVP remains.  Behaviour is identical to the
-    previous `method="jvp"` branch.
+    Shapes
+    -------
+    Activations are [B, L, S] throughout.
+
+    Returns
+    -------
+    Dict[str, Dict[str, torch.Tensor]]
+        Sparse COO edge tensors keyed upstream_hook → downstream_hook
+        with shape  [S_down , S_up].
+    """
+    # ── 1. feature pre-selection ──────────────────────────────────────────
+    if feature_selection not in {"max", "sum"}:
+        raise ValueError("feature_selection must be 'max' or 'sum'.")
+
+    important_feats: Dict[str, List[int]] = {}
+    for sae in base_saes:
+        hname   = sae.cfg.hook_name
+        effects = res_sae_effects[hname]                       # [B, L, S]
+        effects_flat = effects.reshape(-1, effects.shape[-1])  # [B·L, S]
+
+        scores = (
+            effects_flat.abs().max(0).values
+            if feature_selection == "max"
+            else effects_flat.abs().sum(0)
+        )
+        k       = min(max_features_per_layer, scores.numel())
+        topk    = torch.topk(scores, k).indices if k else torch.tensor([], dtype=torch.long)
+        important_feats[hname] = topk.tolist()
+        if logstats:
+            print(f"[edge-attr-jvp] {hname}: kept {len(topk)}/{scores.numel()} features")
+
+    # ── 2. sequential edge loop ───────────────────────────────────────────
+    edges: Dict[str, Dict[str, torch.Tensor]] = {}
+    for i in range(len(base_saes) - 1):
+        up_sae,   down_sae   = base_saes[i], base_saes[i + 1]
+        up_hook,  down_hook  = up_sae.cfg.hook_name, down_sae.cfg.hook_name
+        up_feats, down_feats = important_feats.get(up_hook, []), important_feats.get(down_hook, [])
+
+        if not up_feats or not down_feats:
+            if logstats:
+                print(f"[edge-attr-jvp] skip {up_hook}->{down_hook} (no feats)")
+            continue
+
+        if logstats:
+            print(f"[edge-attr-jvp] computing {up_hook}->{down_hook}")
+
+        edge = _compute_jvp_edge(
+            model,
+            base_saes,
+            up_sae,
+            down_sae,
+            token_list,
+            up_feats,
+            down_feats,
+            clean_sae_cache,
+            clean_error_cache,
+            res_sae_effects,
+            labels,
+            device,
+            use_mean_error=use_mean_error,
+            edge_includes_loss_grad=edge_includes_loss_grad,
+            logstats=logstats,
+        )
+        if edge is not None:
+            edges.setdefault(up_hook, {})[down_hook] = edge
+
+    if logstats:
+        n_edges = sum(len(v) for v in edges.values())
+        print(f"[edge-attr-jvp] finished – {n_edges} non-zero edge tensors")
+
+    return edges
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+def _compute_jvp_edge(
+    model,
+    base_saes,
+    upstream_sae,
+    downstream_sae,
+    token_list,
+    upstream_features: List[int],
+    downstream_features: List[int],
+    clean_sae_cache,
+    clean_error_cache,
+    res_sae_effects,
+    labels,
+    device,
+    *,
+    use_mean_error: bool = True,
+    edge_includes_loss_grad: bool = True,
+    logstats: bool = False,
+):
+    """
+    Single-pair JVP edge attribution.
+
+    For each (up_idx, down_idx) pair computes
+
+        Σ_{b,t}  ∂ down_latent[b,t,down_idx] / ∂ up_latent[b,t,up_idx]
+      or, with `edge_includes_loss_grad`,
+        Σ_{b,t}  grad_loss[b,t,down_idx] *
+                  ∂ down_latent[b,t,down_idx] / ∂ up_latent[b,t,up_idx]
+
+    using `torch.autograd.functional.jvp`.
+    """
+    if logstats:
+        print("[edge-attr-jvp] running JVP edge attribution")
+
+    up_hook, down_hook = upstream_sae.cfg.hook_name, downstream_sae.cfg.hook_name
+
+    # Baseline activations [B, L, S]
+    up_base   = clean_sae_cache[up_hook].to(device)      # [B, L, S_up]
+    down_base = clean_sae_cache[down_hook].to(device)    # [B, L, S_down]
+
+    # Optional downstream loss gradient
+    down_grad = res_sae_effects[down_hook].to(device) if edge_includes_loss_grad else None
+
+    # Container: (down_idx, up_idx) -> list[Tensor]
+    bucket: Dict[Tuple[int, int], List[torch.Tensor]] = {}
+
+    # Reset SAE state once (no grads required for forward-mode)
+    for sae in base_saes:
+        sae.mean_error   = clean_error_cache[sae.cfg.hook_name].detach()
+        sae.feature_acts = clean_sae_cache[sae.cfg.hook_name].detach().to(device)
+
+    def _forward_fn(up_act: torch.Tensor) -> torch.Tensor:
+        """
+        up_act  : [B, L, S_up]
+        returns : [B, L, S_down]
+        """
+        _, saes_out = run_sae_hook_fn(
+            model,
+            base_saes,
+            token_list,
+            calc_error=False,
+            use_error=False,
+            fake_activations=(upstream_sae.cfg.hook_layer, up_act),
+            use_mean_error=use_mean_error,
+        )
+        return saes_out[downstream_sae.cfg.hook_layer].feature_acts
+
+    # ── loop over upstream features ────────────────────────────────────────
+    for up_idx in upstream_features:
+        # 1-hot direction in latent dim, broadcast over B and L
+        direction = torch.zeros_like(up_base)
+        direction[..., up_idx] = 1.0
+
+        # Forward-mode Jacobian-vector product
+        _, jvp = torch.autograd.functional.jvp(
+            _forward_fn, (up_base,), (direction,), create_graph=False, strict=False
+        )  # jvp: [B, L, S_down]
+
+        # ── accumulate contributions ───────────────────────────────────────
+        for down_idx in downstream_features:
+            contrib = jvp[..., down_idx]                      # [B, L]
+            if down_grad is not None:
+                contrib = contrib * down_grad[..., down_idx]  # weighting
+            val = contrib.sum()                               # scalar
+            if val.abs() < 1e-6:
+                continue
+            bucket.setdefault((down_idx, up_idx), []).append(val.detach().cpu())
+
+        # hygiene
+        clear_memory(base_saes, model)
+
+    if not bucket:
+        return None
+
+    # ── assemble sparse COO tensor ─────────────────────────────────────────
+    idxs, vals = zip(
+        *[((d, u), torch.stack(v).mean()) for (d, u), v in bucket.items()]
+    )
+    idx_mat = torch.tensor(list(zip(*idxs)), dtype=torch.long)  # [2, N]
+    val_mat = torch.stack(list(vals))                           # [N]
+
+    edge_tensor = torch.sparse_coo_tensor(
+        idx_mat,
+        val_mat,
+        size=(len(downstream_features), len(upstream_features)),
+    ).coalesce()
+
+    return edge_tensor
+
+
+
+def _finite_differences_edge_attr(
+    model,
+    base_saes,
+    token_list,
+    res_sae_effects,
+    clean_sae_cache,
+    clean_error_cache,
+    labels,
+    device,
+    *,
+    max_features_per_layer: int = 100,
+    fd_steps: int = 10,
+    use_mean_error: bool = True,
+    logstats: bool = False,
+    edge_includes_loss_grad: bool = True,
+    feature_selection: str = "max",
+):
+    """Compute edge attribution
     """
 
     if feature_selection not in {"max", "sum"}:
@@ -257,7 +460,7 @@ def edge_attr(
         top_idx = torch.topk(scores, k).indices if k > 0 else torch.tensor([], dtype=torch.long)
         important_features[hname] = top_idx.tolist()
         if logstats:
-            print(f"[edge‑attr] {hname}: kept {len(top_idx)}/{scores.numel()} features")
+            print(f"[edge‑attr-fd] {hname}: kept {len(top_idx)}/{scores.numel()} features")
 
     edges: Dict[str, Dict[str, torch.Tensor]] = {}
     for i in range(len(base_saes) - 1):
@@ -268,13 +471,13 @@ def edge_attr(
         down_feats = important_features.get(down_hook, [])
         if not up_feats or not down_feats:
             if logstats:
-                print(f"[edge‑attr] skip {up_hook}->{down_hook} (no feats)")
+                print(f"[edge‑attr-fd] skip {up_hook}->{down_hook} (no feats)")
             continue
 
         if logstats:
-            print(f"[edge‑attr] computing {up_hook}->{down_hook}")
+            print(f"[edge‑attr-fd] computing {up_hook}->{down_hook}")
 
-        edge = _compute_jvp_edge(
+        edge = _compute_finite_differences_edge(
             model,
             base_saes,
             up_sae,
@@ -287,7 +490,7 @@ def edge_attr(
             res_sae_effects,
             labels,
             device,
-            steps=jvp_steps,
+            steps=fd_steps,
             use_mean_error=use_mean_error,
             edge_includes_loss_grad=edge_includes_loss_grad,
             logstats=logstats,
@@ -298,11 +501,11 @@ def edge_attr(
 
     if logstats:
         n_edges = sum(len(v) for v in edges.values())
-        print(f"[edge‑attr] finished – {n_edges} non‑zero edge tensors")
+        print(f"[edge‑attr-fd] finished – {n_edges} non‑zero edge tensors")
 
     return edges
 
-def _compute_jvp_edge(
+def _compute_finite_differences_edge(
     model,
     base_saes,
     upstream_sae,
@@ -321,11 +524,12 @@ def _compute_jvp_edge(
     edge_includes_loss_grad: bool = True,
     logstats: bool = False,
 ):
-    """Finite‑step perturbation implementation retained but *renamed* as JVP.
+    """Finite‑step perturbation implementation.
 
     In practice this still adds a small α and measures Δ – i.e. it is the
-    perturb‑and‑measure approximation that the original code called "jvp".
+    perturb‑and‑measure approximation.
     """
+    print(f"[edge‑attr-fd] running finite differences edge attribution")
 
     up_hook, down_hook = upstream_sae.cfg.hook_name, downstream_sae.cfg.hook_name
     up_clean = clean_sae_cache[up_hook].detach().to(device)  # [L,S]
@@ -344,7 +548,7 @@ def _compute_jvp_edge(
 
         for up_idx in upstream_features:
             pert = up_clean.clone()
-            pert[:, up_idx] += α
+            pert[..., up_idx] += α
 
             _, updated_saes = run_sae_hook_fn(
                 model,
@@ -360,8 +564,8 @@ def _compute_jvp_edge(
 
             for down_idx in downstream_features:
                 val = torch.sum(
-                    (down_grad[:, down_idx] if down_grad is not None else 1.0)
-                    * delta[:, down_idx]
+                    (down_grad[..., down_idx] if down_grad is not None else 1.0)
+                    * delta[..., down_idx]
                 )
                 if val.abs() < 1e-6:
                     continue
@@ -685,11 +889,11 @@ def discover_circuit(model,
                      k_max=7001,
                      k_step=500,
                      k_thres=0.6,
-                     compute_edges=False,  # NEW: Option to compute edges
-                     edge_method="jvp",    # NEW: Edge computation method
-                     max_edge_features=50, # NEW: Max features for edge computation
-                     edge_includes_loss_grad=True,  # NEW: Whether edges include loss gradient
-                     edge_feature_selection="max"   # NEW: Feature selection method
+                     compute_edges=True,  
+                     edge_method="jvp",    
+                     max_edge_features=100, 
+                     edge_includes_loss_grad=True,  
+                     edge_feature_selection="max"   
                      ):
 
     with torch.no_grad():
@@ -726,21 +930,39 @@ def discover_circuit(model,
     edges = None
     if compute_edges and res_sae_effects:
         print("Computing edge attributions...")
-        edges = edge_attr(
-            model=model,
-            base_saes=saes,
-            token_list=changable_toks,
-            res_sae_effects=res_sae_effects,
-            clean_sae_cache=clean_sae_cache,
-            clean_error_cache=clean_error_cache,
-            labels=torch.tensor([label]).to(device),
-            device=device,
-            max_features_per_layer=max_edge_features,
-            edge_includes_loss_grad=edge_includes_loss_grad,
-            feature_selection=edge_feature_selection,
-            logstats=True
-        )
-
+        if edge_method == "finite_differences":
+            edges = _finite_differences_edge_attr(
+                model=model,
+                base_saes=saes,
+                token_list=changable_toks,
+                res_sae_effects=res_sae_effects,
+                clean_sae_cache=clean_sae_cache,
+                clean_error_cache=clean_error_cache,
+                labels=torch.tensor([label]).to(device),
+                device=device,
+                max_features_per_layer=max_edge_features,
+                edge_includes_loss_grad=edge_includes_loss_grad,
+                feature_selection=edge_feature_selection,
+                logstats=True
+            )
+        elif edge_method == "jvp":
+                edges = _jvp_edge_attr(
+                model=model,
+                base_saes=saes,
+                token_list=changable_toks,
+                res_sae_effects=res_sae_effects,
+                clean_sae_cache=clean_sae_cache,
+                clean_error_cache=clean_error_cache,
+                labels=torch.tensor([label]).to(device),
+                device=device,
+                max_features_per_layer=max_edge_features,
+                use_mean_error=True,
+                logstats=True,
+                edge_includes_loss_grad=edge_includes_loss_grad,
+                feature_selection=edge_feature_selection,
+            )
+        
+        
     ### K METRICS
     K_vals, metrics_negative, metrics_absolute = compute_k_metrics(
         model, saes, res_sae_effects, device, hook_names, changable_toks, label, k_max=k_max, k_step=k_step
@@ -782,7 +1004,8 @@ def discover_circuit(model,
 
 if __name__ == "__main__":
     device = "cuda"
-    model_name = "gemma-2-2b-it"
+    model_name = "gemma-2-2b"
+    print(model_name)
     model = load_model(model_name, device=device, use_custom_cache=False, dtype=torch.bfloat16)
 
     layers = list(range(model.cfg.n_layers))

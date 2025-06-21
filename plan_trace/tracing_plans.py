@@ -1127,7 +1127,7 @@ def run_steering_sweep(
     return results
 
 
-# %% Loading and stuff 
+"""# %% Loading and stuff 
 
 device = "cuda"
 model_name = "gemma-2-2b-it"
@@ -1259,3 +1259,4 @@ print(out_trial.shape)
 out_trial = model(out_BL[0, :inter_tok_id])
 print(out_trial.shape)
 # %%
+"""
