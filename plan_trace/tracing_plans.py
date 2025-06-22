@@ -33,8 +33,10 @@ from dotenv import load_dotenv
 import torch.nn.functional as F
 from huggingface_hub import login
 from collections import defaultdict
+from dataclasses import dataclass
+from pathlib import Path
 from sae_lens import SAE, HookedSAETransformer
-from typing import List, Optional, Dict, Any, Sequence, Tuple, Iterable, Union
+from typing import List, Optional, Dict, Any, Sequence, Tuple, Iterable, Union, Set
 from sae_lens.toolkit.pretrained_saes_directory import get_pretrained_saes_directory
 
 # %% ALL HELPER FUNCTIONS
@@ -1136,6 +1138,10 @@ model = load_model(model_name, device=device, use_custom_cache=False, dtype=torc
 layers = list(range(model.cfg.n_layers))
 saes = load_pretrained_saes(layers=layers, release="gemma-scope-2b-pt-mlp-canonical", width="16k", device=device, canon=True)
 
+# %%
+!nvidia-smi
+
+
 # %% params stuff and testing prompts to use for testing
 
 max_generation_length = 150
@@ -1151,7 +1157,7 @@ with open(file_path, 'r') as f:
     data = json.load(f)
 
 # %% testing full generation for a task
-p_id = 15
+p_id = 24
 entry = data[p_id]
 
 prompt = (
@@ -1175,9 +1181,12 @@ while out_BL.shape[-1] - toks_BL.shape[-1] < 150:
     out_BL = torch.cat([out_BL, torch.tensor([[next_id]], device=device)], dim=1)
 print(model.to_string(out_BL[0, toks_BL.shape[-1]:]))
 
+# %%
+out_BL.shape
+
 # %% selecting a specific forward pass
 
-inter_tok_id = 297
+inter_tok_id = 180
 with torch.no_grad():
     inter_logits_V = model(out_BL[:, :inter_tok_id])[0, -1]
 inter_label = inter_logits_V.argmax(-1).item()
@@ -1207,9 +1216,13 @@ if disc_circuit:
         print(f"Saved {len(entries)} hits to {save_path}")
 else:
     # Load the saved circuit entries
-    save_path = f"../outputs/circuit_prompt{p_id}_intertok{inter_tok_id}_k50001_v3.pt"
+    save_path = f"../outputs/circuit_prompt{p_id}_intertok{inter_tok_id}_k30001_v3.pt"
     entries = torch.load(save_path)
     print(f"Loaded {len(entries)} hits from {save_path}")
+
+# %%
+
+!nvidia-smi
 
 # %% STEP 2: LOGIT LENS
 
@@ -1255,7 +1268,292 @@ pprint.pprint(sweep_metrics)
 # %%
 out_trial = model(model.to_string(out_BL[0, :inter_tok_id]))
 print(out_trial.shape)
+print(model.to_string(out_trial[0, 0].argmax(-1).item()))
+print(model.to_string(out_trial[0, -1].argmax(-1).item()))
 # %%
 out_trial = model(out_BL[0, :inter_tok_id])
 print(out_trial.shape)
+print(model.to_string(out_trial[0, 0].argmax(-1).item()))
+print(model.to_string(out_trial[0, -1].argmax(-1).item()))
 # %%
+model.to_string(out_BL[0, :inter_tok_id])
+# %%
+out_BL[0, 0]
+# %% earliest planning position
+
+C = {(l, t) for l, t, *_ in entries}
+saved_pair_dict = find_logit_lens_clusters(model, saes, entries, out_BL[:, :inter_tok_id], STOP_TOKEN_ID, verbose=True)
+print(saved_pair_dict)
+
+# %%
+
+pair_to_latents: Dict[Tuple[int, int], List[int]] = {}
+for layer_i, latent_i, tok_pos_list in saved_pair_dict["2"]:
+    for tok_pos in tok_pos_list:
+        pair_to_latents.setdefault((layer_i, tok_pos), []).append(latent_i)
+
+print(pair_to_latents)
+
+# %%
+
+def _measure_effects(pair_to_latents: Dict[Tuple[int, int], List[int]], clean_toks: torch.Tensor, coeff: float=-200.0):
+        toks_prefix = clean_toks
+        model.reset_hooks(including_permanent=True)
+        with torch.no_grad():
+            logits = model(toks_prefix)[:, -1]
+        baseline_id = logits.argmax(-1).item()
+        baseline_prob = F.softmax(logits, dim=-1)[0, baseline_id]
+        print(baseline_prob)
+        pos_eff: Dict[Tuple[int, int], float] = {}
+        for (layer, tok_pos), latents in pair_to_latents.items():
+            sae = saes[layer]
+            for latent_idx in latents:
+                model.add_hook(
+                    sae.cfg.hook_name,
+                    partial(steering_hook, sae=sae, latent_idx=latent_idx, coeff=coeff, steering_token_index=tok_pos),
+                )
+            with torch.no_grad():
+                logits = model(toks_prefix)[:, -1]
+            prob = F.softmax(logits, dim=-1)[0, baseline_id]
+            pos_eff[(layer, tok_pos)] = (prob - baseline_prob).item()
+            model.reset_hooks(including_permanent=True)
+        return pos_eff
+
+# %%
+
+thresh = 0.1
+position_effect: Dict[Tuple[int, int], float] = {}
+F_prime: Set[Tuple[int, int]] = set()
+position_effect = _measure_effects(pair_to_latents, out_BL[0, :inter_tok_id], coeff=-200.0)
+F_prime = {pos for pos, eff in position_effect.items() if abs(eff) > thresh}
+
+print(F_prime)
+
+# %%
+
+# Sort pairs by token index (pair[1]) and take top 10
+sorted_pairs = sorted(F_prime, key=lambda x: x[1])[:10]
+
+for pair in sorted_pairs:
+    print(f"Layer {pair[0]}, Token {pair[1]}")
+    print(f"Token text: {model.to_string(out_BL[0, pair[1]])}")
+    print(f"Effect: {position_effect[pair]:.4f}")
+    print("-"*100)
+
+# %%
+
+# pair2test = (0,18)
+model.reset_hooks(including_permanent=True)
+coeff = -200.0
+
+layer, tok_pos = (2, 22) #pair2test
+sae = saes[layer]
+
+# Create steering vector: sum of all latent directions scaled by coeff
+d_model = sae.W_dec.shape[1]
+act_dtype = next(model.parameters()).dtype
+steer_vec = torch.zeros(d_model, device=device, dtype=_steer_dtype(torch.empty((), dtype=act_dtype)))
+
+for latent_idx in pair_to_latents[(layer, tok_pos)]:
+    vec = (
+        sae.W_dec[latent_idx]
+        .to(device=device, dtype=_steer_dtype(torch.empty((), dtype=act_dtype)))
+        * float(coeff)
+    )
+    steer_vec += vec
+
+# Define hook function
+def steering_hook_single(activations, hook):
+    if tok_pos < activations.size(1):
+        act_view = activations.to(_steer_dtype(activations))
+        act_view[:, tok_pos] += steer_vec
+        return act_view.to(dtype=activations.dtype)
+    return activations
+
+# Register hook and generate
+model.add_hook(sae.cfg.hook_name, steering_hook_single)
+
+gen_suffix = generate_once(
+            model, inter_toks_BL=out_BL[:, :inter_tok_id], stop_tok=STOP_TOKEN_ID,
+            hooks=None, max_tokens=100, device=device,
+        )
+print(gen_suffix)
+
+
+model.reset_hooks(including_permanent=True)
+
+
+# %%
+print(position_effect[(17,190)])
+print(position_effect[(7,24)])
+print(position_effect[(17,135)])
+# %%
+
+print(model.to_string(out_BL[0, 15:30]))
+# model.to_string(out_BL[0,24])
+
+# %%
+
+@dataclass
+class Config:
+    # I/O
+    data_path: Path = Path("../data/external/first_100_passing_examples.json")
+    hits_root: Path = Path("../models/mbpp_task2_2b_mlp")
+
+    # generation
+    stop_token_id: int = 1917
+    max_new_tokens: int = 150
+
+    # steering
+    coeff: float = -200.0
+
+    # SAE
+    sae_release: str = "gemma-scope-2b-pt-mlp-canonical"
+    layers: Sequence[int] | None = None
+
+    # runtime
+    device: str = "cuda" if torch.cuda.is_available() else "cpu"
+    
+# -----------------------------------------------------------------------------
+#  CORE ANALYZER
+# -----------------------------------------------------------------------------
+
+class CircuitAnalyzer:
+    """Analyze a single `(prompt_idx, token_pred_idx)` pair."""
+
+    def __init__(self, model, saes, cfg: Config):
+        self.model, self.saes, self.cfg = model, saes, cfg
+        if cfg.layers is None:
+            cfg.layers = list(range(model.cfg.n_layers))
+        with open(cfg.data_path, "r") as f:
+            self.dataset = json.load(f)
+
+    # ---------------- PUBLIC API ----------------
+
+    def run(
+        self,
+        prompt_idx: int,
+        token_pred_idx: int,
+        *,
+        keys: Iterable[str] | None = None,
+        thresh: float = 0.0,
+    ) -> Dict[str, object]:
+        """Compute C, F_all, F_prime for one prediction.
+
+        *keys* – list of saved‑pair dict keys to evaluate.  
+        ▸ `None` → evaluate **all** keys.  
+        ▸ `[]` (empty) → skip evaluation, so F_all = F_prime = ∅.
+        """
+        # 1 Load circuit entries (C) & baseline prompt
+        hits_path = self.cfg.hits_root / f"prompt_{prompt_idx}/pred_{token_pred_idx}/hits.pt"
+        trial = torch.load(hits_path, weights_only=True)
+        C = {(l, t) for l, t, *_ in trial["entries"]}
+        clean_prompt = trial["prompt"].lstrip("<bos>")
+
+        # 2 Build saved‑pair dict -----------------------------------------
+        uniq_ids = gather_unique_tokens(self.model, clean_prompt, stop_tok=self.cfg.stop_token_id)
+        prompt_ids = self.model.to_tokens(clean_prompt)[0].tolist()
+        filtered = [tok for tok in uniq_ids if tok not in prompt_ids]
+
+        saved_pair_dict = build_saved_pair_dict_fastest(
+            self.model, self.saes, trial["entries"], filtered
+        )
+        hit_positions = set()
+        for key in saved_pair_dict:
+            for layer_i, _, token_pos_list in saved_pair_dict[key]:
+                for token_pos in token_pos_list:
+                    hit_positions.add((layer_i, token_pos))
+
+        F_all = hit_positions
+        # Early‑exit if user provided an *empty* key list ------------------
+        if keys is not None and len(list(keys)) == 0:
+            return {
+                "prompt_idx": prompt_idx,
+                "token_pred_idx": token_pred_idx,
+                "keys": [],
+                "C": C,
+                "F_all": F_all,
+                "F_prime": set(),
+                "position_effect": {},
+            }
+
+        # Choose keys
+        keys = list(saved_pair_dict.keys()) if keys is None else list(keys)
+
+        # 3 Map (layer, token_pos) → latents
+        pair_to_latents: Dict[Tuple[int, int], List[int]] = {}
+        for k in keys:
+            for layer_i, latent_i, tok_pos_list in saved_pair_dict[k]:
+                for tok_pos in tok_pos_list:
+                    pair_to_latents.setdefault((layer_i, tok_pos), []).append(latent_i)
+
+        # 4 Compute steering effects on demand ----------------------------
+        position_effect: Dict[Tuple[int, int], float] = {}
+        F_prime: Set[Tuple[int, int]] = set()
+        if F_all:
+            position_effect = self._measure_effects(pair_to_latents, clean_prompt)
+            F_prime = {pos for pos, eff in position_effect.items() if abs(eff) > thresh}
+
+        return {
+            "prompt_idx": prompt_idx,
+            "token_pred_idx": token_pred_idx,
+            "keys": keys,
+            "C": C,
+            "F_all": F_all,
+            "F_prime": F_prime,
+            "position_effect": position_effect,
+        }
+
+    # ---------------- INTERNAL ----------------
+
+    def _measure_effects(self, pair_to_latents: Dict[Tuple[int, int], List[int]], clean_prompt: str):
+        toks_prefix = self.model.to_tokens(clean_prompt)
+        self.model.reset_hooks(including_permanent=True)
+        with torch.no_grad():
+            logits = self.model(toks_prefix)[:, -1]
+        baseline_id = logits.argmax(-1).item()
+        baseline_prob = F.softmax(logits, dim=-1)[0, baseline_id]
+
+        pos_eff: Dict[Tuple[int, int], float] = {}
+        for (layer, tok_pos), latents in pair_to_latents.items():
+            sae = self.saes[layer]
+            for latent_idx in latents:
+                self.model.add_hook(
+                    sae.cfg.hook_name,
+                    partial(steering_hook, sae=sae, latent_idx=latent_idx, coeff=self.cfg.coeff, steering_token_index=tok_pos),
+                )
+            with torch.no_grad():
+                logits = self.model(toks_prefix)[:, -1]
+            prob = F.softmax(logits, dim=-1)[0, baseline_id]
+            pos_eff[(layer, tok_pos)] = (prob - baseline_prob).item()
+            self.model.reset_hooks(including_permanent=True)
+        return pos_eff
+
+# -----------------------------------------------------------------------------
+#  BATCH‑LEVEL CONVENIENCE -----------------------------------------------------
+# -----------------------------------------------------------------------------
+
+def analyze_batch(
+    analyzer: CircuitAnalyzer,
+    prompt_idx: int,
+    mapping: Dict[int, List[str]],  # token_pred_idx → key list (may be empty)
+    *,
+    thresh: float = 0.0,
+):
+    """Run analyzer over several predictions & return unified sets."""
+    union_C: Set[Tuple[int, int]] = set()
+    union_F: Set[Tuple[int, int]] = set()
+    union_Fp: Set[Tuple[int, int]] = set()
+
+    for token_pred_idx, key_list in mapping.items():
+        res = analyzer.run(prompt_idx, token_pred_idx, keys=key_list, thresh=thresh)
+        union_C |= res["C"]
+        union_F |= res["F_all"]
+        union_Fp |= res["F_prime"]
+
+    return {
+        "union_C": union_C,
+        "union_F_all": union_F,
+        "union_F_prime": union_Fp,
+        "circuit_minus_future": union_C - union_F,
+    }
