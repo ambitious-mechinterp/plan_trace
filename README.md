@@ -9,14 +9,14 @@ A comprehensive toolkit for detecting and analyzing planning behavior in languag
 
 Plan Trace implements a sophisticated 4-step pipeline to identify when and how language models engage in planning during text generation:
 
-1. **🔍 Circuit Discovery**: Uses integrated gradients on SAE latents to find circuits responsible for specific predictions
-2. **🎭 Logit Lens Clustering**: Groups SAE latents by their decoding directions to identify what tokens they predict
+1. **🔍 Circuit Discovery**: Uses integrated gradients on SAE latents to find circuits responsible for a selected prediction
+2. **🎭 Logit Lens Clustering**: Groups SAE latents by their decoding directions to identify which write in the direction of future, yet to be predicted tokens
 3. **🎛️ Steering Effects**: Tests causal impacts by steering latent activations and measuring generation changes  
 4. **📊 Planning Analysis**: Identifies "planning positions" where future token predictions influence current outputs
 
 ## 🚀 Quick Start
 
-### Installation
+### Installation Placeholder
 
 ```bash
 # Clone the repository
@@ -240,20 +240,6 @@ We welcome contributions! Please:
 4. Ensure all tests pass
 5. Submit a pull request
 
-### Development Setup
-
-```bash
-# Install in development mode
-pip install -e .
-
-# Run tests
-python -m pytest tests/
-
-# Check code style
-black plan_trace/
-flake8 plan_trace/
-```
-
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
@@ -264,7 +250,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Uses [TransformerLens](https://github.com/neelnanda-io/TransformerLens) for model interpretability
 - Inspired by mechanistic interpretability research from Anthropic, Redwood Research, and others
 
-## 📚 Citation
+## 📚 Citation Placeholder
 
 If you use this toolkit in your research, please cite:
 
