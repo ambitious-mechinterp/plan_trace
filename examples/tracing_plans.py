@@ -1,5 +1,6 @@
 # %% 
 """
+This is a self contained script for tracing plans. 
 GOALS: 
 for a given prompt and token index,
 - STEP1: discover circuit with >60% perf recovery
@@ -1138,10 +1139,6 @@ model = load_model(model_name, device=device, use_custom_cache=False, dtype=torc
 layers = list(range(model.cfg.n_layers))
 saes = load_pretrained_saes(layers=layers, release="gemma-scope-2b-pt-mlp-canonical", width="16k", device=device, canon=True)
 
-# %%
-!nvidia-smi
-
-
 # %% params stuff and testing prompts to use for testing
 
 max_generation_length = 150
@@ -1219,10 +1216,6 @@ else:
     save_path = f"../outputs/circuit_prompt{p_id}_intertok{inter_tok_id}_k30001_v3.pt"
     entries = torch.load(save_path)
     print(f"Loaded {len(entries)} hits from {save_path}")
-
-# %%
-
-!nvidia-smi
 
 # %% STEP 2: LOGIT LENS
 

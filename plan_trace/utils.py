@@ -1,47 +1,49 @@
+"""
+Utility functions for model loading, memory management, and basic operations.
+
+Shape Suffix Definition: 
+- B: batch size 
+- L: Num of Input Tokens 
+- O: Num of Output Tokens
+- V: vocabulary size
+- F: feed-forward subnetwork hidden size
+- D: Depth or number of layers
+- H: number of attention heads in a layer
+- S: Number of SAE neurons in a layer
+- A: Number of SAEs attached
+"""
+
 import os
 import gc
 import re
 import torch
-import numpy as np
 import pandas as pd
-import torch.nn.functional as F
-from typing import List, Optional, Dict
-
 from dotenv import load_dotenv
 from huggingface_hub import login
-
 from sae_lens import SAE, HookedSAETransformer
-import transformer_lens
 from sae_lens.toolkit.pretrained_saes_directory import get_pretrained_saes_directory
+from typing import List
 
-def activate_autoreload():
+
+def load_model(
+    model_name: str, 
+    device: str, 
+    use_custom_cache: bool = False, 
+    dtype: torch.dtype = torch.bfloat16, 
+    weights_dir: str = None
+) -> HookedSAETransformer:
     """
-    Enables IPython autoreload to automatically reload modules when edited.
-    """
-    try:
-        ipython = get_ipython()
-        if ipython is not None:
-            ipython.magic("load_ext autoreload")
-            ipython.magic("autoreload 2")
-            print("Set autoreload in IPython.")
-        else:
-            print("Not in IPython.")
-    except NameError:
-        print("`get_ipython` not available. This script is not running in IPython.")
+    Load a pretrained HookedSAETransformer, optionally redirecting HuggingFace/Torch cache.
 
-# Call the function during script initialization
-activate_autoreload()
+    Args:
+        model_name: HF identifier of the model to load.
+        device: Compute device, e.g. "cuda" or "cpu".
+        use_custom_cache: If True, force both TORCH_HOME and HF_HOME to a local directory.
+        dtype: Numeric precision for model weights.
+        weights_dir: Alternate cache directory (if exists).
 
-def load_model(model_name: str, device: str, use_custom_cache: bool = False, dtype: torch.dtype = torch.bfloat16, weights_dir: str = None) -> HookedSAETransformer:
-    """
-    Load a pre-trained transformer model.
-
-    :param model_name: Name of the model to load.
-    :param device: Device to load the model onto (e.g., "cuda" or "cpu").
-    :param use_custom_cache: Whether to use a custom cache directory for model weights.
-    :param dtype : The data type to use when loading the model. This function now supports bfloat16 (torch.bfloat16) as well as other dtypes. Defaults to torch.bfloat16.
-    :param weights_dir: Directory to use for custom cache. If None, defaults to the environment variable TORCH_HOME.
-    :return: A HookedSAETransformer instance.
+    Returns:
+        HookedSAETransformer: The model with gradients disabled.
     """
     if use_custom_cache:
         WEIGHTS_DIR = "/project/pi_jensen_umass_edu/jnainani_umass_edu/mechinterp_cache"
@@ -70,22 +72,21 @@ def load_model(model_name: str, device: str, use_custom_cache: bool = False, dty
 
     return model
 
-def cleanup_cuda():
-    """
-    Clears GPU memory cache and runs garbage collection.
-    """
+
+def cleanup_cuda() -> None:
+    """Run Python GC and empty the CUDA cache to free GPU memory."""
     gc.collect()
     torch.cuda.empty_cache()
 
-def clear_memory(saes, model, mask_bool=False):
+
+def clear_memory(saes, model, mask_bool: bool = False) -> None:
     """
-    Clears out the gradients from the SAEs and the main model
-    to avoid accumulation or weird artifacts.
+    Zero out all gradients on SAEs (and their masks if requested) and on the main model.
 
     Args:
-        saes (List[SAE]): A list of SAE objects (or similarly structured modules).
-        model (nn.Module): The main model whose gradients we want to clear.
-        mask_bool (bool): Whether to also clear mask gradients if they exist.
+        saes: Iterable of SAE modules whose gradients to clear.
+        model: The language model to clear gradients on.
+        mask_bool: If True, also clear grads on any mask modules attached to SAEs.
     """
     for sae in saes:
         for param in sae.parameters():
@@ -99,14 +100,13 @@ def clear_memory(saes, model, mask_bool=False):
         if param.grad is not None:
             param.grad = None
 
+
 def get_pretrained_saes_ids() -> pd.DataFrame:
     """
-    Retrieves metadata for all pretrained SAE models as a pandas DataFrame.
-    
+    Query the SAE directory and return a cleaned DataFrame of available IDs and metadata.
+
     Returns:
-        pd.DataFrame: A DataFrame containing information about all available 
-                     pretrained SAE models, with columns like model names, 
-                     configurations, and other metadata.
+        DataFrame: One row per SAE ID, with columns filtered for clarity.
     """
     df = pd.DataFrame.from_records(
         {k: v.__dict__ for k, v in get_pretrained_saes_directory().items()}
@@ -125,23 +125,26 @@ def get_pretrained_saes_ids() -> pd.DataFrame:
     
     return df
 
-def load_pretrained_saes(layers: List[int], 
-                        release: str,
-                        width: str = "16k",
-                        device: str = "cuda", 
-                        canon: bool = True) -> List:
+
+def load_pretrained_saes(
+    layers: List[int], 
+    release: str,
+    width: str = "16k",
+    device: str = "cuda", 
+    canon: bool = True
+) -> List[SAE]:
     """
-    Load pretrained SAEs for specified layers.
-    
+    For each layer in `layers`, pick the median-l0 SAE variant and load it.
+
     Args:
-        model_name: Name of the base model
-        layers: List of layer indices
-        release: SAE release name
-        width: Width of SAE
-        device: Device to load SAEs on
-    
+        layers: Transformer layers to attach SAEs to.
+        release: The scope/release name for SAEs (e.g. "gemma-scope-2b-pt-mlp-canonical").
+        width: Width identifier in the SAE directory (default "16k").
+        device: Target device for the loaded SAEs.
+        canon: If True, use the canonical naming convention when matching.
+
     Returns:
-        List of loaded SAE objects
+        List of SAE instances, one per requested layer.
     """
     pretrained_saes_ids = get_pretrained_saes_ids()
     sae_dict = pretrained_saes_ids.saes_map[release]
@@ -167,4 +170,4 @@ def load_pretrained_saes(layers: List[int],
         _, middle_key = matching_saes[middle_idx]
         sae = SAE.from_pretrained(release=release, sae_id=middle_key, device=device)[0]
         base_saes.append(sae)
-    return base_saes
+    return base_saes 
