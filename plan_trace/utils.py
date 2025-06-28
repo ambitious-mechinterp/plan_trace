@@ -54,15 +54,15 @@ def load_model(
         os.environ["TORCH_HOME"] = WEIGHTS_DIR
         os.environ["HF_HOME"] = WEIGHTS_DIR
     else:
+        WEIGHTS_DIR = None  # Use default cache directory
         load_dotenv()
         hf_token = os.getenv("HF_TOKEN")
         login(token=hf_token)
-        WEIGHTS_DIR = None  # Use default cache directory
     
     model = HookedSAETransformer.from_pretrained(
         model_name,
         device=device,
-        cache_dir=WEIGHTS_DIR if use_custom_cache else None,
+        cache_dir=WEIGHTS_DIR if WEIGHTS_DIR else None,
         dtype=dtype
     )
 
@@ -166,6 +166,10 @@ def load_pretrained_saes(
                     matching_saes.append((l0_value, key))
         
         matching_saes.sort(key=lambda x: x[0])
+        if not matching_saes:
+            raise ValueError(
+                f"No matching SAEs found for layer '{layer}', width '{width}', and release '{release}'."
+            )
         middle_idx = len(matching_saes) // 2
         _, middle_key = matching_saes[middle_idx]
         sae = SAE.from_pretrained(release=release, sae_id=middle_key, device=device)[0]
