@@ -1,0 +1,1218 @@
+[
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 2,
+        "prompt": "Write a function to find the shared elements from the given two lists.",
+        "code": "def similar_elements(test_tup1, test_tup2):\n  res = tuple(set(test_tup1) & set(test_tup2))\n  return (res) ",
+        "test_imports": [],
+        "test_list": [
+            "assert set(similar_elements((3, 4, 5, 6),(5, 7, 4, 10))) == set((4, 5))",
+            "assert set(similar_elements((1, 2, 3, 4),(5, 4, 3, 7))) == set((3, 4))",
+            "assert set(similar_elements((11, 12, 14, 13),(17, 15, 14, 13))) == set((13, 14))"
+        ]
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 3,
+        "prompt": "Write a python function to identify non-prime numbers.",
+        "code": "import math\ndef is_not_prime(n):\n    result = False\n    for i in range(2,int(math.sqrt(n)) + 1):\n        if n % i == 0:\n            result = True\n    return result",
+        "test_imports": [],
+        "test_list": [
+            "assert is_not_prime(2) == False",
+            "assert is_not_prime(10) == True",
+            "assert is_not_prime(35) == True",
+            "assert is_not_prime(37) == False"
+        ]
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 4,
+        "prompt": "Write a function to find the n largest integers from a given list of numbers, returned in descending order.",
+        "code": "import heapq as hq\ndef heap_queue_largest(nums,n):\n  largest_nums = hq.nlargest(n, nums)\n  return largest_nums",
+        "test_imports": [],
+        "test_list": [
+            "assert heap_queue_largest( [25, 35, 22, 85, 14, 65, 75, 22, 58],3)==[85, 75, 65]",
+            "assert heap_queue_largest( [25, 35, 22, 85, 14, 65, 75, 22, 58],2)==[85, 75]",
+            "assert heap_queue_largest( [25, 35, 22, 85, 14, 65, 75, 22, 58],5)==[85, 75, 65, 58, 35]"
+        ]
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 7,
+        "prompt": "Write a function to find all words which are at least 4 characters long in a string.",
+        "code": "import re\ndef find_char_long(text):\n  return (re.findall(r\"\\b\\w{4,}\\b\", text))",
+        "test_imports": [],
+        "test_list": [
+            "assert set(find_char_long('Please move back to stream')) == set(['Please', 'move', 'back', 'stream'])",
+            "assert set(find_char_long('Jing Eco and Tech')) == set(['Jing', 'Tech'])",
+            "assert set(find_char_long('Jhingai wulu road Zone 3')) == set(['Jhingai', 'wulu', 'road', 'Zone'])"
+        ]
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 8,
+        "prompt": "Write a function to find squares of individual elements in a list.",
+        "code": "def square_nums(nums):\n square_nums = list(map(lambda x: x ** 2, nums))\n return square_nums",
+        "test_imports": [],
+        "test_list": [
+            "assert square_nums([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])==[1, 4, 9, 16, 25, 36, 49, 64, 81, 100]",
+            "assert square_nums([10,20,30])==([100,400,900])",
+            "assert square_nums([12,15])==([144,225])"
+        ]
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 11,
+        "prompt": "Write a python function to remove first and last occurrence of a given character from the string.",
+        "code": "def remove_Occ(s,ch): \n    for i in range(len(s)): \n        if (s[i] == ch): \n            s = s[0 : i] + s[i + 1:] \n            break\n    for i in range(len(s) - 1,-1,-1):  \n        if (s[i] == ch): \n            s = s[0 : i] + s[i + 1:] \n            break\n    return s ",
+        "test_imports": [],
+        "test_list": [
+            "assert remove_Occ(\"hello\",\"l\") == \"heo\"",
+            "assert remove_Occ(\"abcda\",\"a\") == \"bcd\"",
+            "assert remove_Occ(\"PHP\",\"P\") == \"H\""
+        ]
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 17,
+        "prompt": "Write a function that returns the perimeter of a square given its side length as input.",
+        "code": "def square_perimeter(a):\n  perimeter=4*a\n  return perimeter",
+        "test_imports": [],
+        "test_list": [
+            "assert square_perimeter(10)==40",
+            "assert square_perimeter(5)==20",
+            "assert square_perimeter(4)==16"
+        ]
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 18,
+        "prompt": "Write a function to remove characters from the first string which are present in the second string.",
+        "code": "NO_OF_CHARS = 256\ndef str_to_list(string): \n\ttemp = [] \n\tfor x in string: \n\t\ttemp.append(x) \n\treturn temp \ndef lst_to_string(List): \n\treturn ''.join(List) \ndef get_char_count_array(string): \n\tcount = [0] * NO_OF_CHARS \n\tfor i in string: \n\t\tcount[ord(i)] += 1\n\treturn count \ndef remove_dirty_chars(string, second_string): \n\tcount = get_char_count_array(second_string) \n\tip_ind = 0\n\tres_ind = 0\n\ttemp = '' \n\tstr_list = str_to_list(string) \n\twhile ip_ind != len(str_list): \n\t\ttemp = str_list[ip_ind] \n\t\tif count[ord(temp)] == 0: \n\t\t\tstr_list[res_ind] = str_list[ip_ind] \n\t\t\tres_ind += 1\n\t\tip_ind+=1\n\treturn lst_to_string(str_list[0:res_ind]) ",
+        "test_imports": [],
+        "test_list": [
+            "assert remove_dirty_chars(\"probasscurve\", \"pros\") == 'bacuve'",
+            "assert remove_dirty_chars(\"digitalindia\", \"talent\") == 'digiidi'",
+            "assert remove_dirty_chars(\"exoticmiles\", \"toxic\") == 'emles'"
+        ]
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 19,
+        "prompt": "Write a function to find whether a given array of integers contains any duplicate element.",
+        "code": "def test_duplicate(arraynums):\n    nums_set = set(arraynums)    \n    return len(arraynums) != len(nums_set)     ",
+        "test_imports": [],
+        "test_list": [
+            "assert test_duplicate(([1,2,3,4,5]))==False",
+            "assert test_duplicate(([1,2,3,4, 4]))==True",
+            "assert test_duplicate([1,1,2,2,3,3,4,4,5])==True"
+        ]
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 20,
+        "prompt": "Write a function to check if the given number is woodball or not.",
+        "code": "def is_woodall(x): \n\tif (x % 2 == 0): \n\t\treturn False\n\tif (x == 1): \n\t\treturn True\n\tx = x + 1 \n\tp = 0\n\twhile (x % 2 == 0): \n\t\tx = x/2\n\t\tp = p + 1\n\t\tif (p == x): \n\t\t\treturn True\n\treturn False",
+        "test_imports": [],
+        "test_list": [
+            "assert is_woodall(383) == True",
+            "assert is_woodall(254) == False",
+            "assert is_woodall(200) == False"
+        ]
+    },
+    {
+        "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 56,
+        "prompt": "Write a python function to check if a given number is one less than twice its reverse.",
+        "code": "def rev(num):    \n    rev_num = 0\n    while (num > 0):  \n        rev_num = (rev_num * 10 + num % 10) \n        num = num // 10  \n    return rev_num  \ndef check(n):    \n    return (2 * rev(n) == n + 1)  ",
+        "test_imports": [],
+        "test_list": [
+            "assert check(70) == False",
+            "assert check(23) == False",
+            "assert check(73) == True"
+        ]
+    },
+    {
+        "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 57,
+        "prompt": "Write a python function to find the largest number that can be formed with the given list of digits.",
+        "code": "def find_Max_Num(arr) : \n    n = len(arr)\n    arr.sort(reverse = True) \n    num = arr[0] \n    for i in range(1,n) : \n        num = num * 10 + arr[i] \n    return num ",
+        "test_imports": [],
+        "test_list": [
+            "assert find_Max_Num([1,2,3]) == 321",
+            "assert find_Max_Num([4,5,6,1]) == 6541",
+            "assert find_Max_Num([1,2,3,9]) == 9321"
+        ]
+    },
+    {
+        "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 58,
+        "prompt": "Write a python function to check whether the given two integers have opposite sign or not.",
+        "code": "def opposite_Signs(x,y): \n    return ((x ^ y) < 0); ",
+        "test_imports": [],
+        "test_list": [
+            "assert opposite_Signs(1,-2) == True",
+            "assert opposite_Signs(3,2) == False",
+            "assert opposite_Signs(-10,-10) == False",
+            "assert opposite_Signs(-2,2) == True"
+        ]
+    },
+    {
+        "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 61,
+        "prompt": "Write a python function to count the number of substrings with the sum of digits equal to their length.",
+        "code": "from collections import defaultdict\ndef count_Substrings(s):\n    n = len(s)\n    count,sum = 0,0\n    mp = defaultdict(lambda : 0)\n    mp[0] += 1\n    for i in range(n):\n        sum += ord(s[i]) - ord('0')\n        count += mp[sum - (i + 1)]\n        mp[sum - (i + 1)] += 1\n    return count",
+        "test_imports": [],
+        "test_list": [
+            "assert count_Substrings('112112') == 6",
+            "assert count_Substrings('111') == 6",
+            "assert count_Substrings('1101112') == 12"
+        ]
+    },
+    {
+        "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 62,
+        "prompt": "Write a python function to find smallest number in a list.",
+        "code": "def smallest_num(xs):\n  return min(xs)\n",
+        "test_imports": [],
+        "test_list": [
+            "assert smallest_num([10, 20, 1, 45, 99]) == 1",
+            "assert smallest_num([1, 2, 3]) == 1",
+            "assert smallest_num([45, 46, 50, 60]) == 45"
+        ]
+    },
+    {
+        "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 64,
+        "prompt": "Write a function to sort a list of tuples using the second value of each tuple.",
+        "code": "def subject_marks(subjectmarks):\n#subject_marks = [('English', 88), ('Science', 90), ('Maths', 97), ('Social sciences', 82)])\n subjectmarks.sort(key = lambda x: x[1])\n return subjectmarks",
+        "test_imports": [],
+        "test_list": [
+            "assert subject_marks([('English', 88), ('Science', 90), ('Maths', 97), ('Social sciences', 82)])==[('Social sciences', 82), ('English', 88), ('Science', 90), ('Maths', 97)]",
+            "assert subject_marks([('Telugu',49),('Hindhi',54),('Social',33)])==([('Social',33),('Telugu',49),('Hindhi',54)])",
+            "assert subject_marks([('Physics',96),('Chemistry',97),('Biology',45)])==([('Biology',45),('Physics',96),('Chemistry',97)])"
+        ]
+    },
+    {
+        "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 66,
+        "prompt": "Write a python function to count the number of positive numbers in a list.",
+        "code": "def pos_count(list):\n  pos_count= 0\n  for num in list: \n    if num >= 0: \n      pos_count += 1\n  return pos_count ",
+        "test_imports": [],
+        "test_list": [
+            "assert pos_count([1,-2,3,-4]) == 2",
+            "assert pos_count([3,4,5,-1]) == 3",
+            "assert pos_count([1,2,3,4]) == 4"
+        ]
+    },
+    {
+        "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 68,
+        "prompt": "Write a python function to check whether the given array is monotonic or not.",
+        "code": "def is_Monotonic(A): \n    return (all(A[i] <= A[i + 1] for i in range(len(A) - 1)) or\n            all(A[i] >= A[i + 1] for i in range(len(A) - 1))) ",
+        "test_imports": [],
+        "test_list": [
+            "assert is_Monotonic([6, 5, 4, 4]) == True",
+            "assert is_Monotonic([1, 2, 2, 3]) == True",
+            "assert is_Monotonic([1, 3, 2]) == False"
+        ]
+    },
+    {
+        "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 69,
+        "prompt": "Write a function to check whether a list contains the given sublist or not.",
+        "code": "def is_sublist(l, s):\n\tsub_set = False\n\tif s == []:\n\t\tsub_set = True\n\telif s == l:\n\t\tsub_set = True\n\telif len(s) > len(l):\n\t\tsub_set = False\n\telse:\n\t\tfor i in range(len(l)):\n\t\t\tif l[i] == s[0]:\n\t\t\t\tn = 1\n\t\t\t\twhile (n < len(s)) and (l[i+n] == s[n]):\n\t\t\t\t\tn += 1\t\t\t\t\n\t\t\t\tif n == len(s):\n\t\t\t\t\tsub_set = True\n\treturn sub_set",
+        "test_imports": [],
+        "test_list": [
+            "assert is_sublist([2,4,3,5,7],[3,7])==False",
+            "assert is_sublist([2,4,3,5,7],[4,3])==True",
+            "assert is_sublist([2,4,3,5,7],[1,6])==False"
+        ]
+    },
+    {
+        "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 70,
+        "prompt": "Write a function to find whether all the given tuples have equal length or not.",
+        "code": "def find_equal_tuple(Input):\n  k = 0 if not Input else len(Input[0])\n  flag = 1\n  for tuple in Input:\n    if len(tuple) != k:\n      flag = 0\n      break\n  return flag\ndef get_equal(Input):\n  return find_equal_tuple(Input) == 1",
+        "test_imports": [],
+        "test_list": [
+            "assert get_equal([(11, 22, 33), (44, 55, 66)]) == True",
+            "assert get_equal([(1, 2, 3), (4, 5, 6, 7)]) == False",
+            "assert get_equal([(1, 2), (3, 4)]) == True"
+        ]
+    },
+    {
+        "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 71,
+        "prompt": "Write a function to sort a list of elements.",
+        "code": "def comb_sort(nums):\n    shrink_fact = 1.3\n    gaps = len(nums)\n    swapped = True\n    i = 0\n    while gaps > 1 or swapped:\n        gaps = int(float(gaps) / shrink_fact)\n        swapped = False\n        i = 0\n        while gaps + i < len(nums):\n            if nums[i] > nums[i+gaps]:\n                nums[i], nums[i+gaps] = nums[i+gaps], nums[i]\n                swapped = True\n            i += 1\n    return nums",
+        "test_imports": [],
+        "test_list": [
+            "assert comb_sort([5, 15, 37, 25, 79]) == [5, 15, 25, 37, 79]",
+            "assert comb_sort([41, 32, 15, 19, 22]) == [15, 19, 22, 32, 41]",
+            "assert comb_sort([99, 15, 13, 47]) == [13, 15, 47, 99]"
+        ]
+    },
+    {
+        "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 75,
+        "prompt": "Write a function to find tuples which have all elements divisible by k from the given list of tuples.",
+        "code": "def find_tuples(test_list, K):\n  res = [sub for sub in test_list if all(ele % K == 0 for ele in sub)]\n  return res",
+        "test_imports": [],
+        "test_list": [
+            "assert find_tuples([(6, 24, 12), (7, 9, 6), (12, 18, 21)], 6) == [(6, 24, 12)]",
+            "assert find_tuples([(5, 25, 30), (4, 2, 3), (7, 8, 9)], 5) == [(5, 25, 30)]",
+            "assert find_tuples([(7, 9, 16), (8, 16, 4), (19, 17, 18)], 4) == [(8, 16, 4)]"
+        ]
+    },
+    {
+        "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 77,
+        "prompt": "Write a python function to find whether a number is divisible by 11.",
+        "code": "def is_Diff(n): \n    return (n % 11 == 0) ",
+        "test_imports": [],
+        "test_list": [
+            "assert is_Diff (12345) == False",
+            "assert is_Diff(1212112) == True",
+            "assert is_Diff(1212) == False"
+        ]
+    },
+    {
+        "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 79,
+        "prompt": "Write a python function to check whether the length of the word is odd or not.",
+        "code": "def word_len(s): \n    s = s.split(' ')   \n    for word in s:    \n        if len(word)%2!=0: \n            return True  \n        else:\n          return False",
+        "test_imports": [],
+        "test_list": [
+            "assert word_len(\"Hadoop\") == False",
+            "assert word_len(\"great\") == True",
+            "assert word_len(\"structure\") == True"
+        ]
+    },
+    {
+        "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 80,
+        "prompt": "Write a function to find the nth tetrahedral number.",
+        "code": "def tetrahedral_number(n): \n\treturn (n * (n + 1) * (n + 2)) / 6",
+        "test_imports": [],
+        "test_list": [
+            "assert tetrahedral_number(5) == 35",
+            "assert tetrahedral_number(6) == 56",
+            "assert tetrahedral_number(7) == 84"
+        ]
+    },
+    {
+        "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 82,
+        "prompt": "Write a function to find the volume of a sphere.",
+        "code": "import math\ndef volume_sphere(r):\n  volume=(4/3)*math.pi*r*r*r\n  return volume",
+        "test_imports": [
+            "import math"
+        ],
+        "test_list": [
+            "assert math.isclose(volume_sphere(10), 4188.790204786391, rel_tol=0.001)",
+            "assert math.isclose(volume_sphere(25), 65449.84694978735, rel_tol=0.001)",
+            "assert math.isclose(volume_sphere(20), 33510.32163829113, rel_tol=0.001)"
+        ]
+    },
+    {
+        "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 85,
+        "prompt": "Write a function to find the surface area of a sphere.",
+        "code": "import math\ndef surfacearea_sphere(r):\n  surfacearea=4*math.pi*r*r\n  return surfacearea",
+        "test_imports": [
+            "import math"
+        ],
+        "test_list": [
+            "assert math.isclose(surfacearea_sphere(10), 1256.6370614359173, rel_tol=0.001)",
+            "assert math.isclose(surfacearea_sphere(15), 2827.4333882308138, rel_tol=0.001)",
+            "assert math.isclose(surfacearea_sphere(20), 5026.548245743669, rel_tol=0.001)"
+        ]
+    },
+    {
+        "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 88,
+        "prompt": "Write a function to get the frequency of all the elements in a list, returned as a dictionary.",
+        "code": "import collections\ndef freq_count(list1):\n  freq_count= collections.Counter(list1)\n  return freq_count",
+        "test_imports": [],
+        "test_list": [
+            "assert freq_count([10,10,10,10,20,20,20,20,40,40,50,50,30])==({10: 4, 20: 4, 40: 2, 50: 2, 30: 1})",
+            "assert freq_count([1,2,3,4,3,2,4,1,3,1,4])==({1:3, 2:2,3:3,4:3})",
+            "assert freq_count([5,6,7,4,9,10,4,5,6,7,9,5])==({10:1,5:3,6:2,7:2,4:2,9:2})"
+        ]
+    },
+    {
+        "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 90,
+        "prompt": "Write a python function to find the length of the longest word.",
+        "code": "def len_log(list1):\n    max=len(list1[0])\n    for i in list1:\n        if len(i)>max:\n            max=len(i)\n    return max",
+        "test_imports": [],
+        "test_list": [
+            "assert len_log([\"python\",\"PHP\",\"bigdata\"]) == 7",
+            "assert len_log([\"a\",\"ab\",\"abc\"]) == 3",
+            "assert len_log([\"small\",\"big\",\"tall\"]) == 5"
+        ]
+    },
+    {
+        "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 91,
+        "prompt": "Write a function to check if a string is present as a substring in a given list of string values.",
+        "code": "def find_substring(str1, sub_str):\n   if any(sub_str in s for s in str1):\n       return True\n   return False",
+        "test_imports": [],
+        "test_list": [
+            "assert find_substring([\"red\", \"black\", \"white\", \"green\", \"orange\"],\"ack\")==True",
+            "assert find_substring([\"red\", \"black\", \"white\", \"green\", \"orange\"],\"abc\")==False",
+            "assert find_substring([\"red\", \"black\", \"white\", \"green\", \"orange\"],\"ange\")==True"
+        ]
+    },
+    {
+        "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 93,
+        "prompt": "Write a function to calculate the value of 'a' to the power 'b'.",
+        "code": "def power(a,b):\n\tif b==0:\n\t\treturn 1\n\telif a==0:\n\t\treturn 0\n\telif b==1:\n\t\treturn a\n\telse:\n\t\treturn a*power(a,b-1)",
+        "test_imports": [],
+        "test_list": [
+            "assert power(3,4) == 81",
+            "assert power(2,3) == 8",
+            "assert power(5,5) == 3125"
+        ]
+    },
+    {
+        "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 94,
+        "prompt": "Given a list of tuples, write a function that returns the first value of the tuple with the smallest second value.",
+        "code": "from operator import itemgetter \ndef index_minimum(test_list):\n  res = min(test_list, key = itemgetter(1))[0]\n  return (res) ",
+        "test_imports": [],
+        "test_list": [
+            "assert index_minimum([('Rash', 143), ('Manjeet', 200), ('Varsha', 100)]) == 'Varsha'",
+            "assert index_minimum([('Yash', 185), ('Dawood', 125), ('Sanya', 175)]) == 'Dawood'",
+            "assert index_minimum([('Sai', 345), ('Salman', 145), ('Ayesha', 96)]) == 'Ayesha'"
+        ]
+    },
+    {
+        "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 95,
+        "prompt": "Write a python function to find the length of the smallest list in a list of lists.",
+        "code": "def Find_Min_Length(lst):  \n    minLength = min(len(x) for x in lst )\n    return minLength ",
+        "test_imports": [],
+        "test_list": [
+            "assert Find_Min_Length([[1],[1,2]]) == 1",
+            "assert Find_Min_Length([[1,2],[1,2,3],[1,2,3,4]]) == 2",
+            "assert Find_Min_Length([[3,3,3],[4,4,4,4]]) == 3"
+        ]
+    },
+    {
+        "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 96,
+        "prompt": "Write a python function to find the number of divisors of a given integer.",
+        "code": "def divisor(n):\n  for i in range(n):\n    x = len([i for i in range(1,n+1) if not n % i])\n  return x",
+        "test_imports": [],
+        "test_list": [
+            "assert divisor(15) == 4",
+            "assert divisor(12) == 6",
+            "assert divisor(9) == 3"
+        ]
+    },
+    {
+        "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 97,
+        "prompt": "Write a function to find frequency of each element in a flattened list of lists, returned in a dictionary.",
+        "code": "def frequency_lists(list1):\n    list1 = [item for sublist in list1 for item in sublist]\n    dic_data = {}\n    for num in list1:\n        if num in dic_data.keys():\n            dic_data[num] += 1\n        else:\n            key = num\n            value = 1\n            dic_data[key] = value\n    return dic_data\n",
+        "test_imports": [],
+        "test_list": [
+            "assert frequency_lists([[1, 2, 3, 2], [4, 5, 6, 2], [7, 8, 9, 5]])=={1: 1, 2: 3, 3: 1, 4: 1, 5: 2, 6: 1, 7: 1, 8: 1, 9: 1}",
+            "assert frequency_lists([[1,2,3,4],[5,6,7,8],[9,10,11,12]])=={1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 1, 9: 1,10:1,11:1,12:1}",
+            "assert frequency_lists([[20,30,40,17],[18,16,14,13],[10,20,30,40]])=={20:2,30:2,40:2,17: 1,18:1, 16: 1,14: 1,13: 1, 10: 1}"
+        ]
+    },
+    {
+        "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 99,
+        "prompt": "Write a function to convert the given decimal number to its binary equivalent, represented as a string with no leading zeros.",
+        "code": "def decimal_to_binary(n): \n    return bin(n).replace(\"0b\",\"\") ",
+        "test_imports": [],
+        "test_list": [
+            "assert decimal_to_binary(8) == '1000'",
+            "assert decimal_to_binary(18) == '10010'",
+            "assert decimal_to_binary(7) == '111'"
+        ]
+    },
+    {
+        "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 101,
+        "prompt": "Write a function to find the kth element in the given array using 1-based indexing.",
+        "code": "def kth_element(arr, k):\n  n = len(arr)\n  for i in range(n):\n    for j in range(0, n-i-1):\n      if arr[j] > arr[j+1]:\n        arr[j], arr[j+1] == arr[j+1], arr[j]\n  return arr[k-1]",
+        "test_imports": [],
+        "test_list": [
+            "assert kth_element([12,3,5,7,19], 2) == 3",
+            "assert kth_element([17,24,8,23], 3) == 8",
+            "assert kth_element([16,21,25,36,4], 4) == 36"
+        ]
+    },
+    {
+        "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 105,
+        "prompt": "Write a python function to count true booleans in the given list.",
+        "code": "def count(lst):   \n    return sum(lst) ",
+        "test_imports": [],
+        "test_list": [
+            "assert count([True,False,True]) == 2",
+            "assert count([False,False]) == 0",
+            "assert count([True,True,True]) == 3"
+        ]
+    },
+    {
+        "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 113,
+        "prompt": "Write a function to check if a string represents an integer or not.",
+        "code": "def check_integer(text):\n text = text.strip()\n if len(text) < 1:\n    return None\n else:\n     if all(text[i] in \"0123456789\" for i in range(len(text))):\n          return True\n     elif (text[0] in \"+-\") and \\\n         all(text[i] in \"0123456789\" for i in range(1,len(text))):\n         return True\n     else:\n        return False",
+        "test_imports": [],
+        "test_list": [
+            "assert check_integer(\"python\")==False",
+            "assert check_integer(\"1\")==True",
+            "assert check_integer(\"12345\")==True"
+        ]
+    },
+    {
+        "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 115,
+        "prompt": "Write a function to check whether all dictionaries in a list are empty or not.",
+        "code": "def empty_dit(list1):\n empty_dit=all(not d for d in list1)\n return empty_dit",
+        "test_imports": [],
+        "test_list": [
+            "assert empty_dit([{},{},{}])==True",
+            "assert empty_dit([{1,2},{},{}])==False",
+            "assert empty_dit({})==True"
+        ]
+    },
+    {
+        "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 116,
+        "prompt": "Write a function to convert a given tuple of positive integers into a single integer.",
+        "code": "def tuple_to_int(nums):\n    result = int(''.join(map(str,nums)))\n    return result",
+        "test_imports": [],
+        "test_list": [
+            "assert tuple_to_int((1,2,3))==123",
+            "assert tuple_to_int((4,5,6))==456",
+            "assert tuple_to_int((5,6,7))==567"
+        ]
+    },
+    {
+        "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 118,
+        "prompt": "Write a function to convert a string to a list of strings split on the space character.",
+        "code": "def string_to_list(string): \n    lst = list(string.split(\" \")) \n    return lst",
+        "test_imports": [],
+        "test_list": [
+            "assert string_to_list(\"python programming\")==['python','programming']",
+            "assert string_to_list(\"lists tuples strings\")==['lists','tuples','strings']",
+            "assert string_to_list(\"write a program\")==['write','a','program']"
+        ]
+    },
+    {
+        "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 127,
+        "prompt": "Write a function to multiply two integers.",
+        "code": "def multiply_int(x, y):\n    if y < 0:\n        return -multiply_int(x, -y)\n    elif y == 0:\n        return 0\n    elif y == 1:\n        return x\n    else:\n        return x + multiply_int(x, y - 1)",
+        "test_imports": [],
+        "test_list": [
+            "assert multiply_int(10,20)==200",
+            "assert multiply_int(5,10)==50",
+            "assert multiply_int(4,8)==32"
+        ]
+    },
+    {
+        "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 129,
+        "prompt": "Write a function to calculate whether the matrix is a magic square.",
+        "code": "def magic_square_test(my_matrix):\n    iSize = len(my_matrix[0])\n    sum_list = []\n    sum_list.extend([sum (lines) for lines in my_matrix])   \n    for col in range(iSize):\n        sum_list.append(sum(row[col] for row in my_matrix))\n    result1 = 0\n    for i in range(0,iSize):\n        result1 +=my_matrix[i][i]\n    sum_list.append(result1)      \n    result2 = 0\n    for i in range(iSize-1,-1,-1):\n        result2 +=my_matrix[i][i]\n    sum_list.append(result2)\n    if len(set(sum_list))>1:\n        return False\n    return True",
+        "test_imports": [],
+        "test_list": [
+            "assert magic_square_test([[7, 12, 1, 14], [2, 13, 8, 11], [16, 3, 10, 5], [9, 6, 15, 4]])==True",
+            "assert magic_square_test([[2, 7, 6], [9, 5, 1], [4, 3, 8]])==True",
+            "assert magic_square_test([[2, 7, 6], [9, 5, 1], [4, 3, 7]])==False"
+        ]
+    },
+    {
+        "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 130,
+        "prompt": "Write a function to find the item with maximum frequency in a given list.",
+        "code": "from collections import defaultdict\ndef max_occurrences(nums):\n    dict = defaultdict(int)\n    for i in nums:\n        dict[i] += 1\n    result = max(dict.items(), key=lambda x: x[1]) \n    return result[0]",
+        "test_imports": [],
+        "test_list": [
+            "assert max_occurrences([2,3,8,4,7,9,8,2,6,5,1,6,1,2,3,2,4,6,9,1,2])==2",
+            "assert max_occurrences([2,3,8,4,7,9,8,7,9,15,14,10,12,13,16,18])==8",
+            "assert max_occurrences([10,20,20,30,40,90,80,50,30,20,50,10])==20"
+        ]
+    },
+    {
+        "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 132,
+        "prompt": "Write a function to convert a tuple to a string.",
+        "code": "def tup_string(tup1):\n  str =  ''.join(tup1)\n  return str",
+        "test_imports": [],
+        "test_list": [
+            "assert tup_string(('e', 'x', 'e', 'r', 'c', 'i', 's', 'e', 's'))==(\"exercises\")",
+            "assert tup_string(('p','y','t','h','o','n'))==(\"python\")",
+            "assert tup_string(('p','r','o','g','r','a','m'))==(\"program\")"
+        ]
+    },
+    {
+        "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 133,
+        "prompt": "Write a function to calculate the sum of the negative numbers of a given list of numbers.",
+        "code": "def sum_negativenum(nums):\n  sum_negativenum = list(filter(lambda nums:nums<0,nums))\n  return sum(sum_negativenum)",
+        "test_imports": [],
+        "test_list": [
+            "assert sum_negativenum([2, 4, -6, -9, 11, -12, 14, -5, 17])==-32",
+            "assert sum_negativenum([10,15,-14,13,-18,12,-20])==-52",
+            "assert sum_negativenum([19, -65, 57, 39, 152,-639, 121, 44, 90, -190])==-894"
+        ]
+    },
+    {
+        "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 139,
+        "prompt": "Write a function to find the circumference of a circle.",
+        "code": "def circle_circumference(r):\n  perimeter=2*3.1415*r\n  return perimeter",
+        "test_imports": [
+            "import math"
+        ],
+        "test_list": [
+            "assert math.isclose(circle_circumference(10), 62.830000000000005, rel_tol=0.001)",
+            "assert math.isclose(circle_circumference(5), 31.415000000000003, rel_tol=0.001)",
+            "assert math.isclose(circle_circumference(4), 25.132, rel_tol=0.001)"
+        ]
+    },
+    {
+        "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 140,
+        "prompt": "Write a function to flatten the list of lists into a single set of numbers.",
+        "code": "def extract_singly(test_list):\n  res = []\n  temp = set()\n  for inner in test_list:\n    for ele in inner:\n      if not ele in temp:\n        temp.add(ele)\n        res.append(ele)\n  return (res) ",
+        "test_imports": [],
+        "test_list": [
+            "assert set(extract_singly([(3, 4, 5), (4, 5, 7), (1, 4)])) == set([3, 4, 5, 7, 1])",
+            "assert set(extract_singly([(1, 2, 3), (4, 2, 3), (7, 8)])) == set([1, 2, 3, 4, 7, 8])",
+            "assert set(extract_singly([(7, 8, 9), (10, 11, 12), (10, 11)])) == set([7, 8, 9, 10, 11, 12])"
+        ]
+    },
+    {
+        "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 142,
+        "prompt": "Write a function to count number items that are identical in the same position of three given lists.",
+        "code": "def count_samepair(list1,list2,list3):\n    result = sum(m == n == o for m, n, o in zip(list1,list2,list3))\n    return result",
+        "test_imports": [],
+        "test_list": [
+            "assert count_samepair([1,2,3,4,5,6,7,8],[2,2,3,1,2,6,7,9],[2,1,3,1,2,6,7,9])==3",
+            "assert count_samepair([1,2,3,4,5,6,7,8],[2,2,3,1,2,6,7,8],[2,1,3,1,2,6,7,8])==4",
+            "assert count_samepair([1,2,3,4,2,6,7,8],[2,2,3,1,2,6,7,8],[2,1,3,1,2,6,7,8])==5"
+        ]
+    },
+    {
+        "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 145,
+        "prompt": "Write a python function to find the maximum difference between any two elements in a given array.",
+        "code": "def max_Abs_Diff(arr): \n    n = len(arr)\n    minEle = arr[0] \n    maxEle = arr[0] \n    for i in range(1, n): \n        minEle = min(minEle,arr[i]) \n        maxEle = max(maxEle,arr[i]) \n    return (maxEle - minEle) ",
+        "test_imports": [],
+        "test_list": [
+            "assert max_Abs_Diff((2,1,5,3)) == 4",
+            "assert max_Abs_Diff((9,3,2,5,1)) == 8",
+            "assert max_Abs_Diff((3,2,1)) == 2"
+        ]
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 160,
+        "prompt": "Write a function that returns integers x and y that satisfy ax + by = n as a tuple, or return None if no solution exists.",
+        "code": "def find_solution(a, b, n):\n\ti = 0\n\twhile i * a <= n:\n\t\tif (n - (i * a)) % b == 0: \n\t\t\treturn (i, (n - (i * a)) // b)\n\t\ti = i + 1\n\treturn None",
+        "test_imports": [],
+        "test_list": [
+            "assert find_solution(2, 3, 7) == (2, 1)",
+            "assert find_solution(4, 2, 7) == None",
+            "assert find_solution(1, 13, 17) == (4, 1)"
+        ]
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 161,
+        "prompt": "Write a function to remove all elements from a given list present in another list.",
+        "code": "def remove_elements(list1, list2):\n    result = [x for x in list1 if x not in list2]\n    return result",
+        "test_imports": [],
+        "test_list": [
+            "assert remove_elements([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [2, 4, 6, 8]) == [1, 3, 5, 7, 9, 10]",
+            "assert remove_elements([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [1, 3, 5, 7]) == [2, 4, 6, 8, 9, 10]",
+            "assert remove_elements([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [5, 7]) == [1, 2, 3, 4, 6, 8, 9, 10]"
+        ]
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 162,
+        "prompt": "Write a function to calculate the sum (n - 2*i) from i=0 to n // 2, for instance n + (n-2) + (n-4)... (until n-x =< 0).",
+        "code": "def sum_series(n):\n  if n < 1:\n    return 0\n  else:\n    return n + sum_series(n - 2)",
+        "test_imports": [],
+        "test_list": [
+            "assert sum_series(6) == 12",
+            "assert sum_series(10) == 30",
+            "assert sum_series(9) == 25"
+        ]
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 163,
+        "prompt": "Write a function to calculate the area of a regular polygon given the length and number of its sides.",
+        "code": "from math import tan, pi\ndef area_polygon(s, l):\n  area = s * (l ** 2) / (4 * tan(pi / s))\n  return area",
+        "test_imports": [
+            "import math"
+        ],
+        "test_list": [
+            "assert math.isclose(area_polygon(4, 20), 400., rel_tol=0.001)",
+            "assert math.isclose(area_polygon(10, 15), 1731.197, rel_tol=0.001)",
+            "assert math.isclose(area_polygon(9, 7), 302.909, rel_tol=0.001)"
+        ]
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 168,
+        "prompt": "Write a function to count the number of occurrences of a number in a given list.",
+        "code": "def frequency(a,x): \n    count = 0  \n    for i in a: \n      if i == x: \n        count += 1\n\n    return count ",
+        "test_imports": [],
+        "test_list": [
+            "assert frequency([1,2,3], 4) == 0",
+            "assert frequency([1,2,2,3,3,3,4], 3) == 3",
+            "assert frequency([0,1,2,3,1,2], 1) == 2"
+        ]
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 170,
+        "prompt": "Write a function to find the sum of numbers in a list within a range specified by two indices.",
+        "code": "def sum_range_list(list1, m, n):                                                                                                                                                                                                \n    sum_range = 0                                                                                                                                                                                                         \n    for i in range(m, n+1, 1):                                                                                                                                                                                        \n        sum_range += list1[i]                                                                                                                                                                                                  \n    return sum_range   ",
+        "test_imports": [],
+        "test_list": [
+            "assert sum_range_list([2,1,5,6,8,3,4,9,10,11,8,12], 8, 10) == 29",
+            "assert sum_range_list([2,1,5,6,8,3,4,9,10,11,8,12], 5, 7) == 16",
+            "assert sum_range_list([2,1,5,6,8,3,4,9,10,11,8,12], 7, 10) == 38"
+        ]
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 171,
+        "prompt": "Write a function to find the perimeter of a regular pentagon from the length of its sides.",
+        "code": "import math\ndef perimeter_pentagon(a):\n  perimeter=(5*a)\n  return perimeter",
+        "test_imports": [],
+        "test_list": [
+            "assert perimeter_pentagon(5) == 25",
+            "assert perimeter_pentagon(10) == 50",
+            "assert perimeter_pentagon(15) == 75"
+        ]
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 224,
+        "prompt": "Write a python function to count the number of set bits (binary digits with value 1) in a given number.",
+        "code": "def count_Set_Bits(n): \n    count = 0\n    while (n): \n        count += n & 1\n        n >>= 1\n    return count ",
+        "test_imports": [],
+        "test_list": [
+            "assert count_Set_Bits(2) == 1",
+            "assert count_Set_Bits(4) == 1",
+            "assert count_Set_Bits(6) == 2"
+        ]
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 227,
+        "prompt": "Write a function to find minimum of three numbers.",
+        "code": "def min_of_three(a,b,c): \n      if (a <= b) and (a <= c): \n        smallest = a \n      elif (b <= a) and (b <= c): \n        smallest = b \n      else: \n        smallest = c \n      return smallest ",
+        "test_imports": [],
+        "test_list": [
+            "assert min_of_three(10,20,0)==0",
+            "assert min_of_three(19,15,18)==15",
+            "assert min_of_three(-10,-20,-30)==-30"
+        ]
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 230,
+        "prompt": "Write a function that takes in a string and character, replaces blank spaces in the string with the character, and returns the string.",
+        "code": "def replace_blank(str1,char):\n str2 = str1.replace(' ', char)\n return str2",
+        "test_imports": [],
+        "test_list": [
+            "assert replace_blank(\"hello people\",'@')==(\"hello@people\")",
+            "assert replace_blank(\"python program language\",'$')==(\"python$program$language\")",
+            "assert replace_blank(\"blank space\",\"-\")==(\"blank-space\")"
+        ]
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 232,
+        "prompt": "Write a function that takes in a list and an integer n and returns a list containing the n largest items from the list.",
+        "code": "import heapq\ndef larg_nnum(list1,n):\n largest=heapq.nlargest(n,list1)\n return largest",
+        "test_imports": [],
+        "test_list": [
+            "assert set(larg_nnum([10, 20, 50, 70, 90, 20, 50, 40, 60, 80, 100],2))==set([100,90])",
+            "assert set(larg_nnum([10, 20, 50, 70, 90, 20, 50, 40, 60, 80, 100],5))==set([100,90,80,70,60])",
+            "assert set(larg_nnum([10, 20, 50, 70, 90, 20, 50, 40, 60, 80, 100],3))==set([100,90,80])"
+        ]
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 233,
+        "prompt": "Write a function to find the lateral surface area of a cylinder.",
+        "code": "def lateralsuface_cylinder(r,h):\n  lateralsurface= 2*3.1415*r*h\n  return lateralsurface",
+        "test_imports": [
+            "import math"
+        ],
+        "test_list": [
+            "assert math.isclose(lateralsuface_cylinder(10,5), 314.15000000000003, rel_tol=0.001)",
+            "assert math.isclose(lateralsuface_cylinder(4,5), 125.66000000000001, rel_tol=0.001)",
+            "assert math.isclose(lateralsuface_cylinder(4,10), 251.32000000000002, rel_tol=0.001)"
+        ]
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 234,
+        "prompt": "Write a function to find the volume of a cube given its side length.",
+        "code": "def volume_cube(l):\n  volume = l * l * l\n  return volume",
+        "test_imports": [],
+        "test_list": [
+            "assert volume_cube(3)==27",
+            "assert volume_cube(2)==8",
+            "assert volume_cube(5)==125"
+        ]
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 238,
+        "prompt": "Write a python function to count the number of non-empty substrings of a given string.",
+        "code": "def number_of_substrings(str): \n\tstr_len = len(str); \n\treturn int(str_len * (str_len + 1) / 2); ",
+        "test_imports": [],
+        "test_list": [
+            "assert number_of_substrings(\"abc\") == 6",
+            "assert number_of_substrings(\"abcd\") == 10",
+            "assert number_of_substrings(\"abcde\") == 15"
+        ]
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 240,
+        "prompt": "Write a function that takes in two lists and replaces the last element of the first list with the elements of the second list.",
+        "code": "def replace_list(list1,list2):\n list1[-1:] = list2\n replace_list=list1\n return replace_list\n",
+        "test_imports": [],
+        "test_list": [
+            "assert replace_list([1, 3, 5, 7, 9, 10],[2, 4, 6, 8])==[1, 3, 5, 7, 9, 2, 4, 6, 8]",
+            "assert replace_list([1,2,3,4,5],[5,6,7,8])==[1,2,3,4,5,6,7,8]",
+            "assert replace_list([\"red\",\"blue\",\"green\"],[\"yellow\"])==[\"red\",\"blue\",\"yellow\"]"
+        ]
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 242,
+        "prompt": "Write a function to count the total number of characters in a string.",
+        "code": "def count_charac(str1):\n total = 0\n for i in str1:\n    total = total + 1\n return total",
+        "test_imports": [],
+        "test_list": [
+            "assert count_charac(\"python programming\")==18",
+            "assert count_charac(\"language\")==8",
+            "assert count_charac(\"words\")==5"
+        ]
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 247,
+        "prompt": "Write a function to find the length of the longest palindromic subsequence in the given string.",
+        "code": "def lps(str): \n\tn = len(str) \n\tL = [[0 for x in range(n)] for x in range(n)] \n\tfor i in range(n): \n\t\tL[i][i] = 1\n\tfor cl in range(2, n+1): \n\t\tfor i in range(n-cl+1): \n\t\t\tj = i+cl-1\n\t\t\tif str[i] == str[j] and cl == 2: \n\t\t\t\tL[i][j] = 2\n\t\t\telif str[i] == str[j]: \n\t\t\t\tL[i][j] = L[i+1][j-1] + 2\n\t\t\telse: \n\t\t\t\tL[i][j] = max(L[i][j-1], L[i+1][j]); \n\treturn L[0][n-1]",
+        "test_imports": [],
+        "test_list": [
+            "assert lps(\"TENS FOR TENS\") == 5",
+            "assert lps(\"CARDIO FOR CARDS\") == 7",
+            "assert lps(\"PART OF THE JOURNEY IS PART\") == 9"
+        ]
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 249,
+        "prompt": "Write a function to find the intersection of two arrays.",
+        "code": "def intersection_array(array_nums1,array_nums2):\n result = list(filter(lambda x: x in array_nums1, array_nums2)) \n return result",
+        "test_imports": [],
+        "test_list": [
+            "assert intersection_array([1, 2, 3, 5, 7, 8, 9, 10],[1, 2, 4, 8, 9])==[1, 2, 8, 9]",
+            "assert intersection_array([1, 2, 3, 5, 7, 8, 9, 10],[3,5,7,9])==[3,5,7,9]",
+            "assert intersection_array([1, 2, 3, 5, 7, 8, 9, 10],[10,20,30,40])==[10]"
+        ]
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 250,
+        "prompt": "Write a python function that takes in a tuple and an element and counts the occcurences of the element in the tuple.",
+        "code": "def count_X(tup, x): \n    count = 0\n    for ele in tup: \n        if (ele == x): \n            count = count + 1\n    return count ",
+        "test_imports": [],
+        "test_list": [
+            "assert count_X((10, 8, 5, 2, 10, 15, 10, 8, 5, 8, 8, 2),4) == 0",
+            "assert count_X((10, 8, 5, 2, 10, 15, 10, 8, 5, 8, 8, 2),10) == 3",
+            "assert count_X((10, 8, 5, 2, 10, 15, 10, 8, 5, 8, 8, 2),8) == 4"
+        ]
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 252,
+        "prompt": "Write a python function to convert complex numbers to polar coordinates.",
+        "code": "import cmath  \ndef convert(numbers):    \n  num = cmath.polar(numbers)  \n  return (num) ",
+        "test_imports": [],
+        "test_list": [
+            "assert convert(1) == (1.0, 0.0)",
+            "assert convert(4) == (4.0,0.0)",
+            "assert convert(5) == (5.0,0.0)"
+        ]
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 253,
+        "prompt": "Write a python function that returns the number of integer elements in a given list.",
+        "code": "def count_integer(list1):\n    ctr = 0\n    for i in list1:\n        if isinstance(i, int):\n            ctr = ctr + 1\n    return ctr",
+        "test_imports": [],
+        "test_list": [
+            "assert count_integer([1,2,'abc',1.2]) == 2",
+            "assert count_integer([1,2,3]) == 3",
+            "assert count_integer([1,1.2,4,5.1]) == 2"
+        ]
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 257,
+        "prompt": "Write a function that takes in two numbers and returns a tuple with the second number and then the first number.",
+        "code": "def swap_numbers(a,b):\n temp = a\n a = b\n b = temp\n return (a,b)",
+        "test_imports": [],
+        "test_list": [
+            "assert swap_numbers(10,20)==(20,10)",
+            "assert swap_numbers(15,17)==(17,15)",
+            "assert swap_numbers(100,200)==(200,100)"
+        ]
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 261,
+        "prompt": "Write a function that takes in two tuples and performs mathematical division operation element-wise across the given tuples.",
+        "code": "def division_elements(test_tup1, test_tup2):\n  res = tuple(ele1 // ele2 for ele1, ele2 in zip(test_tup1, test_tup2))\n  return (res) ",
+        "test_imports": [],
+        "test_list": [
+            "assert division_elements((10, 4, 6, 9),(5, 2, 3, 3)) == (2, 2, 2, 3)",
+            "assert division_elements((12, 6, 8, 16),(6, 3, 4, 4)) == (2, 2, 2, 4)",
+            "assert division_elements((20, 14, 36, 18),(5, 7, 6, 9)) == (4, 2, 6, 2)"
+        ]
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 262,
+        "prompt": "Write a function that takes in a list and an integer L and splits the given list into two parts where the length of the first part of the list is L, and returns the resulting lists in a tuple.",
+        "code": "def split_two_parts(list1, L):\n    return list1[:L], list1[L:]",
+        "test_imports": [],
+        "test_list": [
+            "assert split_two_parts([1,1,2,3,4,4,5,1],3)==([1, 1, 2], [3, 4, 4, 5, 1])",
+            "assert split_two_parts(['a', 'b', 'c', 'd'],2)==(['a', 'b'], ['c', 'd'])",
+            "assert split_two_parts(['p', 'y', 't', 'h', 'o', 'n'],4)==(['p', 'y', 't', 'h'], ['o', 'n'])"
+        ]
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 266,
+        "prompt": "Write a function to find the lateral surface area of a cube given its side length.",
+        "code": "def lateralsurface_cube(l):\n  LSA = 4 * (l * l)\n  return LSA",
+        "test_imports": [],
+        "test_list": [
+            "assert lateralsurface_cube(5)==100",
+            "assert lateralsurface_cube(9)==324",
+            "assert lateralsurface_cube(10)==400"
+        ]
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 269,
+        "prompt": "Write a function to find the ascii value of a character.",
+        "code": "def ascii_value(k):\n  ch=k\n  return ord(ch)",
+        "test_imports": [],
+        "test_list": [
+            "assert ascii_value('A')==65",
+            "assert ascii_value('R')==82",
+            "assert ascii_value('S')==83"
+        ]
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 273,
+        "prompt": "Write a function that takes in two tuples and subtracts the elements of the first tuple by the elements of the second tuple with the same index.",
+        "code": "def substract_elements(test_tup1, test_tup2):\n  res = tuple(map(lambda i, j: i - j, test_tup1, test_tup2))\n  return (res) ",
+        "test_imports": [],
+        "test_list": [
+            "assert substract_elements((10, 4, 5), (2, 5, 18)) == (8, -1, -13)",
+            "assert substract_elements((11, 2, 3), (24, 45 ,16)) == (-13, -43, -13)",
+            "assert substract_elements((7, 18, 9), (10, 11, 12)) == (-3, 7, -3)"
+        ]
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 276,
+        "prompt": "Write a function that takes in the radius and height of a cylinder and returns the the volume.",
+        "code": "def volume_cylinder(r,h):\n  volume=3.1415*r*r*h\n  return volume",
+        "test_imports": [
+            "import math"
+        ],
+        "test_list": [
+            "assert math.isclose(volume_cylinder(10,5), 1570.7500000000002, rel_tol=0.001)",
+            "assert math.isclose(volume_cylinder(4,5), 251.32000000000002, rel_tol=0.001)",
+            "assert math.isclose(volume_cylinder(4,10), 502.64000000000004, rel_tol=0.001)"
+        ]
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 277,
+        "prompt": "Write a function that takes in a dictionary and integer n and filters the dictionary to only include entries with values greater than or equal to n.",
+        "code": "def dict_filter(dict,n):\n result = {key:value for (key, value) in dict.items() if value >=n}\n return result",
+        "test_imports": [],
+        "test_list": [
+            "assert dict_filter({'Cierra Vega': 175, 'Alden Cantrell': 180, 'Kierra Gentry': 165, 'Pierre Cox': 190},170)=={'Cierra Vega': 175, 'Alden Cantrell': 180, 'Pierre Cox': 190}",
+            "assert dict_filter({'Cierra Vega': 175, 'Alden Cantrell': 180, 'Kierra Gentry': 165, 'Pierre Cox': 190},180)=={ 'Alden Cantrell': 180, 'Pierre Cox': 190}",
+            "assert dict_filter({'Cierra Vega': 175, 'Alden Cantrell': 180, 'Kierra Gentry': 165, 'Pierre Cox': 190},190)=={ 'Pierre Cox': 190}"
+        ]
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 280,
+        "prompt": "Write a function that takes in an array and element and returns a tuple containing a boolean that indicates if the element is in the array and the index position of the element (or -1 if the element is not found).",
+        "code": "def sequential_search(dlist, item):\n    pos = 0\n    found = False\n    while pos < len(dlist) and not found:\n        if dlist[pos] == item:\n            found = True\n        else:\n            pos = pos + 1\n    return found, pos",
+        "test_imports": [],
+        "test_list": [
+            "assert sequential_search([11,23,58,31,56,77,43,12,65,19],31) == (True, 3)",
+            "assert sequential_search([12, 32, 45, 62, 35, 47, 44, 61],61) == (True, 7)",
+            "assert sequential_search([9, 10, 17, 19, 22, 39, 48, 56],48) == (True, 6)"
+        ]
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 281,
+        "prompt": "Write a python function to check if the elements of a given list are unique or not.",
+        "code": "def all_unique(test_list):\n    if len(test_list) > len(set(test_list)):\n        return False\n    return True",
+        "test_imports": [],
+        "test_list": [
+            "assert all_unique([1,2,3]) == True",
+            "assert all_unique([1,2,1,2]) == False",
+            "assert all_unique([1,2,3,4,5]) == True"
+        ]
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 282,
+        "prompt": "Write a function to subtract two lists element-wise.",
+        "code": "def sub_list(nums1,nums2):\n  result = map(lambda x, y: x - y, nums1, nums2)\n  return list(result)",
+        "test_imports": [],
+        "test_list": [
+            "assert sub_list([1, 2, 3],[4,5,6])==[-3,-3,-3]",
+            "assert sub_list([1,2],[3,4])==[-2,-2]",
+            "assert sub_list([90,120],[50,70])==[40,50]"
+        ]
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 284,
+        "prompt": "Write a function that takes in a list and element and checks whether all items in the list are equal to the given element.",
+        "code": "def check_element(list,element):\n  check_element=all(v== element for v in list)\n  return check_element",
+        "test_imports": [],
+        "test_list": [
+            "assert check_element([\"green\", \"orange\", \"black\", \"white\"],'blue')==False",
+            "assert check_element([1,2,3,4],7)==False",
+            "assert check_element([\"green\", \"green\", \"green\", \"green\"],'green')==True"
+        ]
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 285,
+        "prompt": "Write a function that checks whether a string contains the 'a' character followed by two or three 'b' characters.",
+        "code": "import re\ndef text_match_two_three(text):\n        patterns = 'ab{2,3}'\n        if re.search(patterns,  text):\n                return True\n        else:\n                return False",
+        "test_imports": [],
+        "test_list": [
+            "assert text_match_two_three(\"ac\")==(False)",
+            "assert text_match_two_three(\"dc\")==(False)",
+            "assert text_match_two_three(\"abbbba\")==(True)"
+        ]
+    },
+    {
+        "source_file": "Ellen's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 290,
+        "prompt": "Write a function to find the list of maximum length in a list of lists.",
+        "code": "def max_length(list1):\n    max_length = max(len(x) for x in  list1 )  \n    max_list = max((x) for x in   list1)\n    return(max_length, max_list)",
+        "test_imports": [],
+        "test_list": [
+            "assert max_length([[0], [1, 3], [5, 7], [9, 11], [13, 15, 17]])==(3, [13, 15, 17])",
+            "assert max_length([[1], [5, 7], [10, 12, 14,15]])==(4, [10, 12, 14,15])",
+            "assert max_length([[5], [15,20,25]])==(3, [15,20,25])"
+        ]
+    },
+    {
+        "source_file": "Ellen's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 292,
+        "prompt": "Write a python function to find quotient of two numbers (rounded down to the nearest integer).",
+        "code": "def find(n,m):  \n    q = n//m \n    return (q)",
+        "test_imports": [],
+        "test_list": [
+            "assert find(10,3) == 3",
+            "assert find(4,2) == 2",
+            "assert find(20,5) == 4"
+        ]
+    },
+    {
+        "source_file": "Ellen's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 293,
+        "prompt": "Write a function to find the third side of a right angled triangle.",
+        "code": "import math\ndef otherside_rightangle(w,h):\n  s=math.sqrt((w*w)+(h*h))\n  return s",
+        "test_imports": [],
+        "test_list": [
+            "assert otherside_rightangle(7,8)==10.63014581273465",
+            "assert otherside_rightangle(3,4)==5",
+            "assert otherside_rightangle(7,15)==16.55294535724685"
+        ]
+    },
+    {
+        "source_file": "Ellen's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 296,
+        "prompt": "Write a python function to count inversions in an array.",
+        "code": "def get_Inv_Count(arr): \n    inv_count = 0\n    for i in range(len(arr)): \n        for j in range(i + 1, len(arr)): \n            if (arr[i] > arr[j]): \n                inv_count += 1\n    return inv_count ",
+        "test_imports": [],
+        "test_list": [
+            "assert get_Inv_Count([1,20,6,4,5]) == 5",
+            "assert get_Inv_Count([1,2,1]) == 1",
+            "assert get_Inv_Count([1,2,5,6,1]) == 3"
+        ]
+    },
+    {
+        "source_file": "Ellen's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 297,
+        "prompt": "Write a function to flatten a given nested list structure.",
+        "code": "def flatten_list(list1):\n    result_list = []\n    if not list1: return result_list\n    stack = [list(list1)]\n    while stack:\n        c_num = stack.pop()\n        next = c_num.pop()\n        if c_num: stack.append(c_num)\n        if isinstance(next, list):\n            if next: stack.append(list(next))\n        else: result_list.append(next)\n    result_list.reverse()\n    return result_list ",
+        "test_imports": [],
+        "test_list": [
+            "assert flatten_list([0, 10, [20, 30], 40, 50, [60, 70, 80], [90, 100, 110, 120]])==[0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120]",
+            "assert flatten_list([[10, 20], [40], [30, 56, 25], [10, 20], [33], [40]])==[10, 20, 40, 30, 56, 25, 10, 20, 33, 40]",
+            "assert flatten_list([[1,2,3], [4,5,6], [10,11,12], [7,8,9]])==[1, 2, 3, 4, 5, 6, 10, 11, 12, 7, 8, 9]"
+        ]
+    },
+    {
+        "source_file": "Ellen's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 309,
+        "prompt": "Write a python function to find the maximum of two numbers.",
+        "code": "def maximum(a,b):   \n    if a >= b: \n        return a \n    else: \n        return b ",
+        "test_imports": [],
+        "test_list": [
+            "assert maximum(5,10) == 10",
+            "assert maximum(-1,-2) == -1",
+            "assert maximum(9,7) == 9"
+        ]
+    },
+    {
+        "source_file": "Ellen's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 312,
+        "prompt": "Write a function to find the volume of a cone.",
+        "code": "import math\ndef volume_cone(r,h):\n  volume = (1.0/3) * math.pi * r * r * h\n  return volume",
+        "test_imports": [
+            "import math"
+        ],
+        "test_list": [
+            "assert math.isclose(volume_cone(5,12), 314.15926535897927, rel_tol=0.001)",
+            "assert math.isclose(volume_cone(10,15), 1570.7963267948965, rel_tol=0.001)",
+            "assert math.isclose(volume_cone(19,17), 6426.651371693521, rel_tol=0.001)"
+        ]
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 390,
+        "prompt": "Write a function to apply a given format string to all of the elements in a list.",
+        "code": "def add_string(list_, string):\n add_string=[string.format(i) for i in  list_]\n return add_string",
+        "test_imports": [],
+        "test_list": [
+            "assert add_string([1,2,3,4],'temp{0}')==['temp1', 'temp2', 'temp3', 'temp4']",
+            "assert add_string(['a','b','c','d'], 'python{0}')==[ 'pythona', 'pythonb', 'pythonc', 'pythond']",
+            "assert add_string([5,6,7,8],'string{0}')==['string5', 'string6', 'string7', 'string8']"
+        ]
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 394,
+        "prompt": "Write a function to check if given tuple contains no duplicates.",
+        "code": "def check_distinct(test_tup):\n  res = True\n  temp = set()\n  for ele in test_tup:\n    if ele in temp:\n      res = False\n      break\n    temp.add(ele)\n  return res ",
+        "test_imports": [],
+        "test_list": [
+            "assert check_distinct((1, 4, 5, 6, 1, 4)) == False",
+            "assert check_distinct((1, 4, 5, 6)) == True",
+            "assert check_distinct((2, 3, 4, 5, 6)) == True"
+        ]
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 395,
+        "prompt": "Write a python function to find the first non-repeated character in a given string.",
+        "code": "def first_non_repeating_character(str1):\n  char_order = []\n  ctr = {}\n  for c in str1:\n    if c in ctr:\n      ctr[c] += 1\n    else:\n      ctr[c] = 1 \n      char_order.append(c)\n  for c in char_order:\n    if ctr[c] == 1:\n      return c\n  return None",
+        "test_imports": [],
+        "test_list": [
+            "assert first_non_repeating_character(\"abcabc\") == None",
+            "assert first_non_repeating_character(\"abc\") == \"a\"",
+            "assert first_non_repeating_character(\"ababc\") == \"c\""
+        ]
+    },
+    {
+        "source_file": "charlessutton@: Benchmark Questions Verification V2.ipynb",
+        "task_id": 396,
+        "prompt": "Write a function to check whether the given string starts and ends with the same character or not.",
+        "code": "import re  \nregex = r'^[a-z]$|^([a-z]).*\\1$'\ndef check_char(string): \n\tif(re.search(regex, string)): \n\t\treturn \"Valid\" \n\telse: \n\t\treturn \"Invalid\" ",
+        "test_imports": [],
+        "test_list": [
+            "assert check_char(\"abba\") == \"Valid\"",
+            "assert check_char(\"a\") == \"Valid\"",
+            "assert check_char(\"abcd\") == \"Invalid\""
+        ]
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 397,
+        "prompt": "Write a function to find the median of three numbers.",
+        "code": "def median_numbers(a,b,c):\n if a > b:\n    if a < c:\n        median = a\n    elif b > c:\n        median = b\n    else:\n        median = c\n else:\n    if a > c:\n        median = a\n    elif b < c:\n        median = b\n    else:\n        median = c\n return median",
+        "test_imports": [],
+        "test_list": [
+            "assert median_numbers(25,55,65)==55.0",
+            "assert median_numbers(20,10,30)==20.0",
+            "assert median_numbers(15,45,75)==45.0"
+        ]
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 404,
+        "prompt": "Write a python function to find the minimum of two numbers.",
+        "code": "def minimum(a,b):   \n    if a <= b: \n        return a \n    else: \n        return b ",
+        "test_imports": [],
+        "test_list": [
+            "assert minimum(1,2) == 1",
+            "assert minimum(-5,-4) == -5",
+            "assert minimum(0,0) == 0"
+        ]
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 405,
+        "prompt": "Write a function to check whether an element exists within a tuple.",
+        "code": "def check_tuplex(tuplex,tuple1): \n  if tuple1 in tuplex:\n    return True\n  else:\n     return False",
+        "test_imports": [],
+        "test_list": [
+            "assert check_tuplex((\"w\", 3, \"r\", \"e\", \"s\", \"o\", \"u\", \"r\", \"c\", \"e\"),'r')==True",
+            "assert check_tuplex((\"w\", 3, \"r\", \"e\", \"s\", \"o\", \"u\", \"r\", \"c\", \"e\"),'5')==False",
+            "assert check_tuplex((\"w\", 3, \"r\", \"e\", \"s\", \"o\", \"u\", \"r\", \"c\",\"e\"),3)==True"
+        ]
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 406,
+        "prompt": "Write a python function to find whether the parity of a given number is odd.",
+        "code": "def find_Parity(x): \n    y = x ^ (x >> 1); \n    y = y ^ (y >> 2); \n    y = y ^ (y >> 4); \n    y = y ^ (y >> 8); \n    y = y ^ (y >> 16); \n    if (y & 1): \n        return True\n    return False",
+        "test_imports": [],
+        "test_list": [
+            "assert find_Parity(12) == False",
+            "assert find_Parity(7) == True",
+            "assert find_Parity(10) == False"
+        ]
+    }
+]
