@@ -44,6 +44,13 @@ from .circuit_discovery import (
     find_min_k_for_threshold
 )
 
+# Edge attribution functions
+from .edge_attr import (
+    iter_topk_negative_effects,
+    iter_topk_absolute_effects,
+    discover_circuit_edge_attr
+)
+
 # Logit lens clustering
 from .logit_lens import (
     find_logit_lens_clusters,
@@ -98,6 +105,11 @@ __all__ = [
     "iter_topk_effects",
     "compute_k_metrics",
     "find_min_k_for_threshold",
+    
+    # Edge Attribution
+    "iter_topk_negative_effects",
+    "iter_topk_absolute_effects", 
+    "discover_circuit_edge_attr",
     
     # Logit Lens
     "find_logit_lens_clusters",
