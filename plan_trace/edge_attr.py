@@ -273,8 +273,13 @@ def _finite_differences_edge_attr(
     logstats: bool = False,
     edge_includes_loss_grad: bool = True,
     feature_selection: str = "max",
+    zero_ablation: bool = False,
 ):
-    """Compute edge attribution
+    """Compute edge attribution using finite differences or zero ablation.
+    
+    Args:
+        zero_ablation: If True, sets activations to 0 instead of adding perturbations.
+                      When True, fd_steps parameter is ignored.
     """
 
     if feature_selection not in {"max", "sum", "negative"}:
@@ -330,6 +335,7 @@ def _finite_differences_edge_attr(
             use_mean_error=use_mean_error,
             edge_includes_loss_grad=edge_includes_loss_grad,
             logstats=logstats,
+            zero_ablation=zero_ablation,
         )
         if edge is None:
             continue
@@ -359,13 +365,17 @@ def _compute_finite_differences_edge(
     use_mean_error: bool = True,
     edge_includes_loss_grad: bool = True,
     logstats: bool = False,
+    zero_ablation: bool = False,
 ):
     """Finite‑step perturbation implementation.
 
-    In practice this still adds a small α and measures Δ – i.e. it is the
-    perturb‑and‑measure approximation.
+    Args:
+        zero_ablation: If True, sets activations to 0 instead of adding α.
+                      When True, steps parameter is ignored and only one pass is made.
     """
-    print(f"[edge‑attr-fd] running finite differences edge attribution")
+    method = "zero ablation" if zero_ablation else "finite differences"
+    if logstats:
+        print(f"[edge‑attr-fd] running {method} edge attribution")
 
     up_hook, down_hook = upstream_sae.cfg.hook_name, downstream_sae.cfg.hook_name
     up_clean = clean_sae_cache[up_hook].detach().to(device)  # [L,S]
@@ -375,18 +385,17 @@ def _compute_finite_differences_edge(
     # Collect contributions across `steps` different α magnitudes, then average.
     bucket: Dict[Tuple[int, int], List[torch.Tensor]] = {}
 
-    for s in range(steps):
-        α = 0.01 * (s + 1)
-        # reset SAE caches each outer loop
+    if zero_ablation:
+        # Zero ablation: single pass, set features to 0
         for sae in base_saes:
             sae.mean_error = clean_error_cache[sae.cfg.hook_name].detach()
             sae.feature_acts = clean_sae_cache[sae.cfg.hook_name].detach().to(device)
 
         for up_idx in upstream_features:
             pert = up_clean.clone()
-            pert[..., up_idx] += α
+            pert[..., up_idx] = 0.0
 
-            _, updated_saes = run_with_saes( # run_sae_hook_fn(
+            _, updated_saes = run_with_saes(
                 model,
                 base_saes,
                 token_list,
@@ -397,7 +406,7 @@ def _compute_finite_differences_edge(
                 cache_sae_activations=True,
             )
             down_pert = updated_saes[downstream_sae.cfg.hook_layer].feature_acts
-            delta = (down_pert - down_clean) / α  # [L,S]
+            delta = down_pert - down_clean  # [L,S] - no division by α
 
             for down_idx in downstream_features:
                 val = torch.sum(
@@ -409,6 +418,42 @@ def _compute_finite_differences_edge(
                 bucket.setdefault((down_idx, up_idx), []).append(val.detach().cpu())
 
             clear_memory(base_saes, model)
+    else:
+        # Regular finite differences with multiple steps
+        for s in range(steps):
+            α = 0.01 * (s + 1)
+            # reset SAE caches each outer loop
+            for sae in base_saes:
+                sae.mean_error = clean_error_cache[sae.cfg.hook_name].detach()
+                sae.feature_acts = clean_sae_cache[sae.cfg.hook_name].detach().to(device)
+
+            for up_idx in upstream_features:
+                pert = up_clean.clone()
+                pert[..., up_idx] += α
+
+                _, updated_saes = run_with_saes(
+                    model,
+                    base_saes,
+                    token_list,
+                    calc_error=False,
+                    use_error=False,
+                    fake_activations=(upstream_sae.cfg.hook_layer, pert),
+                    use_mean_error=use_mean_error,
+                    cache_sae_activations=True,
+                )
+                down_pert = updated_saes[downstream_sae.cfg.hook_layer].feature_acts
+                delta = (down_pert - down_clean) / α  # [L,S]
+
+                for down_idx in downstream_features:
+                    val = torch.sum(
+                        (down_grad[..., down_idx] if down_grad is not None else 1.0)
+                        * delta[..., down_idx]
+                    )
+                    if val.abs() < 1e-6:
+                        continue
+                    bucket.setdefault((down_idx, up_idx), []).append(val.detach().cpu())
+
+                clear_memory(base_saes, model)
 
     if not bucket:
         return None
@@ -610,7 +655,7 @@ def plot_k_metrics(K_vals, metrics_negative, metrics_absolute, clean_probs_basel
     
     plt.xlabel("K (Total Number of Latent-Token Pairs across all layers)")
     plt.ylabel("P(correct)")
-    plt.title("P(correct) vs K latent-token pairs across all RES SAEs")
+    plt.title("P(correct) vs K latent-token pairs across all RES SAEs"`)
     plt.grid(True)
     plt.legend()
     plt.show()
@@ -732,6 +777,20 @@ def discover_circuit_edge_attr(model,
                      edge_includes_loss_grad=True,  
                      edge_feature_selection="max"   
                      ):
+    """
+    Discover circuit with edge attribution support.
+    
+    Args:
+        edge_method: Method for computing edge attribution
+            - "jvp": Jacobian-vector product method
+            - "finite_differences": Finite differences with perturbations
+            - "zero_ablation": Zero ablation (sets activations to 0)
+        edge_feature_selection: Feature selection strategy
+            - "max": Maximum absolute effect across positions
+            - "sum": Sum of absolute effects across positions  
+            - "negative": Most negative effects (for inhibitory features)
+        edge_includes_loss_grad: Whether to weight edges by downstream gradients
+    """
     model.reset_hooks(including_permanent=True)
     with torch.no_grad():
         logits_BLV, saes =run_with_saes(model, saes, changable_toks, calc_error=True, use_error=True, cache_sae_activations=True)
@@ -786,7 +845,25 @@ def discover_circuit_edge_attr(model,
                 edge_includes_loss_grad=edge_includes_loss_grad,
                 feature_selection=edge_feature_selection,
                 logstats=True, 
-                fd_steps=5
+                fd_steps=5,
+                zero_ablation=False
+            )
+        elif edge_method == "zero_ablation":
+            edges = _finite_differences_edge_attr(
+                model=model,
+                base_saes=saes,
+                token_list=changable_toks,
+                res_sae_effects=res_sae_effects,
+                clean_sae_cache=clean_sae_cache,
+                clean_error_cache=clean_error_cache,
+                labels=torch.tensor([label]).to(device),
+                device=device,
+                max_features_per_layer=max_edge_features,
+                edge_includes_loss_grad=edge_includes_loss_grad,
+                feature_selection=edge_feature_selection,
+                logstats=True, 
+                fd_steps=1,  # ignored for zero ablation
+                zero_ablation=True
             )
         elif edge_method == "jvp":
                 edges = _jvp_edge_attr(
@@ -847,6 +924,9 @@ def discover_circuit_edge_attr(model,
 
 # %%
 
+# Example usage and testing
+
+# Load model and SAEs
 model_name = "gemma-2-2b-it"
 device = "cuda"
 model = load_model(model_name, device=device, use_custom_cache=False, dtype=torch.bfloat16)
@@ -860,8 +940,9 @@ saes = load_pretrained_saes(
     canon=True
 )
 
-#%%
+# %%
 
+# Load data and setup
 data_path = "../data/first_100_passing_examples.json"
 prompt_idx = 15
 inter_token_id = 297
@@ -872,9 +953,11 @@ k_step = 10000
 k_thres = 0.6
 
 with open(data_path, 'r') as f:
-        data = json.load(f)
+    data = json.load(f)
 
 # %%
+
+# Generate prompt and tokens
 entry = data[prompt_idx]
 prompt = (
     "You are an expert Python programmer, and here is your task: "
@@ -898,50 +981,40 @@ while out_BL.shape[-1] - toks_BL.shape[-1] < 150:
 # Extract the specific prediction position
 inter_toks_BL = out_BL[:, :inter_token_id]
 baseline_suffix = model.to_string(out_BL[0, inter_token_id:])
-print(baseline_suffix)
-print(model.to_string(inter_toks_BL[0]))
+print(f"Generated text: {baseline_suffix}")
+print(f"Input tokens: {model.to_string(inter_toks_BL[0])}")
 
 # %%
 
-entries = discover_circuit_edge_attr(
-        model=model,
-        saes=saes,
-        changable_toks=inter_toks_BL,
-        # inter_toks_BL=inter_toks_BL,
-        device=device,
-        ig_steps=ig_steps,
-        k_max=k_max,
-        k_step=k_step,
-        k_thres=k_thres,
-        compute_edges=True,
-        edge_method="finite_differences",
-        max_edge_features=50,
-        edge_includes_loss_grad=True,
-        edge_feature_selection="max"
-    )
+# CELL 1: Run integrated gradients and get circuit rankings
+print("Running integrated gradients and computing circuit rankings...")
 
-
-# %% DEBUGGING RUNS FROM HERE
-
+# Reset hooks and run SAEs to get baseline
 model.reset_hooks(including_permanent=True)
 with torch.no_grad():
-    logits_BLV, saes =run_with_saes(model, saes, inter_toks_BL, calc_error=True, use_error=True, cache_sae_activations=True)
+    logits_BLV, saes = run_with_saes(model, saes, inter_toks_BL, calc_error=True, use_error=True, cache_sae_activations=True)
 
+# Get label and clean baseline
 label = logits_BLV[0, -1, :].argmax(-1).item()
 cleanup_cuda()
 probs_BV = F.softmax(logits_BLV[:, -1, :], dim=-1)
 clean_probs_baseline = probs_BV[0, label]
 
+print(f"Label: {label}")
+print(f"Clean baseline probability: {clean_probs_baseline.item():.4f}")
+
+# Set mean error for SAEs
 for ind, sae in enumerate(saes):
     sae.mean_error = sae.error_term.detach()
 
 del logits_BLV
 cleanup_cuda()
 
-# Get Cache
+# Get SAE caches
 clean_sae_cache, clean_error_cache, corr_sae_cache, corr_error_cache = get_saes_cache(saes)
 
-# Run Intergrated Gradients & Save Results
+# Run Integrated Gradients
+print("Running integrated gradients...")
 res_sae_effects, _ = run_integrated_gradients(
     model=model,
     base_saes=saes,
@@ -954,751 +1027,275 @@ res_sae_effects, _ = run_integrated_gradients(
     ig_steps=ig_steps,
     save_dir="", 
     save_and_use=False,
-    logstats=False,)  
+    logstats=False,
+)
 
 hook_names = [sae.cfg.hook_name for sae in saes]
 
-# %%
+# Compute K metrics and find circuit entries
+print("Computing K metrics...")
+K_vals, metrics_negative, metrics_absolute = compute_k_metrics(
+    model, saes, res_sae_effects, device, hook_names, inter_toks_BL, label, k_max=k_max, k_step=k_step
+)
 
-max_features_per_layer = 100
-feature_selection = "negative"  # NEW: negative selection strategy
-logstats = True
-fd_steps = 5
-use_mean_error = True
-edge_includes_loss_grad = True
+# Find threshold and get entries
+min_k_neg, min_k_abs = find_min_k_for_threshold(
+    K_vals, metrics_negative, metrics_absolute, clean_probs_baseline, threshold=k_thres
+)
 
-important_features: Dict[str, List[int]] = {}
-for sae in saes:
-    hname = sae.cfg.hook_name
-    effects = res_sae_effects[hname]  # [L, S]
-    if feature_selection == "max":
-        scores = effects.abs().max(dim=0).values  # per‑latent
-    elif feature_selection == "sum":
-        scores = effects.abs().sum(dim=0)
-    elif feature_selection == "negative":
-        scores = -effects.min(dim=0).values  # Most negative becomes most positive
-    else:
-        raise ValueError(f"Unknown feature_selection: {feature_selection}")
-    k = min(max_features_per_layer, scores.numel())
-    top_idx = torch.topk(scores, k).indices if k > 0 else torch.tensor([], dtype=torch.long)
-    important_features[hname] = top_idx.tolist()
-    if logstats:
-        print(f"[edge‑attr-fd] {hname}: kept {len(top_idx)}/{scores.numel()} features")
-
-# %%
-edges: Dict[str, Dict[str, torch.Tensor]] = {}
-for i in range(len(saes) - 1):
-    up_sae, down_sae = saes[i], saes[i + 1]
-    up_hook, down_hook = up_sae.cfg.hook_name, down_sae.cfg.hook_name
-
-    up_feats = important_features.get(up_hook, [])
-    down_feats = important_features.get(down_hook, [])
-    if not up_feats or not down_feats:
-        if logstats:
-            print(f"[edge‑attr-fd] skip {up_hook}->{down_hook} (no feats)")
-        continue
-
-    if logstats:
-        print(f"[edge‑attr-fd] computing {up_hook}->{down_hook}")
-
-    edge = _compute_finite_differences_edge(
-        model,
-        saes,
-        up_sae,
-        down_sae,
-        inter_toks_BL, # token_list,
-        up_feats,
-        down_feats,
-        clean_sae_cache,
-        clean_error_cache,
-        res_sae_effects,
-        torch.tensor([label]).to(device),
-        device,
-        steps=fd_steps,
-        use_mean_error=use_mean_error,
-        edge_includes_loss_grad=edge_includes_loss_grad,
-        logstats=logstats,
+if min_k_neg is not None:
+    K = min_k_neg
+    topk_iter = iter_topk_negative_effects(
+        res_sae_effects=res_sae_effects,
+        saes=saes,
+        hook_names=hook_names,
+        K=K
     )
-    if edge is not None:
-        edges.setdefault(up_hook, {})[down_hook] = edge
-    break
-
-print(edges)
-
-# if logstats:
-#     n_edges = sum(len(v) for v in edges.values())
-#     print(f"[edge‑attr-fd] finished – {n_edges} non‑zero edge tensors")
-
-# %%
-
-
-
-
-# %% finite differences step by step run, step 1
-
-max_features_per_layer = 100
-feature_selection = "negative"  # NEW: negative selection strategy
-logstats = True
-fd_steps = 5
-use_mean_error = True
-edge_includes_loss_grad = True
-
-print("=== FEATURE SELECTION DEBUG ===")
-important_features: Dict[str, List[int]] = {}
-for sae in saes:
-    hname = sae.cfg.hook_name
-    effects = res_sae_effects[hname]  # [L, S]
-    print(f"\n--- Processing {hname} ---")
-    print(f"Effects shape: {effects.shape}")
-    print(f"Effects range: [{effects.min().item():.4f}, {effects.max().item():.4f}]")
-    
-    if feature_selection == "max":
-        scores = effects.abs().max(dim=0).values  # per‑latent
-    elif feature_selection == "sum":
-        scores = effects.abs().sum(dim=0)
-    elif feature_selection == "negative":
-        # Take the most negative effects (reverse sort)
-        scores = -effects.min(dim=0).values  # per-latent, most negative becomes most positive
-    else:
-        raise ValueError(f"Unknown feature_selection: {feature_selection}")
-    
-    print(f"Scores shape: {scores.shape}")
-    print(f"Scores range: [{scores.min().item():.4f}, {scores.max().item():.4f}]")
-    
-    k = min(max_features_per_layer, scores.numel())
-    top_idx = torch.topk(scores, k).indices if k > 0 else torch.tensor([], dtype=torch.long)
-    important_features[hname] = top_idx.tolist()
-    
-    print(f"Selected {len(top_idx)}/{scores.numel()} features")
-    print(f"Top 10 feature indices: {top_idx[:10].tolist()}")
-    print(f"Top 10 scores: {scores[top_idx[:10]].tolist()}")
-    
-    if logstats:
-        print(f"[edge‑attr-fd] {hname}: kept {len(top_idx)}/{scores.numel()} features")
-
-print(f"\nTotal layers with features: {len(important_features)}")
-
-# %%
-
-"""
-implement a single upstream layer and multiple downstream layers but only calculating delta, not the down_grad. 
-This specific cell does zero ablation instead of adding an alpha. 
-"""
-
-print("=== UPSTREAM TO MULTIPLE DOWNSTREAM DELTA ANALYSIS ===")
-
-# Set parameters
-upstream_layer_idx = 0
-downstream_layer_range = (1, 16)  # layers 1-15
-alpha_values = [0.01, 0.1, 0.5, 1.0]
-threshold = 1e-10
-max_features_per_layer = 100
-
-# Get upstream SAE
-if upstream_layer_idx >= len(saes):
-    print(f"ERROR: upstream_layer_idx {upstream_layer_idx} >= num_saes {len(saes)}")
+    selection_method = "negative"
+    print(f"Using negative selection with K={K}")
+elif min_k_abs is not None:
+    K = min_k_abs
+    topk_iter = iter_topk_absolute_effects(
+        res_sae_effects=res_sae_effects,
+        saes=saes,
+        hook_names=hook_names,
+        K=K
+    )
+    selection_method = "absolute"
+    print(f"Using absolute selection with K={K}")
 else:
-    up_sae = saes[upstream_layer_idx]
-    up_hook = up_sae.cfg.hook_name
-    up_feats = important_features.get(up_hook, [])
+    print("No suitable K found - skipping circuit discovery")
+    circuit_entries = None
+    K = None
+    selection_method = None
+
+if K is not None:
+    # Get circuit entries
+    circuit_entries = list(itertools.islice(topk_iter, K))
+    print(f"Found {len(circuit_entries)} circuit entries using {selection_method} selection")
     
-    if not up_feats:
-        print(f"ERROR: No features found for upstream layer {upstream_layer_idx}")
-    else:
-        # Limit upstream features
-        up_feats = up_feats[:5]  # Just look at first feature for initial testing
+    # Show some example entries
+    print("Top 10 circuit entries:")
+    for i, (layer_idx, token_idx, latent_idx, effect_val) in enumerate(circuit_entries[:10]):
+        print(f"  {i+1}. Layer {layer_idx}, Token {token_idx}, Latent {latent_idx}, Effect: {effect_val:.6f}")
+
+  # %%
+
+# CELL 2: Compute edge attributions
+print("Computing edge attributions...")
+
+if K is not None and circuit_entries is not None:
+    # Test different edge attribution methods
+    edge_methods = ["jvp"] #, "finite_differences", "zero_ablation"]
+    edge_results = {}
+    
+    for method in edge_methods:
+        print(f"\nComputing {method} edges...")
         
-        print(f"Upstream layer: {upstream_layer_idx} ({up_hook})")
-        print(f"Upstream features: {len(up_feats)} features")
-        print(f"Downstream layers: {downstream_layer_range[0]} to {downstream_layer_range[1]-1}")
-        
-        # Get upstream baseline
-        up_clean = clean_sae_cache[up_hook].detach().to(device)
-        print(f"Upstream baseline shape: {up_clean.shape}")
-        
-        # Get downstream SAEs and baselines
-        downstream_saes = []
-        downstream_baselines = {}
-        downstream_features = {}
-        
-        for down_layer_idx in range(downstream_layer_range[0], min(downstream_layer_range[1], len(saes))):
-            down_sae = saes[down_layer_idx]
-            down_hook = down_sae.cfg.hook_name
-            down_feats = important_features.get(down_hook, [])
-            
-            if down_feats:
-                downstream_saes.append((down_layer_idx, down_sae))
-                downstream_baselines[down_layer_idx] = clean_sae_cache[down_hook].detach().to(device)
-                downstream_features[down_layer_idx] = down_feats[:max_features_per_layer]
-                
-                print(f"  Downstream layer {down_layer_idx}: {len(down_feats)} features -> {len(downstream_features[down_layer_idx])} used")
-        
-        print(f"Total downstream layers with features: {len(downstream_saes)}")
-        
-        if downstream_saes:
-            print(f"\nStarting ablation analysis...")
-            print(f"Testing {len(up_feats)} upstream features")
-            print(f"Zeroing out activations instead of perturbation")
-            
-            # Storage for significant deltas
-            significant_deltas = []
-            total_deltas = 0
-            
-            # Track maximum absolute delta
-            max_abs_delta = 0.0
-            max_delta_info = None
-            
-            # Reset SAE states once
-            for sae in saes:
-                if hasattr(sae, 'mean_error'):
-                    sae.mean_error = clean_error_cache[sae.cfg.hook_name].detach()
-                if hasattr(sae, 'feature_acts'):
-                    sae.feature_acts = clean_sae_cache[sae.cfg.hook_name].detach().to(device)
-            
-            # Loop through upstream features
-            for up_feat_idx in up_feats:
-                print(f"  Zeroing out upstream feature {up_feat_idx}")
-                
-                # Create ablation - set feature to 0
-                pert = up_clean.clone()
-                pert[..., up_feat_idx] = 0.0
-                
-                try:
-                    # Run forward pass with ablation
-                    _, updated_saes = run_with_saes(
-                        model,
-                        saes,
-                        inter_toks_BL,
-                        calc_error=False,
-                        use_error=False,
-                        fake_activations=(up_sae.cfg.hook_layer, pert),
-                        use_mean_error=use_mean_error,
-                        cache_sae_activations=True,
-                    )
-                    
-                    # Check all downstream layers
-                    for down_layer_idx, down_sae in downstream_saes:
-                        down_pert = updated_saes[down_sae.cfg.hook_layer].feature_acts
-                        down_clean = downstream_baselines[down_layer_idx]
-                        
-                        # Calculate delta (no division by alpha needed)
-                        delta = down_pert - down_clean
-                        
-                        # Check downstream features
-                        down_feats = downstream_features[down_layer_idx]
-                        for down_feat_idx in down_feats:
-                            delta_val = delta[..., down_feat_idx]
-                            
-                            # Sum across all positions (tokens)
-                            delta_sum = torch.sum(delta_val).item()
-                            total_deltas += 1
-                            
-                            # Track maximum absolute delta
-                            abs_delta = abs(delta_sum)
-                            if abs_delta > max_abs_delta:
-                                max_abs_delta = abs_delta
-                                max_delta_info = {
-                                    'upstream_feature': up_feat_idx,
-                                    'downstream_layer': down_layer_idx,
-                                    'downstream_feature': down_feat_idx,
-                                    'ablation': 'zeroed',
-                                    'delta_sum': delta_sum,
-                                    'delta_abs': abs_delta
-                                }
-                            
-                            # Check if significant and print
-                            if abs_delta > threshold:
-                                significant_deltas.append({
-                                    'upstream_feature': up_feat_idx,
-                                    'downstream_layer': down_layer_idx,
-                                    'downstream_feature': down_feat_idx,
-                                    'ablation': 'zeroed',
-                                    'delta_sum': delta_sum,
-                                    'delta_abs': abs_delta
-                                })
-                                print(f"    SIGNIFICANT: up_feat={up_feat_idx}, down_layer={down_layer_idx}, down_feat={down_feat_idx}, delta={delta_sum:.8f}")
-                    
-                    # Clean up memory
-                    clear_memory(saes, model)
-                    
-                except Exception as e:
-                    print(f"    ERROR in forward pass for up_feat {up_feat_idx}: {e}")
-                    continue
-            
-            # Print final summary
-            print(f"\n=== ANALYSIS COMPLETE ===")
-            print(f"Total deltas computed: {total_deltas}")
-            print(f"Significant deltas (abs > {threshold}): {len(significant_deltas)}")
-            
-            # Print maximum absolute delta information
-            if max_delta_info:
-                print(f"\nMAXIMUM ABSOLUTE DELTA:")
-                print(f"  Max |delta| = {max_abs_delta:.2e}")
-                print(f"  Upstream feature: {max_delta_info['upstream_feature']}")
-                print(f"  Downstream layer: {max_delta_info['downstream_layer']}")
-                print(f"  Downstream feature: {max_delta_info['downstream_feature']}")
-                print(f"  Ablation: {max_delta_info['ablation']}")
-                print(f"  Delta value: {max_delta_info['delta_sum']:.12e}")
-            else:
-                print(f"\nNo deltas computed (this shouldn't happen!)")
-            
-            # Sort significant deltas by magnitude
-            significant_deltas.sort(key=lambda x: x['delta_abs'], reverse=True)
-            
-            # Print top significant deltas
-            print(f"\nTop 20 significant deltas:")
-            for i, delta_info in enumerate(significant_deltas[:20]):
-                print(f"  {i+1:2d}. up_feat={delta_info['upstream_feature']:4d}, down_layer={delta_info['downstream_layer']:2d}, down_feat={delta_info['downstream_feature']:4d}, ablation={delta_info['ablation']}, δ={delta_info['delta_sum']:10.6f}")
-            
-            # Summary by downstream layer
-            layer_summary = {}
-            for delta_info in significant_deltas:
-                layer = delta_info['downstream_layer']
-                if layer not in layer_summary:
-                    layer_summary[layer] = {'count': 0, 'max_delta': 0}
-                layer_summary[layer]['count'] += 1
-                layer_summary[layer]['max_delta'] = max(layer_summary[layer]['max_delta'], delta_info['delta_abs'])
-            
-            print(f"\nSummary by downstream layer:")
-            for layer in sorted(layer_summary.keys()):
-                info = layer_summary[layer]
-                print(f"  Layer {layer:2d}: {info['count']:4d} significant deltas, max_delta={info['max_delta']:8.6f}")
-        
-        else:
-            print("ERROR: No downstream layers have features!")
-            
-print("=== END OF UPSTREAM TO MULTIPLE DOWNSTREAM ABLATION ANALYSIS ===")
-
-
-
-# %%
-# STEP 2: Toy Scenario - Just Layers 0 and 1 Debug
-print("=== TOY SCENARIO: LAYERS 0 AND 1 DEBUG ===")
-
-# Get first two SAEs only
-if len(saes) >= 2:
-    up_sae, down_sae = saes[0], saes[1]
-    up_hook, down_hook = up_sae.cfg.hook_name, down_sae.cfg.hook_name
-    
-    print(f"Upstream SAE: {up_hook}")
-    print(f"Downstream SAE: {down_hook}")
-    
-    # Get features for both layers
-    up_feats = important_features.get(up_hook, [])
-    down_feats = important_features.get(down_hook, [])
-    
-    print(f"Upstream features: {len(up_feats)} features")
-    print(f"Downstream features: {len(down_feats)} features")
-    
-    if not up_feats or not down_feats:
-        print("ERROR: No features found for one or both layers!")
-        if not up_feats:
-            print(f"  - No upstream features for {up_hook}")
-        if not down_feats:
-            print(f"  - No downstream features for {down_hook}")
-    else:
-        print(f"SUCCESS: Both layers have features")
-        print(f"  - Upstream: {up_feats[:5]}... ({len(up_feats)} total)")
-        print(f"  - Downstream: {down_feats[:5]}... ({len(down_feats)} total)")
-        
-        # Show the actual effects for these features
-        up_effects = res_sae_effects[up_hook]
-        down_effects = res_sae_effects[down_hook]
-        
-        print(f"\nEffect tensors:")
-        print(f"  - Upstream effects shape: {up_effects.shape}")
-        print(f"  - Downstream effects shape: {down_effects.shape}")
-        
-        # Sample some effects
-        print(f"\nSample upstream effects for first 5 features:")
-        for i, feat_idx in enumerate(up_feats[:5]):
-            feat_effects = up_effects[:, feat_idx]
-            print(f"  - Feature {feat_idx}: {feat_effects.tolist()}")
-            
-        print(f"\nSample downstream effects for first 5 features:")
-        for i, feat_idx in enumerate(down_feats[:5]):
-            feat_effects = down_effects[:, feat_idx]
-            print(f"  - Feature {feat_idx}: {feat_effects.tolist()}")
-else:
-    print("ERROR: Need at least 2 SAEs for edge computation!")
-
-# %%
-
-# STEP 3: Detailed Finite Differences Computation
-print("=== DETAILED FINITE DIFFERENCES COMPUTATION ===")
-
-# Assuming we have up_sae and down_sae from the previous cell
-if len(saes) >= 2 and len(important_features.get(saes[0].cfg.hook_name, [])) > 0 and len(important_features.get(saes[1].cfg.hook_name, [])) > 0:
-    up_sae, down_sae = saes[0], saes[1]
-    up_hook, down_hook = up_sae.cfg.hook_name, down_sae.cfg.hook_name
-    up_feats = important_features[up_hook]
-    down_feats = important_features[down_hook]
-    
-    print(f"Starting computation for {up_hook} -> {down_hook}")
-    print(f"Steps: {fd_steps}")
-    print(f"Use mean error: {use_mean_error}")
-    print(f"Edge includes loss grad: {edge_includes_loss_grad}")
-    
-    # Get baseline activations
-    up_clean = clean_sae_cache[up_hook].detach().to(device)
-    down_clean = clean_sae_cache[down_hook].detach().to(device)
-    
-    print(f"\nBaseline activations:")
-    print(f"  - Upstream clean shape: {up_clean.shape}")
-    print(f"  - Downstream clean shape: {down_clean.shape}")
-    print(f"  - Upstream clean range: [{up_clean.min().item():.4f}, {up_clean.max().item():.4f}]")
-    print(f"  - Downstream clean range: [{down_clean.min().item():.4f}, {down_clean.max().item():.4f}]")
-    
-    # Get downstream gradient if needed
-    down_grad = res_sae_effects[down_hook].to(device) if edge_includes_loss_grad else None
-    if down_grad is not None:
-        print(f"\nDownstream gradient:")
-        print(f"  - Shape: {down_grad.shape}")
-        print(f"  - Range: [{down_grad.min().item():.4f}, {down_grad.max().item():.4f}]")
-    else:
-        print(f"\nNo downstream gradient (edge_includes_loss_grad=False)")
-    
-    # Initialize bucket for collecting contributions
-    bucket: Dict[Tuple[int, int], List[torch.Tensor]] = {}
-    
-    print(f"\nStarting perturbation loop...")
-    print(f"Will test {len(up_feats)} upstream features x {len(down_feats)} downstream features")
-    
-    # Limit to first few features for debugging
-    up_feats_debug = up_feats[:3]  # Just first 3 for debugging
-    down_feats_debug = down_feats[:3]  # Just first 3 for debugging
-    
-    print(f"DEBUG: Limited to {len(up_feats_debug)} x {len(down_feats_debug)} for debugging")
-    
-    # Store original SAE states
-    original_states = {}
-    for sae in saes:
-        original_states[sae.cfg.hook_name] = {
-            'mean_error': sae.mean_error.clone() if hasattr(sae, 'mean_error') else None,
-            'feature_acts': sae.feature_acts.clone() if hasattr(sae, 'feature_acts') else None
-        }
-    
-    print(f"Stored original SAE states for {len(original_states)} SAEs")
-    
-else:
-    print("ERROR: Cannot proceed - missing SAEs or features!")
-
-# %%
-
-# STEP 4: Perturbation Loop with Detailed Logging
-print("=== PERTURBATION LOOP ===")
-
-if len(saes) >= 2 and len(important_features.get(saes[0].cfg.hook_name, [])) > 0 and len(important_features.get(saes[1].cfg.hook_name, [])) > 0:
-    
-    # Get our variables from previous cell
-    up_sae, down_sae = saes[0], saes[1]
-    up_hook, down_hook = up_sae.cfg.hook_name, down_sae.cfg.hook_name
-    up_feats = important_features[up_hook]
-    down_feats = important_features[down_hook]
-    up_clean = clean_sae_cache[up_hook].detach().to(device)
-    down_clean = clean_sae_cache[down_hook].detach().to(device)
-    down_grad = res_sae_effects[down_hook].to(device) if edge_includes_loss_grad else None
-    
-    # Debug with very limited features
-    up_feats_debug = up_feats[:100]  # Just 2 features
-    down_feats_debug = down_feats[:100]  # Just 2 features
-    
-    bucket: Dict[Tuple[int, int], List[torch.Tensor]] = {}
-    
-    print(f"Testing {len(up_feats_debug)} upstream x {len(down_feats_debug)} downstream features")
-    print(f"Upstream features: {up_feats_debug}")
-    print(f"Downstream features: {down_feats_debug}")
-    
-    # Outer loop: different alpha values
-    for s in range(fd_steps):
-        α = 0.1 * (s + 1)
-        print(f"\n--- Step {s+1}/{fd_steps}, α = {α} ---")
-        
-        # Reset SAE caches for each alpha
-        for sae in saes:
-            if hasattr(sae, 'mean_error'):
-                sae.mean_error = clean_error_cache[sae.cfg.hook_name].detach()
-            if hasattr(sae, 'feature_acts'):
-                sae.feature_acts = clean_sae_cache[sae.cfg.hook_name].detach().to(device)
-        
-        # Inner loop: upstream features
-        for up_idx in up_feats_debug:
-            print(f"\n  Perturbing upstream feature {up_idx}")
-            
-            # Create perturbation
-            pert = up_clean.clone()
-            pert[..., up_idx] += α
-            
-            # print(f"    Original value at feature {up_idx}: {up_clean[..., up_idx].tolist()}")
-            # print(f"    Perturbed value at feature {up_idx}: {pert[..., up_idx].tolist()}")
-            # print(f"    Perturbation magnitude: {α}")
-            
-            # Run forward pass with perturbation
-            try:
-                print(f"    Running forward pass with perturbation...")
-                _, updated_saes = run_with_saes(
-                    model,
-                    saes,
-                    inter_toks_BL,
-                    calc_error=False,
-                    use_error=False,
-                    fake_activations=(up_sae.cfg.hook_layer, pert),
-                    use_mean_error=use_mean_error,
-                )
-                
-                down_pert = updated_saes[down_sae.cfg.hook_layer].feature_acts
-                # print(f"    Got downstream perturbed activations: {down_pert.shape}")
-                
-                # Compute delta
-                delta = (down_pert - down_clean) / α
-                # print(f"    Delta range: [{delta.min().item():.6f}, {delta.max().item():.6f}]")
-                
-                # Check specific downstream features
-                for down_idx in down_feats_debug:
-                    delta_val = delta[..., down_idx]
-                    # print(f"    Delta for downstream feature {down_idx}: {delta_val.tolist()}")
-                    
-                    # Apply gradient weighting if needed
-                    if down_grad is not None:
-                        grad_weight = down_grad[..., down_idx]
-                        weighted_delta = grad_weight * delta_val
-                        # print(f"    Gradient weight: {grad_weight.tolist()}")
-                        # print(f"    Weighted delta: {weighted_delta.tolist()}")
-                        val = torch.sum(weighted_delta)
-                    else:
-                        val = torch.sum(delta_val)
-                    
-                    print(f"    Final contribution for ({down_idx}, {up_idx}): {val.item():.6f}")
-                    
-                    # Store if significant
-                    if val.abs() >= 1e-10:
-                        bucket.setdefault((down_idx, up_idx), []).append(val.detach().cpu())
-                        print(f"    ✓ Stored contribution for ({down_idx}, {up_idx})")
-                    else:
-                        print(f"    ✗ Contribution too small, skipping")
-                
-                # Clean up
-                clear_memory(saes, model)
-                # print(f"    Cleared memory")
-                
-            except Exception as e:
-                print(f"    ERROR in forward pass: {e}")
-                
-        print(f"  Bucket status: {len(bucket)} entries")
-        for key, values in bucket.items():
-            print(f"    {key}: {len(values)} contributions")
-    
-    print(f"\nFinal bucket: {len(bucket)} unique (downstream, upstream) pairs")
-    for (down_idx, up_idx), values in bucket.items():
-        mean_val = torch.stack(values).mean().item()
-        print(f"  ({down_idx}, {up_idx}): {len(values)} values, mean = {mean_val:.6f}")
-    
-else:
-    print("ERROR: Cannot proceed - missing SAEs or features!")
-
-# %%
-
-# STEP 5: Create Sparse Tensor from Bucket
-print("=== CREATING SPARSE TENSOR ===")
-
-# This assumes we have the bucket from the previous cell
-if 'bucket' in locals() and len(bucket) > 0:
-    print(f"Creating sparse tensor from {len(bucket)} entries...")
-    
-    # Show what we have
-    print(f"Bucket contents:")
-    for (down_idx, up_idx), values in bucket.items():
-        values_tensor = torch.stack(values)
-        mean_val = values_tensor.mean().item()
-        std_val = values_tensor.std().item()
-        print(f"  ({down_idx}, {up_idx}): {len(values)} values, mean={mean_val:.6f}, std={std_val:.6f}")
-    
-    # Create the sparse tensor
-    idxs, vals = zip(*[((d, u), torch.stack(v).mean()) for (d, u), v in bucket.items()])
-    
-    print(f"\nTensor creation:")
-    print(f"  Indices: {idxs}")
-    print(f"  Values: {[v.item() for v in vals]}")
-    
-    # Convert to matrix format
-    idx_mat = torch.tensor(list(zip(*idxs)), dtype=torch.long)  # [2, N]
-    val_mat = torch.stack(list(vals))  # [N]
-    
-    print(f"  Index matrix shape: {idx_mat.shape}")
-    print(f"  Value matrix shape: {val_mat.shape}")
-    print(f"  Index matrix: {idx_mat}")
-    print(f"  Value matrix: {val_mat}")
-    
-    # Determine tensor size
-    # Note: this should be based on the actual number of features we tested
-    max_down_idx = max(down_idx for down_idx, up_idx in bucket.keys())
-    max_up_idx = max(up_idx for down_idx, up_idx in bucket.keys())
-    
-    # But we need to map back to positions in our feature lists
-    down_feats_debug = down_feats[:2]  # Same as used in previous cell
-    up_feats_debug = up_feats[:2]      # Same as used in previous cell
-    
-    tensor_size = (len(down_feats_debug), len(up_feats_debug))
-    print(f"  Tensor size: {tensor_size}")
-    
-    # Create sparse tensor
-    edge_tensor = torch.sparse_coo_tensor(
-        idx_mat,
-        val_mat,
-        size=tensor_size,
-    ).coalesce()
-    
-    print(f"  Created sparse tensor:")
-    print(f"    Shape: {edge_tensor.shape}")
-    print(f"    NNZ: {edge_tensor._nnz()}")
-    print(f"    Dense representation:")
-    print(f"    {edge_tensor.to_dense()}")
-    
-    # Show the mapping
-    print(f"\nFeature mapping:")
-    print(f"  Downstream features: {down_feats_debug}")
-    print(f"  Upstream features: {up_feats_debug}")
-    
-    # Convert to dense to see the full matrix
-    dense_edge = edge_tensor.to_dense()
-    print(f"\nEdge matrix (downstream x upstream):")
-    for i, down_feat in enumerate(down_feats_debug):
-        row_str = f"  Down {down_feat}: ["
-        for j, up_feat in enumerate(up_feats_debug):
-            row_str += f"{dense_edge[i, j].item():8.4f} "
-        row_str += "]"
-        print(row_str)
-    
-    SUCCESS = True
-    
-elif 'bucket' in locals():
-    print("Bucket exists but is empty!")
-    print("This means no significant contributions were found.")
-    SUCCESS = False
-else:
-    print("No bucket found - previous step may have failed")
-    SUCCESS = False
-
-print(f"\nSUCCESS: {SUCCESS}")
-
-# %%
-# SUMMARY: How to Run the Complete Edge Attribution Debug Pipeline
-
-print("=== EDGE ATTRIBUTION DEBUG PIPELINE ===")
-print("""
-This file now contains a complete step-by-step debugging pipeline for edge attribution.
-Run the cells in order to debug your edge attribution issues:
-
-STEP 1: Feature Selection Debug
-- Tests the new "negative" feature selection strategy
-- Shows you exactly which features are selected and why
-- Prints shapes, ranges, and top features for each layer
-
-STEP 2: Toy Scenario Setup  
-- Focuses on just layers 0 and 1 for simplicity
-- Validates that both layers have selected features
-- Shows sample effects for the selected features
-
-STEP 3: Detailed Computation Setup
-- Prepares all variables for finite differences
-- Shows baseline activations and gradients
-- Stores original SAE states for proper cleanup
-
-STEP 4: Perturbation Loop
-- Runs the finite differences computation step by step
-- Shows exactly what happens for each perturbation
-- Prints deltas, gradients, and final contributions
-- Limited to 2x2 features for detailed debugging
-
-STEP 5: Sparse Tensor Creation
-- Creates the final edge tensor from collected contributions
-- Shows the complete feature mapping
-- Displays the final edge matrix
-
-DEBUGGING TIPS:
-1. If Step 1 shows no features selected, try different feature_selection strategies
-2. If Step 4 shows no contributions, check that perturbations are large enough
-3. If Step 4 shows error in forward pass, check your SAE setup
-4. If contributions are too small (< 1e-6), try larger perturbations or different features
-
-NEXT STEPS:
-- Once this works, increase the number of features in Step 4
-- Try different alpha values in the perturbation loop
-- Test with more layer pairs
-- Compare with JVP method for validation
-""")
-
-# %%
-
-# DEBUGGING: Test Larger Perturbations and Check Baseline Values
-print("=== DEBUGGING: PERTURBATION MAGNITUDE TEST ===")
-
-if len(saes) >= 2 and len(important_features.get(saes[0].cfg.hook_name, [])) > 0:
-    up_sae, down_sae = saes[0], saes[1]
-    up_hook, down_hook = up_sae.cfg.hook_name, down_sae.cfg.hook_name
-    up_feats = important_features[up_hook]
-    down_feats = important_features[down_hook]
-    up_clean = clean_sae_cache[up_hook].detach().to(device)
-    down_clean = clean_sae_cache[down_hook].detach().to(device)
-    
-    # Check baseline values of selected features
-    print(f"Checking baseline values for first 10 upstream features:")
-    for i, feat_idx in enumerate(up_feats[:10]):
-        baseline_val = up_clean[..., feat_idx]
-        print(f"  Feature {feat_idx}: {baseline_val.tolist()} (min: {baseline_val.min().item():.6f}, max: {baseline_val.max().item():.6f})")
-    
-    print(f"\nChecking baseline values for first 10 downstream features:")
-    for i, feat_idx in enumerate(down_feats[:10]):
-        baseline_val = down_clean[..., feat_idx]
-        print(f"  Feature {feat_idx}: {baseline_val.tolist()} (min: {baseline_val.min().item():.6f}, max: {baseline_val.max().item():.6f})")
-    
-    # Test different perturbation magnitudes
-    test_alphas = [5, 10, 20, 50] #[0.01, 0.1, 0.5, 1.0, 2.0]
-    print(f"\nTesting different perturbation magnitudes:")
-    
-    # Reset SAE states
-    for sae in saes:
-        if hasattr(sae, 'mean_error'):
-            sae.mean_error = clean_error_cache[sae.cfg.hook_name].detach()
-        if hasattr(sae, 'feature_acts'):
-            sae.feature_acts = clean_sae_cache[sae.cfg.hook_name].detach().to(device)
-    
-    # Test just one feature pair
-    test_up_feat = up_feats[0]
-    test_down_feat = down_feats[0]
-    
-    print(f"Testing upstream feature {test_up_feat} -> downstream feature {test_down_feat}")
-    
-    for α in test_alphas:
-        print(f"\n  α = {α}")
-        
-        # Create perturbation
-        pert = up_clean.clone()
-        pert[..., test_up_feat] += α
-        
-        print(f"    Original: {up_clean[..., test_up_feat].tolist()}")
-        print(f"    Perturbed: {pert[..., test_up_feat].tolist()}")
-        
-        try:
-            # Run forward pass
-            _, updated_saes = run_with_saes(
-                model, saes, inter_toks_BL,
-                calc_error=False, use_error=False,
-                fake_activations=(up_sae.cfg.hook_layer, pert),
-                use_mean_error=use_mean_error,
+        if method == "finite_differences":
+            edges = _finite_differences_edge_attr(
+                model=model,
+                base_saes=saes,
+                token_list=inter_toks_BL,
+                res_sae_effects=res_sae_effects,
+                clean_sae_cache=clean_sae_cache,
+                clean_error_cache=clean_error_cache,
+                labels=torch.tensor([label]).to(device),
+                device=device,
+                max_features_per_layer=50,
+                edge_includes_loss_grad=True,
+                feature_selection="max",
+                logstats=True, 
+                fd_steps=5,
+                zero_ablation=False
             )
+        elif method == "zero_ablation":
+            edges = _finite_differences_edge_attr(
+                model=model,
+                base_saes=saes,
+                token_list=inter_toks_BL,
+                res_sae_effects=res_sae_effects,
+                clean_sae_cache=clean_sae_cache,
+                clean_error_cache=clean_error_cache,
+                labels=torch.tensor([label]).to(device),
+                device=device,
+                max_features_per_layer=50,
+                edge_includes_loss_grad=True,
+                feature_selection="max",
+                logstats=True, 
+                fd_steps=1,  # ignored for zero ablation
+                zero_ablation=True
+            )
+        elif method == "jvp":
+            edges = _jvp_edge_attr(
+                model=model,
+                base_saes=saes,
+                token_list=inter_toks_BL,
+                res_sae_effects=res_sae_effects,
+                clean_sae_cache=clean_sae_cache,
+                clean_error_cache=clean_error_cache,
+                labels=torch.tensor([label]).to(device),
+                device=device,
+                max_features_per_layer=50,
+                use_mean_error=True,
+                logstats=True,
+                edge_includes_loss_grad=True,
+                feature_selection="max",
+            )
+        
+        edge_results[method] = edges
+        
+        # Show edge statistics
+        if edges:
+            total_edges = sum(len(v) for v in edges.values())
+            print(f"  {method}: {total_edges} edge tensors")
             
-            down_pert = updated_saes[down_sae.cfg.hook_layer].feature_acts
-            delta = (down_pert - down_clean) / α
-            delta_val = delta[..., test_down_feat]
-            
-            print(f"    Delta: {delta_val.tolist()}")
-            print(f"    Delta sum: {torch.sum(delta_val).item():.8f}")
-            
-            clear_memory(saes, model)
-            
-        except Exception as e:
-            print(f"    ERROR: {e}")
+            for upstream_hook, downstream_edges in edges.items():
+                for downstream_hook, edge_tensor in downstream_edges.items():
+                    print(f"    {upstream_hook} -> {downstream_hook}: {edge_tensor.shape} ({edge_tensor._nnz()} non-zero)")
+                    # Show some statistics
+                    if edge_tensor._nnz() > 0:
+                        dense_edges = edge_tensor.to_dense()
+                        print(f"      Range: [{dense_edges.min().item():.4f}, {dense_edges.max().item():.4f}]")
+                        print(f"      Mean magnitude: {dense_edges.abs().mean().item():.4f}")
+        else:
+            print(f"  {method}: No edges computed")
+    
+    print(f"\nEdge attribution complete! Computed edges using {len(edge_results)} methods.")
+    
+    # Store results in variables for easy access
+    edges_jvp = edge_results.get("jvp", None)
+    edges_fd = edge_results.get("finite_differences", None) 
+    edges_zero = edge_results.get("zero_ablation", None)
+    
+else:
+    print("Cannot compute edges - no circuit entries found")
+    edges_jvp = None
+    edges_fd = None
+    edges_zero = None
 
 # %%
+
+# Test JVP edge attribution
+print("Testing JVP edge attribution...")
+entries_jvp, edges_jvp = discover_circuit_edge_attr(
+    model=model,
+    saes=saes,
+    changable_toks=inter_toks_BL,
+    device=device,
+    ig_steps=ig_steps,
+    k_max=k_max,
+    k_step=k_step,
+    k_thres=k_thres,
+    compute_edges=True,
+    edge_method="jvp",
+    max_edge_features=50,
+    edge_includes_loss_grad=True,
+    edge_feature_selection="max"
+)
+
+print(f"JVP Results: {len(entries_jvp) if entries_jvp else 0} entries")
+if edges_jvp:
+    print(f"JVP Edges: {sum(len(v) for v in edges_jvp.values())} edge tensors")
+
+# %%
+
+# Test finite differences edge attribution  
+print("Testing finite differences edge attribution...")
+entries_fd, edges_fd = discover_circuit_edge_attr(
+    model=model,
+    saes=saes,
+    changable_toks=inter_toks_BL,
+    device=device,
+    ig_steps=ig_steps,
+    k_max=k_max,
+    k_step=k_step,
+    k_thres=k_thres,
+    compute_edges=True,
+    edge_method="finite_differences",
+    max_edge_features=50,
+    edge_includes_loss_grad=True,
+    edge_feature_selection="max"
+)
+
+print(f"Finite Differences Results: {len(entries_fd) if entries_fd else 0} entries")
+if edges_fd:
+    print(f"Finite Differences Edges: {sum(len(v) for v in edges_fd.values())} edge tensors")
+
+# %%
+
+# Test zero ablation edge attribution
+print("Testing zero ablation edge attribution...")
+entries_zero, edges_zero = discover_circuit_edge_attr(
+    model=model,
+    saes=saes,
+    changable_toks=inter_toks_BL,
+    device=device,
+    ig_steps=ig_steps,
+    k_max=k_max,
+    k_step=k_step,
+    k_thres=k_thres,
+    compute_edges=True,
+    edge_method="zero_ablation",
+    max_edge_features=50,
+    edge_includes_loss_grad=True,
+    edge_feature_selection="max"
+)
+
+print(f"Zero Ablation Results: {len(entries_zero) if entries_zero else 0} entries")
+if edges_zero:
+    print(f"Zero Ablation Edges: {sum(len(v) for v in edges_zero.values())} edge tensors")
+
+# %%
+
+# Test negative feature selection
+print("Testing negative feature selection...")
+entries_negative, edges_negative = discover_circuit_edge_attr(
+    model=model,
+    saes=saes,
+    changable_toks=inter_toks_BL,
+    device=device,
+    ig_steps=ig_steps,
+    k_max=k_max,
+    k_step=k_step,
+    k_thres=k_thres,
+    compute_edges=True,
+    edge_method="jvp",
+    max_edge_features=50,
+    edge_includes_loss_grad=True,
+    edge_feature_selection="negative"
+)
+
+print(f"Negative Selection Results: {len(entries_negative) if entries_negative else 0} entries")
+if edges_negative:
+    print(f"Negative Selection Edges: {sum(len(v) for v in edges_negative.values())} edge tensors")
+
+# %%
+
+# Compare edge attribution methods
+print("Comparing edge attribution methods...")
+
+methods = [
+    ("JVP", edges_jvp),
+    ("Finite Differences", edges_fd), 
+    ("Zero Ablation", edges_zero),
+    ("Negative Selection", edges_negative)
+]
+
+for method_name, edges in methods:
+    if edges:
+        print(f"\n{method_name}:")
+        for upstream_hook, downstream_edges in edges.items():
+            for downstream_hook, edge_tensor in downstream_edges.items():
+                print(f"  {upstream_hook} -> {downstream_hook}: {edge_tensor.shape} ({edge_tensor._nnz()} non-zero)")
+                # Show some statistics
+                dense_edges = edge_tensor.to_dense()
+                print(f"    Range: [{dense_edges.min().item():.4f}, {dense_edges.max().item():.4f}]")
+                print(f"    Mean magnitude: {dense_edges.abs().mean().item():.4f}")
+    else:
+        print(f"\n{method_name}: No edges computed")
+
+# %%
+
+print("Edge attribution analysis complete!")
 
