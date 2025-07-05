@@ -44,6 +44,154 @@ from plan_trace.hooks import run_with_saes, register_sae_hooks, SAEMasks, build_
 
 # %%
 
+from functools import partial
+from typing import List, Optional, Dict, Any, Callable
+
+
+# %%
+
+
+
+def build_sae_hook_fn(
+    sae,
+    sequence: torch.Tensor,
+    bos_token_id: int,
+    circuit_mask: Optional[SAEMasks] = None,
+    mean_mask: bool = False,
+    cache_masked_activations: bool = False,
+    cache_sae_activations: bool = False,
+    mean_ablate: bool = False,  
+    fake_activations = False,  
+    calc_error: bool = False,
+    use_error: bool = False,
+    use_mean_error: bool = False,
+    no_detach: bool = False,
+) -> Callable:
+    """
+    Construct a forward hook for an SAE: encode → optional mask/ablation → decode → merge.
+
+    Args:
+        sae: The SAE module whose encode/decode to use
+        sequence: Token indices [L] that define padding/BOS for masking
+        bos_token_id: ID marking start-of-sequence (excluded from mask)
+        circuit_mask: If provided, zero or mean-ablate selected latents
+        mean_mask: If True, use `sae.mean_ablation` as "off" value in mask
+        cache_masked_activations: Store masked acts in `sae.feature_acts`
+        cache_sae_activations: Store raw SAE activations in `sae.feature_acts`
+        mean_ablate: Always ablate to `sae.mean_ablation`
+        fake_activations: If (layer, acts), replaces acts at that layer
+        calc_error: Compute `sae.error_term = original − updated`
+        use_error: Add error term back into the returned activations
+        use_mean_error: Add stored `sae.mean_error` back into the returned activations
+
+    Returns:
+        Hook function matching the model's fwd_hooks API
+    """
+    # make the mask for the sequence
+    mask = torch.ones_like(sequence, dtype=torch.bool)
+    mask[sequence == bos_token_id] = False  # where mask is false, keep original
+
+    def sae_hook(value: torch.Tensor, hook) -> torch.Tensor:
+        """
+        SAE hook function that processes activations.
+        
+        Args:
+            value: Input activations [B, L, D_model] where B=batch, L=seq_len, D_model=model_dim
+            hook: TransformerLens hook object
+            
+        Returns:
+            Modified activations [B, L, D_model]
+        """
+        feature_acts = sae.encode(value)  # [B, L, S] where S=sae_neurons
+        feature_acts = feature_acts * mask.unsqueeze(-1)
+
+        if fake_activations and sae.cfg.hook_layer == fake_activations[0]:
+            feature_acts = fake_activations[1]
+
+        if cache_sae_activations:
+            if no_detach:
+                sae.feature_acts = feature_acts.clone()
+            else:
+                sae.feature_acts = feature_acts.detach().clone()
+
+        if circuit_mask is not None:
+            hook_point = sae.cfg.hook_name
+            if mean_mask == True:
+                feature_acts = circuit_mask(
+                    feature_acts, hook_point, mean_ablation=sae.mean_ablation
+                )
+            else:
+                feature_acts = circuit_mask(feature_acts, hook_point)
+
+        if cache_masked_activations:
+            if no_detach:
+                sae.feature_acts = feature_acts.clone()
+            else:
+                sae.feature_acts = feature_acts.detach().clone()
+
+        if mean_ablate:
+            feature_acts = sae.mean_ablation
+
+        out = sae.decode(feature_acts)  # [B, L, D_model]
+        mask_expanded = mask.unsqueeze(-1).expand_as(value)
+        updated_value = torch.where(mask_expanded, out, value)
+
+        if calc_error:
+            sae.error_term = value - updated_value
+            if use_error:
+                return updated_value + sae.error_term
+
+        if use_mean_error:
+            return updated_value + sae.mean_error
+        
+        return updated_value
+
+    return sae_hook
+
+def register_sae_hooks(model, saes: List, tokens: torch.Tensor, **hook_kwargs) -> List:
+    """
+    Create a list of (hook_name, hook_fn) tuples ready for model.run_with_hooks().
+    
+    Args:
+        model: The language model
+        saes: List of SAE objects to register hooks for
+        tokens: Input token sequence [B, L] for masking BOS tokens
+        **hook_kwargs: Additional arguments passed to build_sae_hook_fn
+        
+    Returns:
+        List of (hook_name, hook_function) tuples
+    """
+    bos_id = model.tokenizer.bos_token_id
+    return [
+        (
+            sae.cfg.hook_name,
+            build_sae_hook_fn(
+                sae,
+                tokens,
+                bos_id,
+                **hook_kwargs,
+            ),
+        )
+        for sae in saes
+    ]
+
+
+def run_with_saes(model, saes: List, tokens: torch.Tensor, **hook_kwargs) -> tuple:
+    """
+    Convenience wrapper around model.run_with_hooks that uses register_sae_hooks().
+    
+    Args:
+        model: The language model
+        saes: List of SAE objects
+        tokens: Input tokens [B, L]
+        **hook_kwargs: Arguments for SAE hook construction
+        
+    Returns:
+        Tuple of (logits, saes) where logits are [B, L, V] model outputs
+    """
+    hooks = register_sae_hooks(model, saes, tokens, **hook_kwargs)
+    return model.run_with_hooks(tokens, return_type="logits", fwd_hooks=hooks), saes 
+
 # EDGE ATTRIBUTION
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -53,6 +201,7 @@ def _jvp_edge_attr(
     model,
     base_saes,
     token_list,
+    circuit_entries,
     res_sae_effects,
     clean_sae_cache,
     clean_error_cache,
@@ -63,11 +212,13 @@ def _jvp_edge_attr(
     use_mean_error: bool = True,
     logstats: bool = False,
     edge_includes_loss_grad: bool = True,
-    feature_selection: str = "max",
 ):
     """
     Compute layer-to-layer edge attribution with a *forward-mode*
     Jacobian-vector product (JVP).
+
+    Args:
+        circuit_entries: List of (layer_idx, token_idx, latent_idx, effect_val) tuples
 
     Shapes
     -------
@@ -79,29 +230,26 @@ def _jvp_edge_attr(
         Sparse COO edge tensors keyed upstream_hook → downstream_hook
         with shape  [S_down , S_up].
     """
-    # ── 1. feature pre-selection ──────────────────────────────────────────
-    if feature_selection not in {"max", "sum", "negative"}:
-        raise ValueError("feature_selection must be 'max', 'sum', or 'negative'.")
-
+    # ── 1. Extract important features from circuit entries ──────────────────
     important_feats: Dict[str, List[int]] = {}
     for sae in base_saes:
-        hname   = sae.cfg.hook_name
-        effects = res_sae_effects[hname]                       # [B, L, S]
-        effects_flat = effects.reshape(-1, effects.shape[-1])  # [B·L, S]
-
-        if feature_selection == "max":
-            scores = effects_flat.abs().max(0).values
-        elif feature_selection == "sum":
-            scores = effects_flat.abs().sum(0)
-        elif feature_selection == "negative":
-            scores = -effects_flat.min(0).values  # Most negative becomes most positive
-        else:
-            raise ValueError(f"Unknown feature_selection: {feature_selection}")
-        k       = min(max_features_per_layer, scores.numel())
-        topk    = torch.topk(scores, k).indices if k else torch.tensor([], dtype=torch.long)
-        important_feats[hname] = topk.tolist()
-        if logstats:
-            print(f"[edge-attr-jvp] {hname}: kept {len(topk)}/{scores.numel()} features")
+        important_feats[sae.cfg.hook_name] = []
+    
+    # Group circuit entries by layer and collect unique latent indices
+    layer_to_latents = {}
+    for layer_idx, token_idx, latent_idx, effect_val in circuit_entries:
+        if layer_idx not in layer_to_latents:
+            layer_to_latents[layer_idx] = set()
+        layer_to_latents[layer_idx].add(latent_idx)
+    
+    # Convert to lists and limit by max_features_per_layer
+    for layer_idx, latent_set in layer_to_latents.items():
+        if layer_idx < len(base_saes):
+            hname = base_saes[layer_idx].cfg.hook_name
+            latent_list = list(latent_set) #[:max_features_per_layer]
+            important_feats[hname] = latent_list
+            if logstats:
+                print(f"[edge-attr-jvp] {hname}: using {len(latent_list)} features from circuit entries")
 
     # ── 2. sequential edge loop ───────────────────────────────────────────
     edges: Dict[str, Dict[str, torch.Tensor]] = {}
@@ -118,7 +266,7 @@ def _jvp_edge_attr(
         if logstats:
             print(f"[edge-attr-jvp] computing {up_hook}->{down_hook}")
 
-        edge = _compute_jvp_edge(
+        edge = _compute_jvp_edge_v2(
             model,
             base_saes,
             up_sae,
@@ -255,12 +403,157 @@ def _compute_jvp_edge(
 
     return edge_tensor
 
+# def _compute_jvp_edge_v2(
+# ─────────────────────────────────────────────────────────────────────────────
+# Reverse-mode (VJP) edge attribution  ─ replaces old forward-mode JVP helper
+# ─────────────────────────────────────────────────────────────────────────────
+def _compute_jvp_edge_v2(        # ← name kept so callers don’t change
+    model,
+    base_saes,
+    upstream_sae,
+    downstream_sae,
+    token_list,
+    upstream_features: List[int],
+    downstream_features: List[int],
+    clean_sae_cache,
+    clean_error_cache,
+    res_sae_effects,
+    labels,
+    device,
+    *,
+    use_mean_error: bool = True,
+    edge_includes_loss_grad: bool = True,
+    logstats: bool = False,
+):
+    """
+    Reverse-mode **VJP** implementation of layer-to-layer edge attribution.
+
+    For every pair (down_idx, up_idx) we accumulate
+
+        Σ_{b,t}  ∂ y[b,t,down_idx] / ∂ x[b,t,up_idx]
+        (or the gradient-weighted version if `edge_includes_loss_grad=True`).
+
+    Compared with the old forward-mode JVP version this is:
+
+      • robust (all ops in PyTorch have a VJP rule)  
+      • slightly heavier on memory, but still much faster than
+        finite-difference or zero-ablation baselines.
+    """
+    if logstats:
+        print("[edge-attr-vjp] running reverse-mode edge attribution")
+
+    up_hook,   down_hook  = upstream_sae.cfg.hook_name, downstream_sae.cfg.hook_name
+    up_feats,  down_feats = upstream_features, downstream_features
+    if not up_feats or not down_feats:
+        if logstats:
+            print(f"[edge-attr-vjp] skip {up_hook}->{down_hook} (no feats)")
+        return None
+
+    # ----------------------------------------------------------------------
+    # 1. Baseline upstream activation that we will differentiate *through*
+    # ----------------------------------------------------------------------
+    up_base = (
+        clean_sae_cache[up_hook]
+        .detach()
+        .clone()
+        .to(device)
+        .requires_grad_()                 # crucial for reverse-mode
+    )
+
+    # ----------------------------------------------------------------------
+    # 2. Helper: forward pass that returns downstream SAE latents *attached*
+    # ----------------------------------------------------------------------
+    def _forward_fn() -> torch.Tensor:    # returns [B, L, S_down]
+        _, saes_out = run_with_saes(
+            model,
+            base_saes,
+            token_list,
+            calc_error=False,
+            use_error=False,
+            fake_activations=(upstream_sae.cfg.hook_layer, up_base),
+            use_mean_error=use_mean_error,
+            cache_sae_activations=True,   # we need the graph intact
+            no_detach=True,
+        )
+        feats = saes_out[downstream_sae.cfg.hook_layer].feature_acts
+        if not feats.requires_grad:
+            raise RuntimeError(
+                "[edge-attr-vjp] downstream activations are detached; "
+                "remove `.detach()` inside your SAE hook or clone with "
+                "`.requires_grad_()` earlier in the graph."
+            )
+        return feats
+
+    # ----------------------------------------------------------------------
+    # 3. Single forward pass (re-used for every downstream feature)
+    # ----------------------------------------------------------------------
+    down_base = _forward_fn()             # [B,L,S_down]
+    down_grad = (
+        res_sae_effects[down_hook].to(device)
+        if edge_includes_loss_grad else None
+    )
+
+    # Container: (down_idx, up_idx) → list[val]
+    bucket: Dict[Tuple[int, int], List[torch.Tensor]] = {}
+
+    # ----------------------------------------------------------------------
+    # 4. Loop over downstream features (rows of the Jacobian)
+    # ----------------------------------------------------------------------
+    for d_idx in down_feats:
+        # Select the scalar we will back-prop; optionally weight by loss grad
+        scalar_field = down_base[..., d_idx]
+        if down_grad is not None:
+            scalar_field = scalar_field * down_grad[..., d_idx]
+        scalar = scalar_field.sum()
+
+        # Jᵀ ▽  – gradient w.r.t. *entire* upstream latent tensor
+        grad_tensor = torch.autograd.grad(
+            scalar,
+            up_base,
+            retain_graph=True,   # keep graph for next d_idx
+            create_graph=False,  # we only need first-order grads
+        )[0]                     # shape [B,L,S_up]
+
+        # Accumulate entries we care about
+        for u_idx in up_feats:
+            val = grad_tensor[..., u_idx].sum()  # Σ_{b,t}
+            if val.abs() < 1e-6:                 # keep/raise threshold as needed
+                continue
+            bucket.setdefault((d_idx, u_idx), []).append(val.detach().cpu())
+
+        if logstats and (d_idx == down_feats[0] or d_idx % 10 == 0):
+            print(f"[edge-attr-vjp] processed downstream idx {d_idx}")
+
+    # ----------------------------------------------------------------------
+    # 5. Assemble sparse COO tensor
+    # ----------------------------------------------------------------------
+    if not bucket:
+        return None
+
+    idxs, vals = zip(
+        *[((d, u), torch.stack(v).mean()) for (d, u), v in bucket.items()]
+    )
+    idx_mat = torch.tensor(list(zip(*idxs)), dtype=torch.long)  # [2, N]
+    val_mat = torch.stack(list(vals))                           # [N]
+
+    edge_tensor = torch.sparse_coo_tensor(
+        idx_mat,
+        val_mat,
+        size=(len(down_feats), len(up_feats)),
+    ).coalesce()
+
+    if logstats:
+        nnz = edge_tensor._nnz()
+        print(f"[edge-attr-vjp] finished – {nnz} non-zero entries")
+
+    return edge_tensor
 
 
 def _finite_differences_edge_attr(
     model,
     base_saes,
     token_list,
+    circuit_entries,
     res_sae_effects,
     clean_sae_cache,
     clean_error_cache,
@@ -272,36 +565,36 @@ def _finite_differences_edge_attr(
     use_mean_error: bool = True,
     logstats: bool = False,
     edge_includes_loss_grad: bool = True,
-    feature_selection: str = "max",
     zero_ablation: bool = False,
 ):
     """Compute edge attribution using finite differences or zero ablation.
     
     Args:
+        circuit_entries: List of (layer_idx, token_idx, latent_idx, effect_val) tuples
         zero_ablation: If True, sets activations to 0 instead of adding perturbations.
                       When True, fd_steps parameter is ignored.
     """
 
-    if feature_selection not in {"max", "sum", "negative"}:
-        raise ValueError("feature_selection must be 'max', 'sum', or 'negative'.")
-
+    # Extract important features from circuit entries
     important_features: Dict[str, List[int]] = {}
     for sae in base_saes:
-        hname = sae.cfg.hook_name
-        effects = res_sae_effects[hname]  # [L, S]
-        if feature_selection == "max":
-            scores = effects.abs().max(dim=0).values  # per‑latent
-        elif feature_selection == "sum":
-            scores = effects.abs().sum(dim=0)
-        elif feature_selection == "negative":
-            scores = -effects.min(dim=0).values  # Most negative becomes most positive
-        else:
-            raise ValueError(f"Unknown feature_selection: {feature_selection}")
-        k = min(max_features_per_layer, scores.numel())
-        top_idx = torch.topk(scores, k).indices if k > 0 else torch.tensor([], dtype=torch.long)
-        important_features[hname] = top_idx.tolist()
-        if logstats:
-            print(f"[edge‑attr-fd] {hname}: kept {len(top_idx)}/{scores.numel()} features")
+        important_features[sae.cfg.hook_name] = []
+    
+    # Group circuit entries by layer and collect unique latent indices
+    layer_to_latents = {}
+    for layer_idx, token_idx, latent_idx, effect_val in circuit_entries:
+        if layer_idx not in layer_to_latents:
+            layer_to_latents[layer_idx] = set()
+        layer_to_latents[layer_idx].add(latent_idx)
+    
+    # Convert to lists and limit by max_features_per_layer
+    for layer_idx, latent_set in layer_to_latents.items():
+        if layer_idx < len(base_saes):
+            hname = base_saes[layer_idx].cfg.hook_name
+            latent_list = list(latent_set)[:max_features_per_layer]
+            important_features[hname] = latent_list
+            if logstats:
+                print(f"[edge‑attr-fd] {hname}: using {len(latent_list)} features from circuit entries")
 
     edges: Dict[str, Dict[str, torch.Tensor]] = {}
     for i in range(len(base_saes) - 1):
@@ -655,7 +948,7 @@ def plot_k_metrics(K_vals, metrics_negative, metrics_absolute, clean_probs_basel
     
     plt.xlabel("K (Total Number of Latent-Token Pairs across all layers)")
     plt.ylabel("P(correct)")
-    plt.title("P(correct) vs K latent-token pairs across all RES SAEs"`)
+    plt.title("P(correct) vs K latent-token pairs across all RES SAEs")
     plt.grid(True)
     plt.legend()
     plt.show()
@@ -836,6 +1129,7 @@ def discover_circuit_edge_attr(model,
                 model=model,
                 base_saes=saes,
                 token_list=changable_toks,
+                circuit_entries=entries,
                 res_sae_effects=res_sae_effects,
                 clean_sae_cache=clean_sae_cache,
                 clean_error_cache=clean_error_cache,
@@ -843,7 +1137,6 @@ def discover_circuit_edge_attr(model,
                 device=device,
                 max_features_per_layer=max_edge_features,
                 edge_includes_loss_grad=edge_includes_loss_grad,
-                feature_selection=edge_feature_selection,
                 logstats=True, 
                 fd_steps=5,
                 zero_ablation=False
@@ -853,6 +1146,7 @@ def discover_circuit_edge_attr(model,
                 model=model,
                 base_saes=saes,
                 token_list=changable_toks,
+                circuit_entries=entries,
                 res_sae_effects=res_sae_effects,
                 clean_sae_cache=clean_sae_cache,
                 clean_error_cache=clean_error_cache,
@@ -860,7 +1154,6 @@ def discover_circuit_edge_attr(model,
                 device=device,
                 max_features_per_layer=max_edge_features,
                 edge_includes_loss_grad=edge_includes_loss_grad,
-                feature_selection=edge_feature_selection,
                 logstats=True, 
                 fd_steps=1,  # ignored for zero ablation
                 zero_ablation=True
@@ -870,6 +1163,7 @@ def discover_circuit_edge_attr(model,
                 model=model,
                 base_saes=saes,
                 token_list=changable_toks,
+                circuit_entries=entries,
                 res_sae_effects=res_sae_effects,
                 clean_sae_cache=clean_sae_cache,
                 clean_error_cache=clean_error_cache,
@@ -879,7 +1173,6 @@ def discover_circuit_edge_attr(model,
                 use_mean_error=True,
                 logstats=True,
                 edge_includes_loss_grad=edge_includes_loss_grad,
-                feature_selection=edge_feature_selection,
             )
         
         
@@ -1079,8 +1372,70 @@ if K is not None:
     for i, (layer_idx, token_idx, latent_idx, effect_val) in enumerate(circuit_entries[:10]):
         print(f"  {i+1}. Layer {layer_idx}, Token {token_idx}, Latent {latent_idx}, Effect: {effect_val:.6f}")
 
-  # %%
+# %%
 
+for stuff in circuit_entries:
+    if stuff[0] == 0 or stuff[0] == 1:
+        print(stuff)
+
+# %%
+
+edges = _jvp_edge_attr(
+        model=model,
+        base_saes=saes,
+        token_list=inter_toks_BL,
+        circuit_entries=circuit_entries,
+        res_sae_effects=res_sae_effects,
+        clean_sae_cache=clean_sae_cache,
+        clean_error_cache=clean_error_cache,
+        labels=torch.tensor([label]).to(device),
+        device=device,
+        max_features_per_layer=50,
+        use_mean_error=True,
+        logstats=True,
+        edge_includes_loss_grad=True,
+    )
+
+
+# %%
+# Save the full edges variable
+import pickle
+
+with open('edges_v2.pkl', 'wb') as f:
+    pickle.dump(edges, f)
+
+print("Edges saved to edges_v2.pkl")
+
+# %% Finite difference 
+
+edge_method = "zero_ablation"
+
+
+edges = _finite_differences_edge_attr(
+                model=model,
+                base_saes=saes,
+                token_list=inter_toks_BL,
+                circuit_entries=circuit_entries,
+                res_sae_effects=res_sae_effects,
+                clean_sae_cache=clean_sae_cache,
+                clean_error_cache=clean_error_cache,
+                labels=torch.tensor([label]).to(device),
+                device=device,
+                max_features_per_layer=50,
+                edge_includes_loss_grad=True,
+                logstats=True, 
+                fd_steps=1,  # ignored for zero ablation
+                zero_ablation=True
+            )
+
+
+
+
+
+
+
+
+# %%
 # CELL 2: Compute edge attributions
 print("Computing edge attributions...")
 
@@ -1097,6 +1452,7 @@ if K is not None and circuit_entries is not None:
                 model=model,
                 base_saes=saes,
                 token_list=inter_toks_BL,
+                circuit_entries=circuit_entries,
                 res_sae_effects=res_sae_effects,
                 clean_sae_cache=clean_sae_cache,
                 clean_error_cache=clean_error_cache,
@@ -1104,7 +1460,6 @@ if K is not None and circuit_entries is not None:
                 device=device,
                 max_features_per_layer=50,
                 edge_includes_loss_grad=True,
-                feature_selection="max",
                 logstats=True, 
                 fd_steps=5,
                 zero_ablation=False
@@ -1114,6 +1469,7 @@ if K is not None and circuit_entries is not None:
                 model=model,
                 base_saes=saes,
                 token_list=inter_toks_BL,
+                circuit_entries=circuit_entries,
                 res_sae_effects=res_sae_effects,
                 clean_sae_cache=clean_sae_cache,
                 clean_error_cache=clean_error_cache,
@@ -1121,7 +1477,6 @@ if K is not None and circuit_entries is not None:
                 device=device,
                 max_features_per_layer=50,
                 edge_includes_loss_grad=True,
-                feature_selection="max",
                 logstats=True, 
                 fd_steps=1,  # ignored for zero ablation
                 zero_ablation=True
@@ -1131,6 +1486,7 @@ if K is not None and circuit_entries is not None:
                 model=model,
                 base_saes=saes,
                 token_list=inter_toks_BL,
+                circuit_entries=circuit_entries,
                 res_sae_effects=res_sae_effects,
                 clean_sae_cache=clean_sae_cache,
                 clean_error_cache=clean_error_cache,
@@ -1140,7 +1496,6 @@ if K is not None and circuit_entries is not None:
                 use_mean_error=True,
                 logstats=True,
                 edge_includes_loss_grad=True,
-                feature_selection="max",
             )
         
         edge_results[method] = edges
