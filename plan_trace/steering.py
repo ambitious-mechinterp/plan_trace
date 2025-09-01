@@ -11,7 +11,7 @@ Shape Suffix Definition:
 import torch
 from functools import partial
 from collections import defaultdict
-from typing import List, Tuple, Dict, Optional, Sequence, Any
+from typing import List, Tuple, Dict, Optional, Sequence, Any, Union
 from .utils import cleanup_cuda
 
 
@@ -117,7 +117,8 @@ def generate_once(
     hooks: Optional[List] = None, 
     *, 
     max_tokens: int = 256, 
-    device: str = "cuda"
+    device: str = "cuda",
+    return_tokens: bool = False
 ) -> str:
     """
     Generate text continuation from input tokens with optional hooks.
@@ -153,7 +154,10 @@ def generate_once(
     if hooks:
         model.reset_hooks(including_permanent=True)
 
-    return model.to_string(out[0, toks.shape[-1]:])
+    if return_tokens:
+        return out[0, toks.shape[-1]:]
+    else:
+        return model.to_string(out[0, toks.shape[-1]:])
 
 
 def sweep_coefficients_multi(
@@ -165,6 +169,7 @@ def sweep_coefficients_multi(
     stop_tok: int = 1917,
     device: str = "cuda",
     max_tokens: int = 100,
+    return_tokens: bool = False
 ) -> Dict[float, str]:
     """
     Sweep over multiple steering coefficients and generate text for each.
@@ -209,7 +214,7 @@ def sweep_coefficients_multi(
         steer_by_coeff[c] = per_coeff
 
     # Generate for each coefficient
-    outputs: Dict[float, str] = {}
+    outputs: Dict[float, Union[str, List[int]]] = {}
     for c in coefficients:
         # Check if steering actually changes the next token
         changed, new_id, bl_id = steering_effect_on_next_token(
@@ -241,6 +246,7 @@ def sweep_coefficients_multi(
         gen_suffix = generate_once(
             model, inter_toks_BL=inter_toks_BL, stop_tok=stop_tok,
             hooks=None, max_tokens=max_tokens, device=device,
+            return_tokens=return_tokens
         )
         outputs[c] = gen_suffix
         model.reset_hooks(including_permanent=True)
@@ -258,6 +264,7 @@ def run_steering_sweep(
     coeff_grid: Sequence[int],
     stop_tok: int,
     max_tokens: int = 100,
+    return_tokens: bool = False
 ) -> Dict[str, Dict[str, Any]]:
     """
     Run steering sweeps for all clusters in saved_pair_dict.
@@ -299,6 +306,7 @@ def run_steering_sweep(
             inter_toks_BL=inter_toks_BL,
             stop_tok=stop_tok,
             max_tokens=max_tokens,
+            return_tokens=return_tokens
         )
 
         label_metrics: List[Dict[str, Any]] = []

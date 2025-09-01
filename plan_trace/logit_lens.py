@@ -12,6 +12,7 @@ import torch
 from tqdm import tqdm
 from collections import defaultdict
 from typing import List, Tuple, Dict, Union, Sequence
+import torch.nn.functional as F
 from .utils import cleanup_cuda
 
 
@@ -63,7 +64,11 @@ def build_saved_pair_dict_fastest(
     *,
     tok_k_pos_logits: int = 15,
     batch_size: int = 4096,
-    device: str = "cuda"
+    device: str = "cuda",
+    # Scoring and thresholding controls
+    score_threshold: float | None = None,
+    count_weight: float = 0.03,
+    min_match_count: int = 1,
 ) -> Dict[str, List[Tuple[int, int, List[int]]]]:
     """
     Ultra-fast saved_pair_dict building using vectorized GPU operations.
@@ -112,9 +117,28 @@ def build_saved_pair_dict_fastest(
                 matches = (topk_idx_exp == unique_tok_exp).any(-1)      # [batch, tok_k_pos_logits] -> True/False
                 matching_token_ids = topk_idx[matches]                  # flatten matches
 
+                # Compute per-latent cohesion over top-k token embeddings
+                # Shape: [batch_size, tok_k_pos_logits, d_model]
+                token_embs = model.W_E.float().to(device)[topk_idx]
+                centroid = token_embs.mean(dim=1, keepdim=True)  # [batch_size, 1, d_model]
+                cos_per_token = F.cosine_similarity(token_embs, centroid, dim=-1)  # [batch_size, tok_k_pos_logits]
+                cohesion_per_latent = cos_per_token.mean(dim=1)  # [batch_size]
+
+                # Count how many of the top-k are in the unique set (per latent)
+                match_counts = matches.sum(dim=1)  # [batch_size]
+
+                # Final score = cohesion + count_weight * count
+                final_scores = cohesion_per_latent + count_weight * match_counts.float()
+
                 if matching_token_ids.numel() > 0:
                     matched_latents, matched_topk = torch.nonzero(matches, as_tuple=True)
                     for latent_batch_idx, topk_pos in zip(matched_latents.tolist(), matched_topk.tolist()):
+                        # Thresholding: optionally require min matches and score threshold
+                        if score_threshold is not None:
+                            if match_counts[latent_batch_idx].item() < min_match_count:
+                                continue
+                            if final_scores[latent_batch_idx].item() < score_threshold:
+                                continue
                         latent_idx_in_batch = batch[latent_batch_idx]
                         matched_token_id = topk_idx[latent_batch_idx, topk_pos].item()
                         label_str = model.to_string([matched_token_id]).strip()
@@ -141,7 +165,11 @@ def find_logit_lens_clusters(
     entries: List[Tuple[int, int, int, float]], 
     inter_toks_BL: torch.Tensor, 
     stop_tok: int, 
-    verbose: bool = True
+    verbose: bool = True,
+    # Optional monosemantic filtering controls (see build_saved_pair_dict_fastest)
+    score_threshold: float | None = None,
+    count_weight: float = 0.1,
+    min_match_count: int = 1,
 ) -> Dict[str, List[Tuple[int, int, List[int]]]]:
     """
     Find clusters of SAE latents based on their logit lens decoding directions.
@@ -165,8 +193,42 @@ def find_logit_lens_clusters(
     """
     # Generate unique tokens not in the original prompt
     uniq_ids = gather_unique_tokens(model, inter_toks_BL, stop_tok=stop_tok)
-    prompt_str = model.to_string(inter_toks_BL[0, :])
-    filtered_uniq_ids = [tok for tok in uniq_ids if model.to_string(tok) not in prompt_str]
+    # Combined filter: drop tokens that appear in prompt by ID or robust string boundaries
+    prompt_tokens = inter_toks_BL[0]
+    prompt_id_set = set(prompt_tokens.detach().cpu().tolist())
+    prompt_str = model.to_string(prompt_tokens)
+
+    def _has_boundary_match(hay: str, needle: str) -> bool:
+        if not needle:
+            return False
+        # If the token contains any alphanumerics, require word boundaries to avoid substring hits.
+        if any(ch.isalnum() for ch in needle):
+            idx = 0
+            L = len(hay)
+            nL = len(needle)
+            while True:
+                pos = hay.find(needle, idx)
+                if pos == -1:
+                    return False
+                left_ok = pos == 0 or not hay[pos - 1].isalnum()
+                right_ok = (pos + nL) >= L or not hay[pos + nL].isalnum()
+                if left_ok and right_ok:
+                    return True
+                idx = pos + 1
+        # Pure punctuation/symbol: match anywhere
+        return needle in hay
+
+    def token_in_prompt(tok_id: int) -> bool:
+        if tok_id in prompt_id_set:
+            return True
+        label = model.to_string(tok_id).strip()
+        return bool(label) and _has_boundary_match(prompt_str, label)
+
+    filtered_uniq_ids = [tok for tok in uniq_ids if not token_in_prompt(tok)]
+
+    # Fallback: if everything filtered (common in code prompts), keep original uniq_ids
+    # if len(filtered_uniq_ids) == 0:
+    #     filtered_uniq_ids = uniq_ids
     
     if verbose:
         print(f"Found {len(filtered_uniq_ids)} tokens not in prompt: {[model.to_string(tok) for tok in filtered_uniq_ids]}")
@@ -178,7 +240,10 @@ def find_logit_lens_clusters(
         entries,
         filtered_uniq_ids,
         tok_k_pos_logits=15,
-        batch_size=4096
+        batch_size=4096,
+        score_threshold=score_threshold,
+        count_weight=count_weight,
+        min_match_count=min_match_count,
     )
     
     return saved_pair_dict 

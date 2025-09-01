@@ -27,13 +27,17 @@ from .utils import load_model, load_pretrained_saes, cleanup_cuda
 from .circuit_discovery import discover_circuit
 from .logit_lens import find_logit_lens_clusters  
 from .steering import run_steering_sweep
+from .ood_detect import label_steering_clusters
 from .analysis import CircuitAnalyzer, Config, analyze_batch
 
 
 def save_pipeline_results(
     result: Dict[str, Any], 
     output_dir: str, 
-    verbose: bool = True
+    verbose: bool = True,
+    *,
+    prompt_idx_override: Optional[int] = None,
+    model=None,
 ) -> Path:
     """
     Save pipeline results to organized folder structure.
@@ -54,7 +58,9 @@ def save_pipeline_results(
         Path to the created folder
     """
     # Create folder structure
-    prompt_idx = result["prompt_idx"]
+    prompt_idx = result.get("prompt_idx", -1)
+    if prompt_idx_override is not None:
+        prompt_idx = prompt_idx_override
     inter_token_id = result["inter_token_id"]
     
     folder_path = Path(output_dir) / f"prompt_{prompt_idx}" / f"token_{inter_token_id}"
@@ -77,14 +83,56 @@ def save_pipeline_results(
         if verbose:
             print(f"Saved clusters to: {clusters_path}")
     
-    # Save steering results as JSON
+    # Save steering results as JSON (JSON-safe conversion)
+    def _json_safe_steering(steering_results: Dict[str, Any]) -> Dict[str, Any]:
+        safe: Dict[str, Any] = {}
+        for label, data in steering_results.items():
+            steered_list = []
+            for entry in data.get("steered", []):
+                coeff = entry.get("coeff")
+                val = entry.get("steered_text")
+                if hasattr(val, "tolist"):
+                    tokens_list = val.tolist()
+                    decoded_text = None
+                    if model is not None:
+                        try:
+                            # model.to_string accepts list[int] or tensor
+                            decoded_text = model.to_string(tokens_list)
+                        except Exception:
+                            decoded_text = None
+                    steered_list.append({
+                        "coeff": coeff,
+                        "is_tokens": True,
+                        "steered_text": tokens_list,
+                        "decoded_text": decoded_text,
+                    })
+                else:
+                    steered_list.append({
+                        "coeff": coeff,
+                        "is_tokens": False,
+                        "steered_text": val,
+                    })
+            safe[label] = {
+                "base_text": data.get("base_text", ""),
+                "steered": steered_list,
+            }
+        return safe
+
     if result["steering_results"] is not None:
         steering_path = folder_path / "steering_results.json"
         with open(steering_path, 'w') as f:
-            json.dump(result["steering_results"], f, indent=2)
+            json.dump(_json_safe_steering(result["steering_results"]), f, indent=2)
         if verbose:
             print(f"Saved steering results to: {steering_path}")
     
+    # Save planning analysis if available
+    if result.get("planning_analysis") is not None:
+        planning_path = folder_path / "planning_analysis.json"
+        with open(planning_path, 'w') as f:
+            json.dump(result["planning_analysis"], f, indent=2)
+        if verbose:
+            print(f"Saved planning analysis to: {planning_path}")
+
     # Save metadata
     metadata = {
         "timestamp": timestamp,
@@ -231,7 +279,7 @@ def run_full_pipeline(
     if verbose:
         print("Clustering latents by logit lens...")
     saved_pair_dict = find_logit_lens_clusters(
-        model, saes, entries, inter_toks_BL, stop_token_id, verbose=verbose
+        model, saes, entries, inter_toks_BL, stop_token_id, verbose=verbose, score_threshold=0.5
     )
     
     if verbose:
@@ -266,7 +314,7 @@ def run_full_pipeline(
     
     # Save outputs if requested
     if save_outputs:
-        save_pipeline_results(result, output_dir, verbose=verbose)
+        save_pipeline_results(result, output_dir, verbose=verbose, prompt_idx_override=prompt_idx, model=model)
     
     return result
 
@@ -343,48 +391,21 @@ def is_token_in_docstring(
 
 
 def analyze_planning_evidence(
-    steering_results: Dict[str, Dict[str, Any]]
+    steering_results: Dict[str, Dict[str, Any]],
+    *,
+    model,
+    prefix_tokens_2d: torch.Tensor
 ) -> Dict[str, str]:
     """
-    Analyze steering results to detect planning evidence.
-    
-    Logic:
-    - If steered text is non-empty and doesn't contain the predicted token -> "planning"
-    - If all steered texts are empty -> "unsure"  
-    - Otherwise -> "no_planning"
-    
-    Args:
-        steering_results: Output from run_steering_sweep
-        
-    Returns:
-        Dict mapping cluster_label -> planning_status
+    Analyze steering results using stricter rules via label_steering_clusters.
+    Returns mapping cluster_label -> one of {Plan, Can't say, Not planning}.
     """
-    planning_analysis = {}
-    
-    for label, data in steering_results.items():
-        steered_entries = data.get("steered", [])
-        
-        has_non_empty = False
-        has_planning_evidence = False
-        
-        for entry in steered_entries:
-            steered_text = entry.get("steered_text", "")
-            
-            if steered_text:  # Non-empty
-                has_non_empty = True
-                # Check if the predicted token (label) is NOT in the steered text
-                if label.lower() not in steered_text.lower():
-                    has_planning_evidence = True
-                    break  # Found evidence, no need to check more
-        
-        if has_planning_evidence:
-            planning_analysis[label] = "planning"
-        elif not has_non_empty:
-            planning_analysis[label] = "unsure"
-        else:
-            planning_analysis[label] = "no_planning"
-    
-    return planning_analysis
+    labels = label_steering_clusters(
+        steering_results,
+        model=model,
+        prefix_tokens_2d=prefix_tokens_2d,
+    )
+    return {k: v["final_label"] for k, v in labels.items()}
 
 
 def run_automated_token_pipeline(
@@ -392,6 +413,7 @@ def run_automated_token_pipeline(
     model_name: str = "gemma-2-2b-it",
     device: str = "cuda",
     skip_docstrings: bool = True,
+    use_custom_cache: bool = True,
     start_token_offset: int = 0,
     max_tokens_to_analyze: int = 50,
     ig_steps: int = 10,
@@ -401,9 +423,10 @@ def run_automated_token_pipeline(
     coeff_grid: List[int] = None,
     stop_token_id: int = 1917,
     data_path: str = "data/first_100_passing_examples.json",
-    save_outputs: bool = False,
+    save_outputs: bool = True,
     output_dir: str = "outputs",
     verbose: bool = True,
+    return_tokens: bool = True
 ) -> Dict[str, Any]:
     """
     Run the pipeline automatically over multiple token positions.
@@ -425,7 +448,7 @@ def run_automated_token_pipeline(
         save_outputs: Whether to save results
         output_dir: Base directory for saving outputs
         verbose: Whether to print progress
-        
+        return_tokens: Whether to return tokens or text
     Returns:
         Dict containing results for all analyzed positions
     """
@@ -436,7 +459,7 @@ def run_automated_token_pipeline(
         print(f"Starting automated pipeline for prompt {prompt_idx}")
     
     # Load model and SAEs once
-    model = load_model(model_name, device=device, use_custom_cache=False, dtype=torch.bfloat16)
+    model = load_model(model_name, device=device, use_custom_cache=use_custom_cache, dtype=torch.bfloat16)
     layers = list(range(model.cfg.n_layers))
     saes = load_pretrained_saes(
         layers=layers, 
@@ -521,12 +544,17 @@ def run_automated_token_pipeline(
             k_thres=k_thres,
             coeff_grid=coeff_grid,
             stop_token_id=stop_token_id,
-            verbose=verbose
+            verbose=verbose,
+            return_tokens=return_tokens
         )
         
         # Analyze planning evidence if successful
         if token_result["status"] == "success":
-            planning_analysis = analyze_planning_evidence(token_result["steering_results"])
+            # Prefix tokens for the specific position
+            inter_toks_BL = out_BL[:, :token_idx]
+            planning_analysis = analyze_planning_evidence(
+                token_result["steering_results"], model=model, prefix_tokens_2d=inter_toks_BL
+            )
             token_result["planning_analysis"] = planning_analysis
             successful_analyses += 1
             
@@ -539,7 +567,7 @@ def run_automated_token_pipeline(
         
         # Save individual results if requested
         if save_outputs and token_result["status"] == "success":
-            save_pipeline_results(token_result, output_dir, verbose=False)
+            save_pipeline_results(token_result, output_dir, verbose=False, prompt_idx_override=prompt_idx, model=model)
     
     # Generate summary
     all_planning = {}
@@ -575,6 +603,7 @@ def run_single_token_analysis(
     coeff_grid: List[int] = None,
     stop_token_id: int = 1917,
     verbose: bool = False,
+    return_tokens: bool = True
 ) -> Dict[str, Any]:
     """
     Run pipeline analysis for a single token position.
@@ -620,7 +649,7 @@ def run_single_token_analysis(
     
     # Logit Lens Clustering
     saved_pair_dict = find_logit_lens_clusters(
-        model, saes, entries, inter_toks_BL, stop_token_id, verbose=verbose
+        model, saes, entries, inter_toks_BL, stop_token_id, verbose=verbose, score_threshold=0.5
     )
     
     if verbose:
@@ -636,6 +665,7 @@ def run_single_token_analysis(
         coeff_grid=coeff_grid,
         stop_tok=stop_token_id,
         max_tokens=100,
+        return_tokens=return_tokens
     )
     
     return {
