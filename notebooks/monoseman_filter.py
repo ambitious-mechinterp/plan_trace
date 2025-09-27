@@ -55,7 +55,7 @@ saes = load_pretrained_saes(
 )
 
 # %%
-layer_i = 24 
+layer_i = 22 
 with torch.no_grad():
     W_U = model.W_U.float().to(device)  # [D_model, V]
     W_dec = saes[layer_i].W_dec.to(device)  # [S, D_model]
@@ -77,12 +77,64 @@ def cohesion(topk_ids, EMB):
     sim = torch.nn.functional.cosine_similarity(vecs, μ, dim=1)  # [K] - similarity to centroid
     return sim.mean().item()                         # Average similarity (1 = perfectly cohesive)
 
-#%%
 
-for ind, lat in enumerate(topk_idx):
-    print(ind)
-    print(cohesion(lat, EMB = model.W_E ))
-    print("-"*100)
+
+#%%
+top_match = topk_idx[1]  # [K]
+print(top_match)
+unique_token = model.to_tokens("2")[:, -1]
+unique_tok_id = int(unique_token.item())
+
+# Build vectors in both spaces for comparison
+ref_unemb = W_U.t()[unique_tok_id]                                       # [d_model]
+topk_unemb = W_U.t()[top_match]                                          # [K, d_model]
+ref_emb = model.W_E.float().to(device)[unique_tok_id]                     # [d_model]
+topk_emb = model.W_E.float().to(device)[top_match]                        # [K, d_model]
+
+# Cosine and dot in unembedding space
+cos_unemb = torch.nn.functional.cosine_similarity(
+    topk_unemb,
+    ref_unemb.unsqueeze(0).expand_as(topk_unemb),
+    dim=1
+)  # [K]
+dot_unemb = (topk_unemb * ref_unemb.unsqueeze(0)).sum(dim=1)             # [K]
+
+# Centered cosine in unembedding space (subtract global mean)
+unemb_mean = W_U.t().mean(dim=0)
+ref_unemb_c = ref_unemb - unemb_mean
+topk_unemb_c = topk_unemb - unemb_mean
+cos_unemb_centered = torch.nn.functional.cosine_similarity(
+    topk_unemb_c,
+    ref_unemb_c.unsqueeze(0).expand_as(topk_unemb_c),
+    dim=1
+)
+
+# Cosine and dot in embedding space
+cos_emb = torch.nn.functional.cosine_similarity(
+    topk_emb,
+    ref_emb.unsqueeze(0).expand_as(topk_emb),
+    dim=1
+)
+dot_emb = (topk_emb * ref_emb.unsqueeze(0)).sum(dim=1)
+
+print("idx token | cos_unemb  dot_unemb   cos_unemb_centered   cos_emb   dot_emb")
+for idx, tok_id in enumerate(top_match.tolist()):
+    print(
+        idx,
+        model.to_string([tok_id]).strip(),
+        float(cos_unemb[idx].item()),
+        float(dot_unemb[idx].item()),
+        float(cos_unemb_centered[idx].item()),
+        float(cos_emb[idx].item()),
+        float(dot_emb[idx].item()),
+    )
+
+print("means:",
+      float(cos_unemb.mean().item()),
+      float(dot_unemb.mean().item()),
+      float(cos_unemb_centered.mean().item()),
+      float(cos_emb.mean().item()),
+      float(dot_emb.mean().item()))
 
 # %%
 model.to_tokens("2")[:, -1]
@@ -95,9 +147,10 @@ batch_size = 4096
 score_threshold = 0.5       # set None to disable thresholding
 count_weight = 0.03         # weight for match count
 min_match_count = 1         # minimum number of unique-token matches in top-k
-cohesion_mode = "spherical" # one of: "spherical", "pairwise", "centroid"
+cohesion_mode = "match_vs_topk" # cosine(match token embedding, top-k embeddings)
+embedding_space = "unembedding" # one of: "unembedding", "embedding"
 saved_pair_dict: Dict[str, List[Tuple[int, int, List[int]]]] = defaultdict(list)
-unique_token_tensor = torch.tensor([model.to_tokens("2")[:, -1].tolist()], device=device)
+unique_token_tensor = torch.tensor([model.to_tokens("8")[:, -1].tolist()], device=device)
 with torch.no_grad():
     W_U = model.W_U.float().to(device)  # [D_model, V]
 
@@ -121,26 +174,43 @@ with torch.no_grad():
             matches = (topk_idx_exp == unique_tok_exp).any(-1)      # [batch, tok_k_pos_logits] -> True/False
             matching_token_ids = topk_idx[matches]                  # flatten matches
 
-            # Compute per-latent cohesion over top-k token embeddings
-            token_embs = model.W_E.float().to(device)[topk_idx]      # [batch_size, tok_k_pos_logits, d_model]
-            if cohesion_mode == "spherical":
-                # Normalize embeddings onto the unit sphere and use resultant vector length (R)
+            # Compute per-latent similarity: cosine(match token embedding, top-k token embeddings)
+            # Gather embeddings for top-k ids in chosen space
+            if embedding_space == "unembedding":
+                token_embs = W_U.t()[topk_idx]                        # [batch_size, K, d_model]
+            else:
+                token_embs = model.W_E.float().to(device)[topk_idx]   # [batch_size, K, d_model]
+            if cohesion_mode == "match_vs_topk":
+                # Normalize token embeddings onto unit sphere
+                unit_topk = torch.nn.functional.normalize(token_embs, dim=-1)                     # [batch, K, d_model]
+                # Build a per-latent reference embedding from matched tokens (mean of matched)
+                matched_mask_f = matches.float()                                                  # [batch, K]
+                match_counts = matches.sum(dim=1)                                                 # [batch]
+                denom = torch.clamp(match_counts.unsqueeze(-1).float(), min=1.0)                  # [batch, 1]
+                ref_vec = (unit_topk * matched_mask_f.unsqueeze(-1)).sum(dim=1) / denom           # [batch, d_model]
+                # Normalize reference; latents with no matches will have ref_vec≈0, handle by zeroing later
+                ref_norm = ref_vec.norm(dim=-1, keepdim=True).clamp(min=1e-8)
+                ref_unit = ref_vec / ref_norm                                                     # [batch, d_model]
+                # Cosine per token: (ref · e_k)
+                cos_per_token = (unit_topk * ref_unit.unsqueeze(1)).sum(dim=-1)                   # [batch, K]
+                # Aggregate: mean across top-k
+                cohesion_per_latent = cos_per_token.mean(dim=1)                                   # [batch]
+                # Zero out latents with no matches so they don't spuriously score
+                cohesion_per_latent = torch.where(match_counts > 0, cohesion_per_latent, torch.zeros_like(cohesion_per_latent))
+            elif cohesion_mode == "spherical":
                 unit = torch.nn.functional.normalize(token_embs, dim=-1)
-                resultant = unit.sum(dim=1)                          # [batch_size, d_model]
-                cohesion_per_latent = resultant.norm(dim=-1) / tok_k_pos_logits   # R in [0,1]
+                resultant = unit.sum(dim=1)
+                cohesion_per_latent = resultant.norm(dim=-1) / tok_k_pos_logits
             elif cohesion_mode == "pairwise":
-                # Mean pairwise cosine across the K tokens (off-diagonal mean)
                 unit = torch.nn.functional.normalize(token_embs, dim=-1)
-                # cosine matrix per batch: [batch, K, K]
                 cos_mat = unit @ unit.transpose(1, 2)
-                # subtract diagonal ones and average off-diagonals
                 K = tok_k_pos_logits
                 off_diag_sum = cos_mat.sum(dim=(1,2)) - K
                 cohesion_per_latent = off_diag_sum / (K * (K - 1))
-            else:  # "centroid" (legacy): cosine to mean vector
-                centroid = token_embs.mean(dim=1, keepdim=True)       # [batch_size, 1, d_model]
-                cos_per_token = torch.nn.functional.cosine_similarity(token_embs, centroid, dim=-1)  # [batch_size, tok_k_pos_logits]
-                cohesion_per_latent = cos_per_token.mean(dim=1)       # [batch_size]
+            else:  # "centroid"
+                centroid = token_embs.mean(dim=1, keepdim=True)
+                cos_per_token = torch.nn.functional.cosine_similarity(token_embs, centroid, dim=-1)
+                cohesion_per_latent = cos_per_token.mean(dim=1)
             # if debug:
             print(batch)
             for toks in topk_idx:

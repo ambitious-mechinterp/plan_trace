@@ -168,7 +168,7 @@ def find_logit_lens_clusters(
     verbose: bool = True,
     # Optional monosemantic filtering controls (see build_saved_pair_dict_fastest)
     score_threshold: float | None = None,
-    count_weight: float = 0.1,
+    count_weight: float = 1,
     min_match_count: int = 1,
 ) -> Dict[str, List[Tuple[int, int, List[int]]]]:
     """

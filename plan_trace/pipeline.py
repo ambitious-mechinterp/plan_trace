@@ -649,7 +649,7 @@ def run_single_token_analysis(
     
     # Logit Lens Clustering
     saved_pair_dict = find_logit_lens_clusters(
-        model, saes, entries, inter_toks_BL, stop_token_id, verbose=verbose, score_threshold=0.5
+        model, saes, entries, inter_toks_BL, stop_token_id, verbose=verbose, score_threshold=1.8
     )
     
     if verbose:
