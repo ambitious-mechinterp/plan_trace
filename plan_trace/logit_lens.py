@@ -1,5 +1,6 @@
 """
-Logit lens clustering for grouping SAE latents by their decoding directions.
+Logit lens clustering for grouping SAE latents by their decoding directions or
+by checking Neuronpedia top activations.
 
 Shape Suffix Definition: 
 - B: batch size 
@@ -8,12 +9,96 @@ Shape Suffix Definition:
 - S: Number of SAE neurons in a layer
 """
 
-import torch
-from tqdm import tqdm
+import json
 from collections import defaultdict
-from typing import List, Tuple, Dict, Union, Sequence
+from typing import Any, Dict, List, MutableMapping, Sequence, Tuple, Union
+
+import requests
+import torch
 import torch.nn.functional as F
+from tqdm import tqdm
+
 from .utils import cleanup_cuda
+
+API_URL = "https://www.neuronpedia.org/api/activation/get"
+DEFAULT_NEURONPEDIA_MODEL = "gemma-2-2b"
+DEFAULT_NEURONPEDIA_SOURCE = "{layer}-gemmascope-mlp-16k"
+DEFAULT_API_TOPK = 20
+API_TIMEOUT = 30.0
+
+_NEURONPEDIA_CACHE: Dict[Tuple[str, int, int, str, int], List[Dict[str, Any]]] = {}
+
+
+def _tokens_to_text(tokens: Sequence[str]) -> str:
+    return "".join(token.replace("▁", " ").replace("<0x0A>", "\n") for token in tokens)
+
+
+def _has_boundary_match(hay: str, needle: str) -> bool:
+    if not needle:
+        return False
+    if any(ch.isalnum() for ch in needle):
+        idx = 0
+        hay_len = len(hay)
+        needle_len = len(needle)
+        while True:
+            pos = hay.find(needle, idx)
+            if pos == -1:
+                return False
+            left_ok = pos == 0 or not hay[pos - 1].isalnum()
+            right_ok = (pos + needle_len) >= hay_len or not hay[pos + needle_len].isalnum()
+            if left_ok and right_ok:
+                return True
+            idx = pos + 1
+    return needle in hay
+
+
+def _normalize_contexts(response: Any) -> List[Dict[str, Any]]:
+    if isinstance(response, str):
+        try:
+            response = json.loads(response)
+        except json.JSONDecodeError as exc:
+            raise ValueError("Neuronpedia response string could not be parsed as JSON.") from exc
+
+    if isinstance(response, list):
+        return [item for item in response if isinstance(item, dict)]
+
+    if isinstance(response, dict):
+        for key in ("contexts", "data", "records"):
+            candidates = response.get(key)
+            if isinstance(candidates, list):
+                return [item for item in candidates if isinstance(item, dict)]
+
+    raise ValueError("Unexpected Neuronpedia response format; expected list of context dicts.")
+
+
+def _fetch_neuronpedia_contexts(
+    *,
+    latent_index: int,
+    layer_index: int,
+    model_id: str,
+    release_format: str,
+    top_k: int,
+    cache: MutableMapping[Tuple[str, int, int, str, int], List[Dict[str, Any]]],
+    timeout: float,
+) -> List[Dict[str, Any]]:
+    cache_key = (model_id, layer_index, latent_index, release_format, top_k)
+    if cache_key in cache:
+        return cache[cache_key]
+
+    source = release_format.format(layer=layer_index)
+    payload = {"modelId": model_id, "source": source, "index": str(latent_index)}
+    headers = {"Content-Type": "application/json"}
+
+    try:
+        response = requests.post(API_URL, json=payload, headers=headers, timeout=timeout)
+        response.raise_for_status()
+        data = response.json()
+    except requests.RequestException as exc:
+        raise RuntimeError(f"Failed to fetch Neuronpedia info for latent {latent_index} (layer {layer_index}): {exc}") from exc
+
+    contexts = _normalize_contexts(data)
+    cache[cache_key] = contexts[:top_k] if top_k > 0 else contexts
+    return cache[cache_key]
 
 
 def gather_unique_tokens(
@@ -159,6 +244,80 @@ def build_saved_pair_dict_fastest(
     return dict(saved_pair_dict)
 
 
+def build_saved_pair_dict_neuronpedia(
+    model,
+    trial_entries: Sequence[Tuple[int, int, int, float]],
+    unique_token_ids: Sequence[int],
+    *,
+    top_contexts: int,
+    model_id: str,
+    release_format: str,
+    cache: MutableMapping[Tuple[str, int, int, str, int], List[Dict[str, Any]]],
+    timeout: float,
+) -> Dict[str, List[Tuple[int, int, List[int]]]]:
+    layer_to_latents: Dict[int, set[int]] = defaultdict(set)
+    for layer_idx, _, latent_idx, _ in trial_entries:
+        layer_to_latents[layer_idx].add(latent_idx)
+
+    token_labels: Dict[int, str] = {}
+    for tok_id in unique_token_ids:
+        label = model.to_string(tok_id)
+        if not isinstance(label, str):
+            continue
+        label = label.strip()
+        if label:
+            token_labels[tok_id] = label
+
+    if not token_labels:
+        return {}
+
+    # Precompute position buckets for faster lookup later
+    entry_positions: Dict[Tuple[int, int], List[int]] = defaultdict(list)
+    for layer_idx, token_pos, latent_idx, _ in trial_entries:
+        entry_positions[(layer_idx, latent_idx)].append(token_pos)
+
+    saved_pair_dict: Dict[str, List[Tuple[int, int, List[int]]]] = defaultdict(list)
+
+    for layer_idx, latents in layer_to_latents.items():
+        for latent_idx in sorted(latents):
+            try:
+                contexts = _fetch_neuronpedia_contexts(
+                    latent_index=latent_idx,
+                    layer_index=layer_idx,
+                    model_id=model_id,
+                    release_format=release_format,
+                    top_k=top_contexts,
+                    cache=cache,
+                    timeout=timeout,
+                )
+            except RuntimeError as exc:
+                # Surface the issue but continue with other latents
+                print(exc)
+                continue
+
+            context_texts: List[str] = []
+            for entry in contexts:
+                tokens = entry.get("tokens") if isinstance(entry, dict) else None
+                if not isinstance(tokens, list) or not tokens:
+                    continue
+                text = _tokens_to_text(tokens)
+                if text:
+                    # Normalize whitespace for easier substring matches
+                    normalized = " ".join(text.replace("\r", " ").replace("\n", " ").split())
+                    context_texts.append(normalized)
+
+            if not context_texts:
+                continue
+
+            for tok_id, label in token_labels.items():
+                if any(_has_boundary_match(text, label) for text in context_texts):
+                    positions = entry_positions.get((layer_idx, latent_idx), [])
+                    saved_pair_dict[label].append((layer_idx, latent_idx, positions))
+                    break
+
+    return dict(saved_pair_dict)
+
+
 def find_logit_lens_clusters(
     model, 
     saes: List, 
@@ -170,53 +329,26 @@ def find_logit_lens_clusters(
     score_threshold: float | None = None,
     count_weight: float = 1,
     min_match_count: int = 1,
+    *,
+    mode: str = "logit_lens",
+    api_model: str | None = None,
+    api_source: str = DEFAULT_NEURONPEDIA_SOURCE,
+    api_topk: int = DEFAULT_API_TOPK,
+    api_cache: MutableMapping[Tuple[str, int, int, str, int], List[Dict[str, Any]]] | None = None,
+    api_timeout: float = API_TIMEOUT,
 ) -> Dict[str, List[Tuple[int, int, List[int]]]]:
     """
-    Find clusters of SAE latents based on their logit lens decoding directions.
-    
-    This function:
-    1. Generates from the input tokens to get unique continuation tokens
-    2. Filters out tokens already in the prompt
-    3. Maps SAE latents to the tokens they most strongly predict
-    4. Groups trial entries by these predicted tokens
-    
-    Args:
-        model: The language model
-        saes: List of SAE objects  
-        entries: Circuit entries [(layer, token_pos, latent_idx, effect_value)]
-        inter_toks_BL: Input tokens [B, L] 
-        stop_tok: Token ID to stop generation at
-        verbose: Whether to print debugging info
-        
-    Returns:
-        Dict mapping predicted_token -> [(layer, latent_idx, [token_positions])]
+    Find clusters of SAE latents based on their decoding directions or Neuronpedia top contexts.
+
+    Mode ``logit_lens`` (default) reproduces the previous cosine-similarity heuristic.
+    Mode ``neuronpedia_topk`` performs API lookups for each latent and checks whether
+    any of the top-k activation contexts contain candidate tokens.
     """
     # Generate unique tokens not in the original prompt
     uniq_ids = gather_unique_tokens(model, inter_toks_BL, stop_tok=stop_tok)
-    # Combined filter: drop tokens that appear in prompt by ID or robust string boundaries
     prompt_tokens = inter_toks_BL[0]
     prompt_id_set = set(prompt_tokens.detach().cpu().tolist())
     prompt_str = model.to_string(prompt_tokens)
-
-    def _has_boundary_match(hay: str, needle: str) -> bool:
-        if not needle:
-            return False
-        # If the token contains any alphanumerics, require word boundaries to avoid substring hits.
-        if any(ch.isalnum() for ch in needle):
-            idx = 0
-            L = len(hay)
-            nL = len(needle)
-            while True:
-                pos = hay.find(needle, idx)
-                if pos == -1:
-                    return False
-                left_ok = pos == 0 or not hay[pos - 1].isalnum()
-                right_ok = (pos + nL) >= L or not hay[pos + nL].isalnum()
-                if left_ok and right_ok:
-                    return True
-                idx = pos + 1
-        # Pure punctuation/symbol: match anywhere
-        return needle in hay
 
     def token_in_prompt(tok_id: int) -> bool:
         if tok_id in prompt_id_set:
@@ -226,24 +358,39 @@ def find_logit_lens_clusters(
 
     filtered_uniq_ids = [tok for tok in uniq_ids if not token_in_prompt(tok)]
 
-    # Fallback: if everything filtered (common in code prompts), keep original uniq_ids
-    # if len(filtered_uniq_ids) == 0:
-    #     filtered_uniq_ids = uniq_ids
-    
     if verbose:
-        print(f"Found {len(filtered_uniq_ids)} tokens not in prompt: {[model.to_string(tok) for tok in filtered_uniq_ids]}")
-    
-    # Build the mapping from predicted tokens to circuit entries
-    saved_pair_dict = build_saved_pair_dict_fastest(
-        model,
-        saes,
-        entries,
-        filtered_uniq_ids,
-        tok_k_pos_logits=15,
-        batch_size=4096,
-        score_threshold=score_threshold,
-        count_weight=count_weight,
-        min_match_count=min_match_count,
-    )
-    
-    return saved_pair_dict 
+        print(
+            "Found {} tokens not in prompt: {}".format(
+                len(filtered_uniq_ids), [model.to_string(tok) for tok in filtered_uniq_ids]
+            )
+        )
+
+    if mode == "logit_lens":
+        saved_pair_dict = build_saved_pair_dict_fastest(
+            model,
+            saes,
+            entries,
+            filtered_uniq_ids,
+            tok_k_pos_logits=15,
+            batch_size=4096,
+            score_threshold=score_threshold,
+            count_weight=count_weight,
+            min_match_count=min_match_count,
+        )
+    elif mode == "neuronpedia_topk":
+        cache = api_cache if api_cache is not None else _NEURONPEDIA_CACHE
+        resolved_model = api_model or getattr(getattr(model, "cfg", object), "model_name", DEFAULT_NEURONPEDIA_MODEL)
+        saved_pair_dict = build_saved_pair_dict_neuronpedia(
+            model,
+            entries,
+            filtered_uniq_ids,
+            top_contexts=api_topk,
+            model_id=resolved_model,
+            release_format=api_source,
+            cache=cache,
+            timeout=api_timeout,
+        )
+    else:
+        raise ValueError(f"Unknown clustering mode '{mode}'.")
+
+    return saved_pair_dict

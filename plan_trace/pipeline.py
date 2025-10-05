@@ -25,7 +25,12 @@ from typing import List, Dict, Any, Optional, Tuple
 
 from .utils import load_model, load_pretrained_saes, cleanup_cuda
 from .circuit_discovery import discover_circuit
-from .logit_lens import find_logit_lens_clusters  
+from .logit_lens import (
+    API_TIMEOUT,
+    DEFAULT_API_TOPK,
+    DEFAULT_NEURONPEDIA_SOURCE,
+    find_logit_lens_clusters,
+)  
 from .steering import run_steering_sweep
 from .ood_detect import label_steering_clusters
 from .analysis import CircuitAnalyzer, Config, analyze_batch
@@ -169,6 +174,12 @@ def run_full_pipeline(
     save_outputs: bool = False,
     output_dir: str = "outputs",
     verbose: bool = True,
+    cluster_mode: str = "logit_lens",
+    cluster_score_threshold: float | None = 0.5,
+    cluster_api_topk: int = DEFAULT_API_TOPK,
+    cluster_api_source: str = DEFAULT_NEURONPEDIA_SOURCE,
+    cluster_api_model: Optional[str] = None,
+    cluster_api_timeout: float = API_TIMEOUT,
 ) -> Dict[str, Any]:
     """
     Run the complete planning detection pipeline on a single example.
@@ -188,6 +199,12 @@ def run_full_pipeline(
         save_outputs: Whether to save results to organized folders
         output_dir: Base directory for saving outputs
         verbose: Whether to print progress information
+        cluster_mode: Clustering strategy ("logit_lens" or "neuronpedia_topk")
+        cluster_score_threshold: Score threshold for logit-lens clustering
+        cluster_api_topk: Number of Neuronpedia contexts to inspect when using neuronpedia_topk
+        cluster_api_source: Format string for Neuronpedia release lookup
+        cluster_api_model: Override Neuronpedia model identifier (defaults to model cfg)
+        cluster_api_timeout: Timeout (seconds) for Neuronpedia API requests
         
     Returns:
         Dict containing all pipeline results
@@ -278,8 +295,23 @@ def run_full_pipeline(
     # 4. Logit Lens Clustering
     if verbose:
         print("Clustering latents by logit lens...")
+    effective_score_threshold = (
+        cluster_score_threshold if cluster_mode == "logit_lens" else None
+    )
+
     saved_pair_dict = find_logit_lens_clusters(
-        model, saes, entries, inter_toks_BL, stop_token_id, verbose=verbose, score_threshold=0.5
+        model,
+        saes,
+        entries,
+        inter_toks_BL,
+        stop_token_id,
+        verbose=verbose,
+        score_threshold=effective_score_threshold,
+        mode=cluster_mode,
+        api_model=cluster_api_model,
+        api_source=cluster_api_source,
+        api_topk=cluster_api_topk,
+        api_timeout=cluster_api_timeout,
     )
     
     if verbose:
@@ -426,7 +458,13 @@ def run_automated_token_pipeline(
     save_outputs: bool = True,
     output_dir: str = "outputs",
     verbose: bool = True,
-    return_tokens: bool = True
+    return_tokens: bool = True,
+    cluster_mode: str = "logit_lens",
+    cluster_score_threshold: float | None = 1.8,
+    cluster_api_topk: int = DEFAULT_API_TOPK,
+    cluster_api_source: str = DEFAULT_NEURONPEDIA_SOURCE,
+    cluster_api_model: Optional[str] = None,
+    cluster_api_timeout: float = API_TIMEOUT,
 ) -> Dict[str, Any]:
     """
     Run the pipeline automatically over multiple token positions.
@@ -449,6 +487,12 @@ def run_automated_token_pipeline(
         output_dir: Base directory for saving outputs
         verbose: Whether to print progress
         return_tokens: Whether to return tokens or text
+        cluster_mode: Clustering strategy ("logit_lens" or "neuronpedia_topk")
+        cluster_score_threshold: Score threshold for logit-lens clustering
+        cluster_api_topk: Number of Neuronpedia contexts to inspect when using neuronpedia_topk
+        cluster_api_source: Format string for Neuronpedia release lookup
+        cluster_api_model: Override Neuronpedia model identifier (defaults to model cfg)
+        cluster_api_timeout: Timeout (seconds) for Neuronpedia API requests
     Returns:
         Dict containing results for all analyzed positions
     """
@@ -545,7 +589,13 @@ def run_automated_token_pipeline(
             coeff_grid=coeff_grid,
             stop_token_id=stop_token_id,
             verbose=verbose,
-            return_tokens=return_tokens
+            return_tokens=return_tokens,
+            cluster_mode=cluster_mode,
+            cluster_score_threshold=cluster_score_threshold,
+            cluster_api_topk=cluster_api_topk,
+            cluster_api_source=cluster_api_source,
+            cluster_api_model=cluster_api_model,
+            cluster_api_timeout=cluster_api_timeout,
         )
         
         # Analyze planning evidence if successful
@@ -603,13 +653,39 @@ def run_single_token_analysis(
     coeff_grid: List[int] = None,
     stop_token_id: int = 1917,
     verbose: bool = False,
-    return_tokens: bool = True
+    return_tokens: bool = True,
+    cluster_mode: str = "logit_lens",
+    cluster_score_threshold: float | None = 1.8,
+    cluster_api_topk: int = DEFAULT_API_TOPK,
+    cluster_api_source: str = DEFAULT_NEURONPEDIA_SOURCE,
+    cluster_api_model: Optional[str] = None,
+    cluster_api_timeout: float = API_TIMEOUT,
 ) -> Dict[str, Any]:
     """
     Run pipeline analysis for a single token position.
-    
+
     This is the core analysis extracted from run_full_pipeline
     but without model loading and data processing.
+
+    Args:
+        model: Loaded language model
+        saes: Sequence of SAE modules aligned with model layers
+        out_BL: Tokens generated for the prompt and continuation
+        inter_token_id: Token position under inspection
+        ig_steps: Integration steps for circuit discovery
+        k_max: Maximum K for circuit discovery
+        k_step: Step size for K sweep
+        k_thres: Performance threshold for circuit discovery
+        coeff_grid: Steering coefficients to test
+        stop_token_id: Token ID to stop generation at
+        verbose: Whether to print intermediary information
+        return_tokens: Whether to keep steering results as tokens
+        cluster_mode: Clustering strategy ("logit_lens" or "neuronpedia_topk")
+        cluster_score_threshold: Score threshold for logit-lens clustering
+        cluster_api_topk: Number of Neuronpedia contexts to inspect when using neuronpedia_topk
+        cluster_api_source: Format string for Neuronpedia release lookup
+        cluster_api_model: Override Neuronpedia model identifier (defaults to model cfg)
+        cluster_api_timeout: Timeout (seconds) for Neuronpedia API requests
     """
     if coeff_grid is None:
         coeff_grid = list(range(-100, 0, 20))
@@ -647,9 +723,24 @@ def run_single_token_analysis(
     if verbose:
         print(f"Found circuit with {len(entries)} entries")
     
-    # Logit Lens Clustering
+    # Logit Lens / Neuronpedia clustering
+    effective_score_threshold = (
+        cluster_score_threshold if cluster_mode == "logit_lens" else None
+    )
+
     saved_pair_dict = find_logit_lens_clusters(
-        model, saes, entries, inter_toks_BL, stop_token_id, verbose=verbose, score_threshold=1.8
+        model,
+        saes,
+        entries,
+        inter_toks_BL,
+        stop_token_id,
+        verbose=verbose,
+        score_threshold=effective_score_threshold,
+        mode=cluster_mode,
+        api_model=cluster_api_model,
+        api_source=cluster_api_source,
+        api_topk=cluster_api_topk,
+        api_timeout=cluster_api_timeout,
     )
     
     if verbose:
@@ -765,6 +856,42 @@ def main():
                        help="Ending steering coefficient (default: 0)")
     parser.add_argument("--coeff-step", type=int, default=20,
                        help="Steering coefficient step size (default: 20)")
+
+    # Clustering options
+    parser.add_argument(
+        "--cluster-mode",
+        choices=["logit_lens", "neuronpedia_topk"],
+        default="logit_lens",
+        help="Strategy for grouping latents (default: logit_lens)",
+    )
+    parser.add_argument(
+        "--cluster-score-threshold",
+        type=float,
+        default=1.8,
+        help="Score threshold for logit-lens clustering (ignored for neuronpedia_topk)",
+    )
+    parser.add_argument(
+        "--cluster-api-topk",
+        type=int,
+        default=DEFAULT_API_TOPK,
+        help="Top-k Neuronpedia contexts to scan in neuronpedia_topk mode",
+    )
+    parser.add_argument(
+        "--cluster-api-source",
+        default=DEFAULT_NEURONPEDIA_SOURCE,
+        help="Neuronpedia release format used in neuronpedia_topk mode",
+    )
+    parser.add_argument(
+        "--cluster-api-model",
+        default=None,
+        help="Override Neuronpedia model identifier (defaults to model cfg)",
+    )
+    parser.add_argument(
+        "--cluster-api-timeout",
+        type=float,
+        default=API_TIMEOUT,
+        help="Timeout in seconds for Neuronpedia API requests",
+    )
     
     # Data and output options
     parser.add_argument("--data-path", default="data/first_100_passing_examples.json",
@@ -788,6 +915,14 @@ def main():
     print(f"  Max tokens to analyze: {args.max_tokens}")
     print(f"  Skip docstrings: {not args.include_docstrings}")
     print(f"  Steering coefficients: {coeff_grid}")
+    print(f"  Cluster mode: {args.cluster_mode}")
+    if args.cluster_mode == "logit_lens":
+        print(f"  Cluster score threshold: {args.cluster_score_threshold}")
+    else:
+        print(
+            f"  Neuronpedia settings: topk={args.cluster_api_topk}, "
+            f"source='{args.cluster_api_source}', timeout={args.cluster_api_timeout}s"
+        )
     print(f"  Save outputs: {args.save}")
     print()
     
@@ -808,6 +943,12 @@ def main():
         save_outputs=args.save,
         output_dir=args.output_dir,
         verbose=not args.quiet,
+        cluster_mode=args.cluster_mode,
+        cluster_score_threshold=args.cluster_score_threshold,
+        cluster_api_topk=args.cluster_api_topk,
+        cluster_api_source=args.cluster_api_source,
+        cluster_api_model=args.cluster_api_model,
+        cluster_api_timeout=args.cluster_api_timeout,
     )
     
     # Print final summary

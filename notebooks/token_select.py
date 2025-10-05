@@ -338,3 +338,144 @@ else:
         print(f"AUROC: {auroc:.4f}")
 
 # %%
+
+records = []
+
+for latent_index in sampled_latents:
+    contexts = sampled_latent_infos.get(latent_index, []) or []
+    for context in contexts:
+        tokens = context.get("tokens") if isinstance(context, dict) else None
+        if not tokens:
+            continue
+        text_sequence = tokens_to_string(tokens)
+        if not text_sequence:
+            continue
+        record = {"latent": latent_index, "sequence": text_sequence}
+        records.append(record)
+
+# Build one giant text blob from all sequences
+large_text = "\n".join(r["sequence"] for r in records) if records else ""
+
+print(f"collected {len(records)} sequences; large_text length = {len(large_text)} chars")
+import re
+from collections import Counter
+
+tokens = re.findall(r"[A-Za-z]+(?:'[A-Za-z]+)?", large_text.lower())
+stop = {"the","a","an","and","or","but","if","then","else","for","to","in","of","on",
+        "at","by","with","from","as","is","are","was","were","be","been","being",
+        "this","that","these","those","it","its","i","you","he","she","we","they",
+        "my","your","his","her","our","their","me","him","her","us","them"}
+tokens = [t for t in tokens if t not in stop and len(t) >= 3]
+freqs = Counter(tokens)
+# %% 
+
+for w, c in freqs.most_common(50):
+    print(w, c)
+
+
+
+# %%
+loi_seq_list = []
+for i in range(len(L_desp)):
+    loi_seq_list.append(tokens_to_string(L_desp[i]["tokens"]))
+loi_seq = "\n".join(loi_seq_list)
+
+tokens_loi = re.findall(r"[A-Za-z]+(?:'[A-Za-z]+)?", loi_seq.lower())
+stop = {"the","a","an","and","or","but","if","then","else","for","to","in","of","on",
+        "at","by","with","from","as","is","are","was","were","be","been","being",
+        "this","that","these","those","it","its","i","you","he","she","we","they",
+        "my","your","his","her","our","their","me","him","her","us","them"}
+tokens_l = [t for t in tokens_loi if t not in stop and len(t) >= 3]
+freqs_l = Counter(tokens_l)
+# %% 
+
+TOP_K = 1000
+top_k_global_words = {w for w, _ in freqs.most_common(TOP_K)}
+print(f"\nWords in L_desp not in top {TOP_K} global words:")
+for w, c in freqs_l.most_common(100):
+    if w not in top_k_global_words:
+        print(w, c)
+# %%
+
+# %% AUROC per candidate word (re-filter per word with leading space)
+from tqdm import tqdm
+
+sae_for_layer = next(
+    (sae for sae in saes if sae.cfg.hook_layer == latentL["layer"]),
+    None,
+)
+if sae_for_layer is None:
+    raise ValueError(f"Unable to locate SAE for layer {latentL['layer']}")
+
+word_candidates = [
+    w for w, _ in freqs_l.most_common(100) if w not in top_k_global_words
+]
+
+def _safe_auroc(value):
+    try:
+        v = float(value)
+        return -1.0 if math.isnan(v) else v
+    except Exception:
+        return -1.0
+
+auroc_results = []
+for w in tqdm(word_candidates):
+    target_substring = " " + w
+
+    pos_records = []
+    neg_records = []
+    for rec in records:
+        seq = rec.get("sequence", "")
+        if not seq:
+            continue
+        seq_lower = seq.lower()
+        if target_substring in seq_lower:
+            pos_records.append(rec)
+        else:
+            neg_records.append(rec)
+
+    if not pos_records or not neg_records:
+        continue
+
+    # Subsample positives to a max of 100 diverse examples
+    target_positive_count = min(len(pos_records), 100)
+    sampled_pos_records = _sample_negative_sequences(pos_records, target_positive_count, rng)
+    if not sampled_pos_records:
+        continue
+
+    # Set negatives to up to 3x sampled positives
+    target_negative_count = min(len(neg_records), len(sampled_pos_records) * 3)
+    sampled_neg_records = _sample_negative_sequences(neg_records, target_negative_count, rng)
+    if not sampled_neg_records:
+        continue
+
+    positive_scores = []
+    for rec in sampled_pos_records:
+        score = _sequence_top_percent_mean(rec["sequence"], sae_for_layer, latentL["latent"])
+        positive_scores.append(score)
+
+    negative_scores = []
+    for rec in sampled_neg_records:
+        score = _sequence_top_percent_mean(rec["sequence"], sae_for_layer, latentL["latent"])
+        negative_scores.append(score)
+
+    auroc = compute_auroc(positive_scores, negative_scores)
+    auroc_results.append(
+        {
+            "word": w,
+            "auroc": float(auroc),
+            "pos": len(positive_scores),
+            "neg": len(negative_scores),
+        }
+    )
+
+auroc_results.sort(key=lambda x: _safe_auroc(x["auroc"]), reverse=True)
+print("\nAUROC per candidate word (leading-space match):")
+for item in auroc_results[:50]:
+    print(f"{item['word']}: AUROC={item['auroc']:.4f} (pos={item['pos']}, neg={item['neg']})")
+# %%
+auroc_results.sort(key=lambda x: _safe_auroc(x["auroc"]), reverse=True)
+print("\nAUROC per candidate word (leading-space match):")
+for item in auroc_results[:50]:
+    print(f"{item['word']}: AUROC={item['auroc']:.4f} (pos={item['pos']}, neg={item['neg']})")
+# %%
