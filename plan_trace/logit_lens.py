@@ -28,6 +28,27 @@ API_TIMEOUT = 30.0
 
 _NEURONPEDIA_CACHE: Dict[Tuple[str, int, int, str, int], List[Dict[str, Any]]] = {}
 
+def _resolve_neuronpedia_model_id(model, api_model: str | None) -> str:
+    """
+    Resolve the appropriate Neuronpedia model identifier.
+
+    Many HuggingFace identifiers include instruction-tuning suffixes (e.g.,
+    'gemma-2-2b-it') that are not valid on Neuronpedia. This function
+    normalizes known variants to the expected Neuronpedia model id.
+    """
+    if api_model:
+        return api_model
+
+    candidate = getattr(getattr(model, "cfg", object), "model_name", DEFAULT_NEURONPEDIA_MODEL)
+    lower = str(candidate).lower()
+
+    # Normalize common Gemma variants
+    if "gemma-2-2b" in lower:
+        return "gemma-2-2b"
+
+    # Fallback to provided candidate as-is
+    return candidate
+
 
 def _tokens_to_text(tokens: Sequence[str]) -> str:
     return "".join(token.replace("▁", " ").replace("<0x0A>", "\n") for token in tokens)
@@ -379,7 +400,7 @@ def find_logit_lens_clusters(
         )
     elif mode == "neuronpedia_topk":
         cache = api_cache if api_cache is not None else _NEURONPEDIA_CACHE
-        resolved_model = api_model or getattr(getattr(model, "cfg", object), "model_name", DEFAULT_NEURONPEDIA_MODEL)
+        resolved_model = _resolve_neuronpedia_model_id(model, api_model)
         saved_pair_dict = build_saved_pair_dict_neuronpedia(
             model,
             entries,
