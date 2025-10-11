@@ -167,7 +167,10 @@ def _build_data_response(
             index[ym_key] = ym_map
 
         meta["layers"] = sorted(unique_layers)
-        meta["tokenIds"] = sorted(unique_token_ids)
+        # Ensure we render a continuous token range up to the current token index
+        max_in_clusters = max(unique_token_ids) if unique_token_ids else -1
+        max_token = max(yn_ind, max_in_clusters)
+        meta["tokenIds"] = list(range(0, max_token + 1))
 
     return {
         "ok": True,

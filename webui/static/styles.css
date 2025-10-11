@@ -25,20 +25,20 @@ html, body { height: 100%; margin: 0; background: var(--bg); color: var(--text);
 .grid-panel { display: flex; flex-direction: column; background: var(--panel); border: 1px solid var(--grid-border); border-radius: 8px; min-width: 0; }
 .grid-header { display: grid; grid-template-columns: 56px 1fr; border-bottom: 1px solid var(--grid-border); }
 .y-axis-label { padding: 8px; font-size: 12px; color: var(--muted); border-right: 1px solid var(--grid-border); }
-.x-axis { overflow-x: auto; white-space: nowrap; padding: 8px; font-size: 12px; color: var(--muted); }
-.x-axis .token { display: inline-block; padding: 2px 6px; margin-right: 4px; border-radius: 4px; border: 1px solid var(--grid-border); }
+.x-axis { overflow: hidden; padding: 0; font-size: 12px; color: var(--muted); height: 28px; }
+.x-axis-inner { display: grid; grid-auto-flow: column; grid-auto-columns: 28px; will-change: transform; }
+.x-axis-inner .token { display: flex; align-items: center; justify-content: center; height: 28px; border-right: 1px solid var(--grid-border); }
 
 .grid-body { display: grid; grid-template-columns: 56px 1fr; min-height: 400px; }
-.y-axis { border-right: 1px solid var(--grid-border); padding: 8px; font-size: 12px; color: var(--muted); }
-.y-axis .layer { padding: 6px 0; }
+.y-axis { border-right: 1px solid var(--grid-border); padding: 0; font-size: 12px; color: var(--muted); overflow: hidden; }
+.y-axis-inner { display: grid; grid-auto-rows: 28px; will-change: transform; }
+.y-axis-inner .layer { display: flex; align-items: center; border-bottom: 1px solid var(--grid-border); }
 .grid { overflow: auto; position: relative; }
 
-.cell-row { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(28px, 1fr); border-bottom: 1px solid var(--grid-border); }
+.cell-row { display: grid; grid-auto-flow: column; grid-auto-columns: 28px; border-bottom: 1px solid var(--grid-border); }
 .cell { border-right: 1px solid var(--grid-border); height: 28px; display: flex; align-items: center; justify-content: center; gap: 2px; }
-.cluster { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); cursor: pointer; }
-.cluster.plan { background: var(--good); }
-.cluster.not-plan { background: var(--danger); }
-.cluster.empty { opacity: 0.2; }
+.cluster { width: 8px; height: 8px; border-radius: 50%; cursor: pointer; }
+.cluster.empty { background: var(--grid-border); opacity: 0.6; }
 
 .legend { padding: 8px; display: flex; gap: 12px; align-items: center; border-top: 1px solid var(--grid-border); font-size: 12px; color: var(--muted); }
 .legend .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 4px; }

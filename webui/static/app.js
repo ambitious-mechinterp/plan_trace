@@ -7,6 +7,19 @@ const state = {
   selected: { layer: null, tokenId: null, ym: null, latent: null },
 };
 
+// YM color palette (deterministic mapping)
+const YM_PALETTE = [
+  '#66c2ff', '#6bff9c', '#ff6b6b', '#ffd166', '#b28dff',
+  '#8dd3c7', '#80b1d3', '#fdb462', '#b3de69', '#fccde5',
+  '#bc80bd', '#ccebc5', '#fb8072', '#bebada', '#ffffb3'
+];
+
+function colorForYm(ymKey) {
+  let h = 0;
+  for (let i = 0; i < ymKey.length; i++) h = (h * 31 + ymKey.charCodeAt(i)) >>> 0;
+  return YM_PALETTE[h % YM_PALETTE.length];
+}
+
 function el(tag, attrs = {}, children = []) {
   const node = document.createElement(tag);
   Object.entries(attrs).forEach(([k, v]) => {
@@ -36,34 +49,30 @@ async function fetchData(promptId, ynInd) {
 }
 
 function renderAxes(meta) {
-  const xAxis = document.getElementById('x-axis');
+  const xAxis = document.getElementById('x-axis-inner');
   xAxis.innerHTML = '';
   const tokenIds = meta.tokenIds || [];
   tokenIds.forEach((t) => {
     xAxis.append(el('span', { class: 'token', text: String(t) }));
   });
 
-  const yAxis = document.getElementById('y-axis');
+  const yAxis = document.getElementById('y-axis-inner');
   yAxis.innerHTML = '';
   (meta.layers || []).forEach((layer) => {
     yAxis.append(el('div', { class: 'layer', text: String(layer) }));
   });
 }
 
-function planningClass(planning, ymKey) {
-  const label = planning && planning[ymKey];
-  if (!label) return 'cluster';
-  return label.toLowerCase().includes('plan') ? 'cluster plan' : 'cluster not-plan';
-}
-
-function renderLegend() {
+// Legend now shows YM-based colors
+function renderLegend(yms) {
   const legend = document.getElementById('legend');
   legend.innerHTML = '';
-  legend.append(
-    el('span', {}, [el('span', { class: 'dot', style: 'background:#66c2ff' }), el('span', { text: 'cluster' })]),
-    el('span', {}, [el('span', { class: 'dot', style: 'background:#6bff9c' }), el('span', { text: 'planning' })]),
-    el('span', {}, [el('span', { class: 'dot', style: 'background:#ff6b6b' }), el('span', { text: 'not planning' })]),
-  );
+  if (!Array.isArray(yms) || !yms.length) return;
+  yms.forEach((ymKey) => {
+    const dot = el('span', { class: 'dot' });
+    dot.style.background = colorForYm(ymKey);
+    legend.append(el('span', {}, [dot, el('span', { text: ymKey })]));
+  });
 }
 
 function openPopover({ layer, tokenId, ym, latents }) {
@@ -135,7 +144,6 @@ function closePopover() {
 function renderGrid(data) {
   const grid = document.getElementById('grid');
   grid.innerHTML = '';
-  const planning = data.planning || {};
 
   const tokenIds = data.meta.tokenIds || [];
   const layers = data.meta.layers || [];
@@ -152,7 +160,8 @@ function renderGrid(data) {
         const latents = (data.index[ymKey] && data.index[ymKey][key]) || [];
         if (latents.length) {
           hasAny = true;
-          const dot = el('div', { class: planningClass(planning, ymKey), title: `${ymKey} • ${latents.length} latents` });
+          const dot = el('div', { class: 'cluster', title: `${ymKey} • ${latents.length} latents` });
+          dot.style.background = colorForYm(ymKey);
           dot.addEventListener('click', () => openPopover({ layer, tokenId: t, ym: ymKey, latents }));
           cell.append(dot);
         }
@@ -195,10 +204,9 @@ function renderSteering(steering) {
       payload.steered.forEach((entry) => {
         const coeff = entry.coeff;
         const decoded = entry.decoded_text;
-        const isTokens = entry.is_tokens;
         box.append(el('div', { class: 'steer' }, [
           el('div', { class: 'coeff', text: `coeff: ${String(coeff)}` }),
-          el('div', { text: isTokens ? `[tokens] ${JSON.stringify(entry.steered_text)}` : (decoded || '') }),
+          el('div', { text: decoded || '' }),
         ]));
       });
     }
@@ -209,10 +217,11 @@ function renderSteering(steering) {
 function hydrate(data) {
   state.data = data;
   renderAxes(data.meta || {});
-  renderLegend();
+  renderLegend((data.meta && data.meta.yms) || []);
   renderGrid(data);
   renderPlanning(data.planning || null);
   renderSteering(data.steering || null);
+  setupScrollSync();
 }
 
 function initFormFromQuery() {
@@ -258,6 +267,21 @@ function main() {
   if (pid && ti) {
     document.getElementById('query-form').dispatchEvent(new Event('submit'));
   }
+}
+
+function setupScrollSync() {
+  const grid = document.getElementById('grid');
+  const xAxis = document.getElementById('x-axis-inner');
+  const yAxis = document.getElementById('y-axis-inner');
+  if (!grid || !xAxis || !yAxis) return;
+  function sync() {
+    xAxis.style.transform = `translateX(${-grid.scrollLeft}px)`;
+    yAxis.style.transform = `translateY(${-grid.scrollTop}px)`;
+  }
+  grid.removeEventListener('scroll', sync);
+  grid.addEventListener('scroll', sync, { passive: true });
+  // Initialize once
+  sync();
 }
 
 window.addEventListener('DOMContentLoaded', main);
