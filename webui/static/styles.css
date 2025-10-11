@@ -1,0 +1,67 @@
+:root {
+  --bg: #0f1115;
+  --panel: #151922;
+  --text: #e6e6e6;
+  --muted: #a0a6b0;
+  --accent: #66c2ff;
+  --danger: #ff6b6b;
+  --good: #6bff9c;
+  --grid-border: #2a2f3a;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; background: var(--bg); color: var(--text); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, Noto Sans, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol; }
+
+.app-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--grid-border); background: var(--panel); position: sticky; top: 0; z-index: 10; }
+.app-header h1 { font-size: 18px; margin: 0; }
+.query-form { display: flex; gap: 12px; align-items: center; }
+.query-form label { display: flex; flex-direction: column; font-size: 12px; color: var(--muted); }
+.query-form input { padding: 6px 8px; border-radius: 6px; border: 1px solid var(--grid-border); background: #0d0f14; color: var(--text); min-width: 120px; }
+.query-form button { padding: 8px 12px; border-radius: 6px; border: 1px solid var(--grid-border); background: #0d0f14; color: var(--text); cursor: pointer; }
+.status { font-size: 12px; color: var(--muted); }
+
+.app-main { display: grid; grid-template-columns: 1fr 320px; gap: 16px; padding: 16px; height: calc(100% - 54px); }
+
+.grid-panel { display: flex; flex-direction: column; background: var(--panel); border: 1px solid var(--grid-border); border-radius: 8px; min-width: 0; }
+.grid-header { display: grid; grid-template-columns: 56px 1fr; border-bottom: 1px solid var(--grid-border); }
+.y-axis-label { padding: 8px; font-size: 12px; color: var(--muted); border-right: 1px solid var(--grid-border); }
+.x-axis { overflow-x: auto; white-space: nowrap; padding: 8px; font-size: 12px; color: var(--muted); }
+.x-axis .token { display: inline-block; padding: 2px 6px; margin-right: 4px; border-radius: 4px; border: 1px solid var(--grid-border); }
+
+.grid-body { display: grid; grid-template-columns: 56px 1fr; min-height: 400px; }
+.y-axis { border-right: 1px solid var(--grid-border); padding: 8px; font-size: 12px; color: var(--muted); }
+.y-axis .layer { padding: 6px 0; }
+.grid { overflow: auto; position: relative; }
+
+.cell-row { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(28px, 1fr); border-bottom: 1px solid var(--grid-border); }
+.cell { border-right: 1px solid var(--grid-border); height: 28px; display: flex; align-items: center; justify-content: center; gap: 2px; }
+.cluster { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); cursor: pointer; }
+.cluster.plan { background: var(--good); }
+.cluster.not-plan { background: var(--danger); }
+.cluster.empty { opacity: 0.2; }
+
+.legend { padding: 8px; display: flex; gap: 12px; align-items: center; border-top: 1px solid var(--grid-border); font-size: 12px; color: var(--muted); }
+.legend .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 4px; }
+
+.sidebar { background: var(--panel); border: 1px solid var(--grid-border); border-radius: 8px; padding: 12px; overflow: auto; }
+.sidebar h2 { margin: 0 0 8px; font-size: 16px; }
+.sidebar h3 { margin: 12px 0 6px; font-size: 14px; color: var(--muted); }
+.sidebar .ym { margin-bottom: 12px; }
+.sidebar .coeff { color: var(--muted); font-size: 12px; }
+.sidebar .steer { border: 1px solid var(--grid-border); border-radius: 6px; padding: 6px; margin-top: 6px; background: #10131a; }
+
+.popover { position: fixed; right: 16px; bottom: 16px; width: 600px; max-width: calc(100% - 32px); background: var(--panel); border: 1px solid var(--grid-border); border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
+.popover.hidden { display: none; }
+.popover-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border-bottom: 1px solid var(--grid-border); }
+.popover-title { font-size: 14px; color: var(--muted); }
+.close-btn { background: transparent; color: var(--muted); border: none; font-size: 20px; cursor: pointer; }
+.popover-body { padding: 10px 12px; }
+.popover .row { display: flex; gap: 12px; margin-bottom: 8px; }
+.popover label { display: flex; flex-direction: column; font-size: 12px; color: var(--muted); }
+.popover select { padding: 6px 8px; border-radius: 6px; border: 1px solid var(--grid-border); background: #0d0f14; color: var(--text); }
+.neuronpedia { height: 320px; }
+
+.muted { color: var(--muted); }
+.error { color: var(--danger); }
+
+

@@ -174,12 +174,14 @@ def run_full_pipeline(
     save_outputs: bool = False,
     output_dir: str = "outputs",
     verbose: bool = True,
-    cluster_mode: str = "logit_lens",
+    cluster_mode: str = "saved_topk",
     cluster_score_threshold: float | None = 0.5,
     cluster_api_topk: int = DEFAULT_API_TOPK,
     cluster_api_source: str = DEFAULT_NEURONPEDIA_SOURCE,
     cluster_api_model: Optional[str] = None,
     cluster_api_timeout: float = API_TIMEOUT,
+    cluster_saved_dir: Optional[str] = "outputs/agg_per_layer_top20",
+    cluster_saved_topk: int = 20,
 ) -> Dict[str, Any]:
     """
     Run the complete planning detection pipeline on a single example.
@@ -312,6 +314,8 @@ def run_full_pipeline(
         api_source=cluster_api_source,
         api_topk=cluster_api_topk,
         api_timeout=cluster_api_timeout,
+        saved_contexts_dir=cluster_saved_dir,
+        saved_topk=cluster_saved_topk,
     )
     
     if verbose:
@@ -459,12 +463,14 @@ def run_automated_token_pipeline(
     output_dir: str = "outputs",
     verbose: bool = True,
     return_tokens: bool = True,
-    cluster_mode: str = "logit_lens",
+    cluster_mode: str = "saved_topk",
     cluster_score_threshold: float | None = 1.8,
     cluster_api_topk: int = DEFAULT_API_TOPK,
     cluster_api_source: str = DEFAULT_NEURONPEDIA_SOURCE,
     cluster_api_model: Optional[str] = None,
     cluster_api_timeout: float = API_TIMEOUT,
+    cluster_saved_dir: Optional[str] = "outputs/agg_per_layer_top20",
+    cluster_saved_topk: int = 20,
 ) -> Dict[str, Any]:
     """
     Run the pipeline automatically over multiple token positions.
@@ -542,22 +548,24 @@ def run_automated_token_pipeline(
     
     # Detect docstrings and adjust start position if needed
     docstring_ranges = []
-    docstring_end = 0
+    last_docstring_end: Optional[int] = None
     if skip_docstrings:
         docstring_ranges = detect_docstring_tokens(model, out_BL, toks_BL.shape[-1])
         if docstring_ranges:
             # Find the end of the last docstring
-            docstring_end = max(end for start, end in docstring_ranges)
+            last_docstring_end = max(end for start, end in docstring_ranges)
             if verbose:
                 print(f"Detected {len(docstring_ranges)} docstring ranges: {docstring_ranges}")
-                print(f"Will start analysis after docstrings end at token {docstring_end}")
+                print(f"Last docstring ends at token {last_docstring_end}; computing analysis start after this range")
     
     # Determine token positions to analyze
     prompt_len = toks_BL.shape[-1]
-    base_start = prompt_len + start_token_offset
-    
-    # Start analysis after docstrings if we're skipping them
-    start_analysis = max(base_start, docstring_end + 1) if skip_docstrings and docstring_end > base_start else base_start
+    if skip_docstrings and last_docstring_end is not None:
+        first_non_docstring = last_docstring_end + 1
+        anchor = max(prompt_len, first_non_docstring)
+        start_analysis = anchor + start_token_offset
+    else:
+        start_analysis = prompt_len + start_token_offset
     end_analysis = min(out_BL.shape[-1] - 1, start_analysis + max_tokens_to_analyze)
     
     results = {
@@ -596,6 +604,8 @@ def run_automated_token_pipeline(
             cluster_api_source=cluster_api_source,
             cluster_api_model=cluster_api_model,
             cluster_api_timeout=cluster_api_timeout,
+            cluster_saved_dir=cluster_saved_dir,
+            cluster_saved_topk=cluster_saved_topk,
         )
         
         # Analyze planning evidence if successful
@@ -654,12 +664,14 @@ def run_single_token_analysis(
     stop_token_id: int = 1917,
     verbose: bool = False,
     return_tokens: bool = True,
-    cluster_mode: str = "logit_lens",
+    cluster_mode: str = "saved_topk",
     cluster_score_threshold: float | None = 1.8,
     cluster_api_topk: int = DEFAULT_API_TOPK,
     cluster_api_source: str = DEFAULT_NEURONPEDIA_SOURCE,
     cluster_api_model: Optional[str] = None,
     cluster_api_timeout: float = API_TIMEOUT,
+    cluster_saved_dir: Optional[str] = "outputs/agg_per_layer_top20",
+    cluster_saved_topk: int = 20,
 ) -> Dict[str, Any]:
     """
     Run pipeline analysis for a single token position.
@@ -741,6 +753,8 @@ def run_single_token_analysis(
         api_source=cluster_api_source,
         api_topk=cluster_api_topk,
         api_timeout=cluster_api_timeout,
+        saved_contexts_dir=cluster_saved_dir,
+        saved_topk=cluster_saved_topk,
     )
     
     if verbose:
@@ -831,7 +845,7 @@ def main():
     
     # Analysis range options
     parser.add_argument("--start-offset", type=int, default=0, 
-                       help="Token offset from end of prompt to start analysis. If skipping docstrings, analysis will start after all docstrings if they extend beyond this offset (default: 0)")
+                       help="Token offset to apply before starting analysis: counted from the end of the prompt, or after docstrings when they are skipped (default: 0)")
     parser.add_argument("--max-tokens", type=int, default=50,
                        help="Maximum number of tokens to analyze (default: 50)")
     
@@ -860,9 +874,9 @@ def main():
     # Clustering options
     parser.add_argument(
         "--cluster-mode",
-        choices=["logit_lens", "neuronpedia_topk"],
-        default="logit_lens",
-        help="Strategy for grouping latents (default: logit_lens)",
+        choices=["saved_topk", "logit_lens", "neuronpedia_topk"],
+        default="saved_topk",
+        help="Strategy for grouping latents (default: saved_topk)",
     )
     parser.add_argument(
         "--cluster-score-threshold",
@@ -892,6 +906,17 @@ def main():
         default=API_TIMEOUT,
         help="Timeout in seconds for Neuronpedia API requests",
     )
+    parser.add_argument(
+        "--cluster-saved-dir",
+        default="outputs/agg_per_layer_top20",
+        help="Directory containing saved per-layer contexts for saved_topk mode",
+    )
+    parser.add_argument(
+        "--cluster-saved-topk",
+        type=int,
+        default=20,
+        help="Top-k contexts per latent to use from saved files in saved_topk mode",
+    )
     
     # Data and output options
     parser.add_argument("--data-path", default="data/first_100_passing_examples.json",
@@ -918,10 +943,14 @@ def main():
     print(f"  Cluster mode: {args.cluster_mode}")
     if args.cluster_mode == "logit_lens":
         print(f"  Cluster score threshold: {args.cluster_score_threshold}")
-    else:
+    elif args.cluster_mode == "neuronpedia_topk":
         print(
             f"  Neuronpedia settings: topk={args.cluster_api_topk}, "
             f"source='{args.cluster_api_source}', timeout={args.cluster_api_timeout}s"
+        )
+    else:
+        print(
+            f"  Saved contexts: dir='{args.cluster_saved_dir}', topk={args.cluster_saved_topk}"
         )
     print(f"  Save outputs: {args.save}")
     print()
@@ -949,6 +978,8 @@ def main():
         cluster_api_source=args.cluster_api_source,
         cluster_api_model=args.cluster_api_model,
         cluster_api_timeout=args.cluster_api_timeout,
+        cluster_saved_dir=args.cluster_saved_dir,
+        cluster_saved_topk=args.cluster_saved_topk,
     )
     
     # Print final summary

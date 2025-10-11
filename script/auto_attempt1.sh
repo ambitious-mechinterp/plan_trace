@@ -1,12 +1,13 @@
 #!/bin/bash
 #SBATCH -c 4
-#SBATCH --mem=100GB
+#SBATCH --mem=200GB
 #SBATCH -p gpu-preempt
 #SBATCH -G 1
-#SBATCH -t 8:00:00
+#SBATCH --nodes=1
+#SBATCH -t 12:00:00
 #SBATCH --constraint=vram40
-#SBATCH -o logs/slurm_auto_task24s.out  # %A is the master job ID, %a is the array task ID
-#SBATCH -e logs/slurm_auto_task24s.err
+#SBATCH -o logs/slurm_auto_task11sv2.out  # %A is the master job ID, %a is the array task ID
+#SBATCH -e logs/slurm_auto_task11sv2.err
 #SBATCH -A pi_jensen_umass_edu
 
 # Create logs directory if it doesn't exist
@@ -23,13 +24,13 @@ module load conda/latest
 conda activate finetuning
 
 # Navigate to the notebooks directory and run the script
-python -m plan_trace.pipeline 24 \
-  --max-tokens 2 \
+python -m plan_trace.pipeline 11 \
+  --max-tokens 1 \
   --save \
-  --output-dir outputs/topk/ \
-  --cluster-mode neuronpedia_topk \
-  --cluster-api-model gemma-2-2b \
-  --cluster-api-topk 20 \
-  --cluster-api-source '{layer}-gemmascope-mlp-16k'
+  --output-dir outputs/topkfile/ \
+  --cluster-mode saved_topk \
+  --cluster-saved-dir outputs/agg_per_layer_top20 \
+  --cluster-saved-topk 20 \
+  --k-max 90001 
 
 echo "Job completed at: $(date)" 

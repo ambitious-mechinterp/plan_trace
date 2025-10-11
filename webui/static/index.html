@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Plan Trace UI</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <h1>Plan Trace</h1>
+      <form id="query-form" class="query-form">
+        <label>
+          prompt_id
+          <input type="number" id="prompt-id" name="prompt_id" min="0" required />
+        </label>
+        <label>
+          token index (yn_ind)
+          <input type="number" id="yn-ind" name="yn_ind" min="0" required />
+        </label>
+        <button type="submit">Load</button>
+        <span id="status" class="status"></span>
+      </form>
+    </header>
+
+    <main class="app-main">
+      <section class="grid-panel">
+        <div class="grid-header">
+          <div class="y-axis-label">layers</div>
+          <div id="x-axis" class="x-axis"></div>
+        </div>
+        <div class="grid-body">
+          <div id="y-axis" class="y-axis"></div>
+          <div id="grid" class="grid"></div>
+        </div>
+        <div class="legend" id="legend"></div>
+      </section>
+
+      <aside class="sidebar" id="sidebar">
+        <h2>Planning & Steering</h2>
+        <div id="planning"></div>
+        <div id="steering"></div>
+      </aside>
+    </main>
+
+    <div id="popover" class="popover hidden" role="dialog" aria-modal="true">
+      <div class="popover-header">
+        <div class="popover-title" id="popover-title">Latent Viewer</div>
+        <button id="popover-close" class="close-btn" aria-label="Close">×</button>
+      </div>
+      <div class="popover-body">
+        <div class="row">
+          <label>
+            ym
+            <select id="ym-select"></select>
+          </label>
+          <label>
+            latent
+            <select id="latent-select"></select>
+          </label>
+        </div>
+        <div id="neuronpedia" class="neuronpedia"></div>
+      </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+  </body>
+  </html>
+
+

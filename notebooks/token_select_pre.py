@@ -31,8 +31,6 @@ def tokens_to_text(tokens: Sequence[str], strip: bool = False) -> str:
     text = "".join(token.replace("▁", " ").replace("<0x0A>", "\n") for token in tokens)
     return text.strip() if strip else text
 
-
-
 # %% 
 with open(cluster_path, "r") as f:
     cluster_dict = json.load(f)
@@ -81,3 +79,4 @@ act_dict
 # %%
 act_dict[0]['tokens']
 # %%
+

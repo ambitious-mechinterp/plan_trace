@@ -10,8 +10,10 @@ Shape Suffix Definition:
 """
 
 import json
+import os
+import gzip
 from collections import defaultdict
-from typing import Any, Dict, List, MutableMapping, Sequence, Tuple, Union
+from typing import Any, Dict, List, MutableMapping, Sequence, Tuple, Union, Optional
 
 import requests
 import torch
@@ -27,6 +29,7 @@ DEFAULT_API_TOPK = 20
 API_TIMEOUT = 30.0
 
 _NEURONPEDIA_CACHE: Dict[Tuple[str, int, int, str, int], List[Dict[str, Any]]] = {}
+_SAVED_LAYER_CACHE: Dict[Tuple[str, int, int], Dict[str, List[Dict[str, Any]]]] = {}
 
 def _resolve_neuronpedia_model_id(model, api_model: str | None) -> str:
     """
@@ -120,6 +123,151 @@ def _fetch_neuronpedia_contexts(
     contexts = _normalize_contexts(data)
     cache[cache_key] = contexts[:top_k] if top_k > 0 else contexts
     return cache[cache_key]
+def _load_saved_layer_contexts(
+    *,
+    saved_dir: str,
+    layer_index: int,
+    top_k: int,
+) -> Dict[str, List[Dict[str, Any]]]:
+    """Load saved contexts for a layer from JSON/JSON.GZ.
+
+    Tries the following filenames in order:
+      - L{layer}.top{top_k}.json.gz
+      - L{layer}.top{top_k}.json
+      - L{layer}.json.gz
+      - L{layer}.json
+    Returns a mapping: latent_id (str) -> list[record].
+    """
+    cache_key = (os.path.abspath(saved_dir), layer_index, top_k)
+    cached = _SAVED_LAYER_CACHE.get(cache_key)
+    if cached is not None:
+        return cached
+
+    candidates = [
+        os.path.join(saved_dir, f"L{layer_index}.top{top_k}.json.gz"),
+        os.path.join(saved_dir, f"L{layer_index}.top{top_k}.json"),
+        os.path.join(saved_dir, f"L{layer_index}.json.gz"),
+        os.path.join(saved_dir, f"L{layer_index}.json"),
+    ]
+    path: Optional[str] = None
+    for cand in candidates:
+        if os.path.isfile(cand):
+            path = cand
+            break
+    if path is None:
+        raise FileNotFoundError(
+            f"No saved contexts file found for layer {layer_index} under {saved_dir}"
+        )
+
+    opener = gzip.open if path.endswith(".gz") else open
+    with opener(path, "rt") as f:
+        data = json.load(f)
+        if not isinstance(data, dict):
+            raise ValueError(f"Saved contexts file has unexpected format: {path}")
+    _SAVED_LAYER_CACHE[cache_key] = data
+    return data
+
+
+def build_saved_pair_dict_from_files(
+    model,
+    trial_entries: Sequence[Tuple[int, int, int, float]],
+    unique_token_ids: Sequence[int],
+    *,
+    saved_dir: str,
+    top_contexts: int,
+    window_size: int = 5,
+    min_context_matches: int = 1,
+) -> Dict[str, List[Tuple[int, int, List[int]]]]:
+    """Build saved_pair_dict using previously saved per-layer context JSONs.
+
+    This mirrors build_saved_pair_dict_neuronpedia but reads from local files.
+    Iterates layer-by-layer to minimize I/O and memory.
+    """
+    layer_to_latents: Dict[int, set[int]] = defaultdict(set)
+    for layer_idx, _, latent_idx, _ in trial_entries:
+        layer_to_latents[layer_idx].add(latent_idx)
+
+    token_labels: Dict[int, str] = {}
+    for tok_id in unique_token_ids:
+        label = model.to_string(tok_id)
+        if not isinstance(label, str):
+            continue
+        label = label.strip()
+        if label:
+            token_labels[tok_id] = label
+
+    if not token_labels:
+        return {}
+
+    # Precompute positions per (layer, latent)
+    entry_positions: Dict[Tuple[int, int], List[int]] = defaultdict(list)
+    for layer_idx, token_pos, latent_idx, _ in trial_entries:
+        entry_positions[(layer_idx, latent_idx)].append(token_pos)
+
+    saved_pair_dict: Dict[str, List[Tuple[int, int, List[int]]]] = defaultdict(list)
+
+    for layer_idx, latents in layer_to_latents.items():
+        try:
+            layer_map = _load_saved_layer_contexts(
+                saved_dir=saved_dir, layer_index=layer_idx, top_k=top_contexts
+            )
+        except FileNotFoundError as exc:
+            print(exc)
+            continue
+
+        for latent_idx in sorted(latents):
+            contexts = layer_map.get(str(latent_idx))
+            if not isinstance(contexts, list) or not contexts:
+                continue
+            # Limit to top_k if available
+            if top_contexts > 0:
+                contexts = contexts[:top_contexts]
+
+            # Build windowed texts centered at the max-activating token per context when available.
+            window_texts: List[str] = []
+            for entry in contexts:
+                tokens = entry.get("tokens") if isinstance(entry, dict) else None
+                if not isinstance(tokens, list) or not tokens:
+                    continue
+
+                max_idx = None
+                if isinstance(entry, dict):
+                    mi = entry.get("maxValueTokenIndex")
+                    if isinstance(mi, int):
+                        max_idx = mi
+                    elif isinstance(entry.get("values"), list) and entry.get("values"):
+                        # Fallback: compute argmax over values if provided
+                        try:
+                            values_list = entry.get("values")
+                            max_idx = max(range(len(values_list)), key=lambda i: values_list[i])
+                        except Exception:
+                            max_idx = None
+
+                if isinstance(max_idx, int):
+                    start = max(0, max_idx - window_size)
+                    end = min(len(tokens), max_idx + window_size + 1)
+                    sub_tokens = tokens[start:end]
+                    text = _tokens_to_text(sub_tokens)
+                else:
+                    # If no max index info, fallback to full context
+                    text = _tokens_to_text(tokens)
+
+                if text:
+                    normalized = " ".join(text.replace("\r", " ").replace("\n", " ").split())
+                    window_texts.append(normalized)
+
+            if not window_texts:
+                continue
+
+            for tok_id, label in token_labels.items():
+                match_count = sum(1 for text in window_texts if _has_boundary_match(text, label))
+                if match_count >= max(1, int(min_context_matches)):
+                    positions = entry_positions.get((layer_idx, latent_idx), [])
+                    saved_pair_dict[label].append((layer_idx, latent_idx, positions))
+                    break
+
+    return dict(saved_pair_dict)
+
 
 
 def gather_unique_tokens(
@@ -357,6 +505,10 @@ def find_logit_lens_clusters(
     api_topk: int = DEFAULT_API_TOPK,
     api_cache: MutableMapping[Tuple[str, int, int, str, int], List[Dict[str, Any]]] | None = None,
     api_timeout: float = API_TIMEOUT,
+    saved_contexts_dir: Optional[str] = None,
+    saved_topk: int = DEFAULT_API_TOPK,
+    saved_window: int = 5,
+    saved_min_context_matches: int = 15,
 ) -> Dict[str, List[Tuple[int, int, List[int]]]]:
     """
     Find clusters of SAE latents based on their decoding directions or Neuronpedia top contexts.
@@ -410,6 +562,18 @@ def find_logit_lens_clusters(
             release_format=api_source,
             cache=cache,
             timeout=api_timeout,
+        )
+    elif mode == "saved_topk":
+        if not saved_contexts_dir:
+            raise ValueError("saved_contexts_dir is required when mode='saved_topk'")
+        saved_pair_dict = build_saved_pair_dict_from_files(
+            model,
+            entries,
+            filtered_uniq_ids,
+            saved_dir=saved_contexts_dir,
+            top_contexts=saved_topk,
+            window_size=saved_window,
+            min_context_matches=saved_min_context_matches,
         )
     else:
         raise ValueError(f"Unknown clustering mode '{mode}'.")
