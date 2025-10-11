@@ -30,7 +30,6 @@ html, body { height: 100%; margin: 0; background: var(--bg); color: var(--text);
 .x-axis-inner .token { display: flex; align-items: center; justify-content: center; height: 28px; border-right: 1px solid var(--grid-border); }
 
 .grid-body { display: grid; grid-template-columns: 56px 1fr; min-height: 280px; }
-/* JATIN: change this for grid min-height */
 .y-axis { border-right: 1px solid var(--grid-border); padding: 0; font-size: 12px; color: var(--muted); overflow: hidden; }
 .y-axis-inner { display: grid; grid-auto-rows: 28px; will-change: transform; }
 .y-axis-inner .layer { display: flex; align-items: center; border-bottom: 1px solid var(--grid-border); }
@@ -44,7 +43,7 @@ html, body { height: 100%; margin: 0; background: var(--bg); color: var(--text);
 .legend { padding: 8px; display: flex; gap: 12px; align-items: center; border-top: 1px solid var(--grid-border); font-size: 12px; color: var(--muted); }
 .legend .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 4px; }
 
-.sidebar { background: var(--panel); border: 1px solid var(--grid-border); border-radius: 8px; padding: 12px; overflow: auto; }
+.sidebar { background: var(--panel); border: 1px solid var(--grid-border); border-radius: 8px; padding: 12px; overflow: auto; max-height: 460px; }
 .sidebar h2 { margin: 0 0 8px; font-size: 16px; }
 .sidebar h3 { margin: 12px 0 6px; font-size: 14px; color: var(--muted); }
 .sidebar .ym { margin-bottom: 12px; }
@@ -62,7 +61,6 @@ html, body { height: 100%; margin: 0; background: var(--bg); color: var(--text);
 .base-output { display: grid; grid-template-columns: 40px 1fr; align-items: start; gap: 8px; }
 .base-output .label { color: var(--muted); font-size: 12px; padding-top: 4px; }
 .baseline-strip { display: flex; flex-wrap: wrap; gap: 4px; background: #0d0f14; border: 1px solid var(--grid-border); border-radius: 6px; padding: 8px; max-height: 200px; overflow: auto; }
-/* JATIN: change this for baseline area max-height */
 .baseline-token { padding: 2px 6px; border-radius: 4px; background: #0f1320; border: 1px solid var(--grid-border); font-size: 12px; white-space: nowrap; }
 
 /* Inline viewer panel */
@@ -73,15 +71,10 @@ html, body { height: 100%; margin: 0; background: var(--bg); color: var(--text);
 .viewer-controls label { display: flex; flex-direction: column; font-size: 12px; color: var(--muted); }
 .viewer-controls select { padding: 6px 8px; border-radius: 6px; border: 1px solid var(--grid-border); background: #0d0f14; color: var(--text); }
 .viewer-body { padding: 10px 12px; }
-/* JATIN: change this for overall viewer padding/space if needed */
 .neuronpedia { height: 320px; }
-/* JATIN: change this for viewer default height (mirrors JS iframe height) */
 
 /* detail panels side-by-side */
 .detail-panels { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 0 16px 16px; }
-
-/* slightly reduce sidebar vertical size */
-.sidebar { max-height: 460px; }
 
 .muted { color: var(--muted); }
 .error { color: var(--danger); }

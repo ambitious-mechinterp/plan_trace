@@ -101,7 +101,8 @@ function openPopover({ layer, tokenId, ym, latents }) {
       return;
     }
     const src = `https://www.neuronpedia.org/gemma-2-2b/${layerIdx}-gemmascope-mlp-16k/${latentIdx}?embed=true&embedexplanation=true&embedplots=true&embedtest=false`;
-    const iframe = el('iframe', { src, title: 'Neuronpedia', style: 'height: 300px; width: 100%; border:0;' });
+    // JATIN: change this for viewer iframe height
+    const iframe = el('iframe', { src, title: 'Neuronpedia', style: 'height: 500px; width: 100%; border:0;' });
     container.append(iframe);
   }
 
@@ -201,13 +202,16 @@ function renderSteering(steering) {
       payload.steered.forEach((entry) => {
         const coeff = entry.coeff;
         const decoded = entry.decoded_text;
+        // Skip empty entries
+        if (!decoded || decoded.length === 0) return;
         box.append(el('div', { class: 'steer' }, [
           el('div', { class: 'coeff', text: `coeff: ${String(coeff)}` }),
-          el('div', { text: decoded || '' }),
+          el('div', { text: decoded }),
         ]));
       });
     }
-    container.append(box);
+    // Only append box if it has at least one steer child after the title
+    if (box.children.length > 1) container.append(box);
   });
 }
 
@@ -286,34 +290,33 @@ window.addEventListener('DOMContentLoaded', main);
 // ---------- Input/Output rendering ----------
 function renderIO(metadata, fullData) {
   const strip = document.getElementById('input-strip');
-  const basePre = document.getElementById('base-text');
-  if (!strip || !basePre) return;
+  const baselineStrip = document.getElementById('baseline-strip');
+  if (!strip || !baselineStrip) return;
   strip.innerHTML = '';
-  basePre.textContent = '';
+  baselineStrip.innerHTML = '';
 
-  if (!metadata) {
-    strip.append(el('div', { class: 'muted', text: 'No input tokens available' }));
-    basePre.textContent = '';
-    return;
+  // Render input token strings if present, else fallback to token ids
+  const inputTokens = (fullData && fullData.tokens && Array.isArray(fullData.tokens.input)) ? fullData.tokens.input : null;
+  if (inputTokens && inputTokens.length) {
+    inputTokens.forEach((tok, idx) => {
+      const tokenEl = el('span', { class: 'input-token', text: String(tok) });
+      tokenEl.dataset.tokenId = String(idx);
+      strip.append(tokenEl);
+    });
+  } else {
+    const tokenIds = (fullData && fullData.meta && fullData.meta.tokenIds) || [];
+    tokenIds.forEach((tid) => {
+      const tokenEl = el('span', { class: 'input-token', text: String(tid) });
+      tokenEl.dataset.tokenId = String(tid);
+      strip.append(tokenEl);
+    });
   }
 
-  // Expecting metadata to possibly contain tokenized strings in future; for now, render token ids from meta.tokenIds
-  const tokenIds = (fullData && fullData.meta && fullData.meta.tokenIds) || [];
-  tokenIds.forEach((tid) => {
-    const tokenEl = el('span', { class: 'input-token', text: String(tid) });
-    tokenEl.dataset.tokenId = String(tid);
-    strip.append(tokenEl);
+  // Render baseline tokens as chips if present
+  const baselineTokens = (fullData && fullData.tokens && Array.isArray(fullData.tokens.baseline)) ? fullData.tokens.baseline : [];
+  baselineTokens.forEach((tok) => {
+    baselineStrip.append(el('span', { class: 'baseline-token', text: String(tok) }));
   });
-
-  // Baseline text: prefer metadata.baseline_text; fallback to any steering base_text for the current ym if needed
-  let baseText = metadata.baseline_text;
-  if (!baseText && fullData && fullData.steering) {
-    const anyYm = Object.keys(fullData.steering)[0];
-    if (anyYm && fullData.steering[anyYm] && fullData.steering[anyYm].base_text) {
-      baseText = fullData.steering[anyYm].base_text;
-    }
-  }
-  basePre.textContent = baseText || '';
 }
 
 function highlightInputToken(tokenId) {

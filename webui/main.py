@@ -101,6 +101,7 @@ WEBUI_DIR = Path(__file__).resolve().parent
 REPO_ROOT = WEBUI_DIR.parent
 STATIC_DIR = WEBUI_DIR / "static"
 OUTPUTS_DIR = REPO_ROOT / "outputs" / "topkfile"
+TOKEN_MAP_PATH = REPO_ROOT / "outputs" / "prompt_tokenized_map.json"
 
 
 def _safe_read_json(path: Path) -> Optional[Any]:
@@ -128,6 +129,7 @@ def _build_data_response(
     planning = _safe_read_json(planning_path)
     steering = _safe_read_json(steering_path)
     metadata = _safe_read_json(metadata_path)
+    token_map = _safe_read_json(TOKEN_MAP_PATH)
 
     # Compute helpful metadata and an index structure for quick lookup
     meta: Dict[str, Any] = {
@@ -135,6 +137,7 @@ def _build_data_response(
         "hasPlanning": planning is not None,
         "hasSteering": steering is not None,
         "hasMetadata": metadata is not None,
+        "hasTokenized": False,
         "yms": [],
         "layers": [],
         "tokenIds": [],
@@ -175,6 +178,36 @@ def _build_data_response(
         max_token = max(yn_ind, max_in_clusters)
         meta["tokenIds"] = list(range(0, max_token + 1))
 
+    # Resolve tokenized strings for this prompt and token index (trim BOS by slicing from index 1)
+    tokens_input: List[str] = []
+    tokens_baseline: List[str] = []
+    try:
+        prompt_key = str(prompt_id)
+        token_key = str(yn_ind)
+        if isinstance(token_map, dict) and prompt_key in token_map:
+            token_results = token_map[prompt_key].get("token_results") or {}
+            entry = token_results.get(token_key)
+            if isinstance(entry, dict):
+                inp = entry.get("input_prefix_token_strings") or []
+                base = entry.get("baseline_token_strings") or []
+                if isinstance(inp, list):
+                    tokens_input = [str(x) for x in inp[1:]]  # keep one BOS
+                if isinstance(base, list):
+                    tokens_baseline = [str(x) for x in base[1:]]  # drop BOS entirely
+    except Exception:
+        # Ignore tokenization errors; keep empty
+        pass
+
+    # If we know how many tokens are on the x-axis, align input tokens length
+    if meta.get("tokenIds"):
+        try:
+            tokens_input = tokens_input[: len(meta["tokenIds"])]
+        except Exception:
+            pass
+
+    if tokens_input or tokens_baseline:
+        meta["hasTokenized"] = True
+
     return {
         "ok": True,
         "paths": {
@@ -182,11 +215,16 @@ def _build_data_response(
             "planning": str(planning_path),
             "steering": str(steering_path),
             "metadata": str(metadata_path),
+            "token_map": str(TOKEN_MAP_PATH),
         },
         "clusters": clusters,
         "planning": planning,
         "steering": steering,
         "metadata": metadata,
+        "tokens": {
+            "input": tokens_input,
+            "baseline": tokens_baseline,
+        },
         "meta": meta,
         "index": index,
     }
@@ -206,6 +244,7 @@ def get_data(
         or resp["meta"].get("hasPlanning")
         or resp["meta"].get("hasSteering")
         or resp["meta"].get("hasMetadata")
+        or resp["meta"].get("hasTokenized")
     ):
         raise HTTPException(status_code=404, detail="No data files found for the given prompt_id and yn_ind")
     return JSONResponse(content=resp)
