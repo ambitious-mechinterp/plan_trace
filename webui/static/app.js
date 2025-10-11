@@ -79,8 +79,7 @@ function openPopover({ layer, tokenId, ym, latents }) {
   state.selected.layer = layer;
   state.selected.tokenId = tokenId;
   state.selected.ym = ym;
-  const pop = document.getElementById('popover');
-  const title = document.getElementById('popover-title');
+  const title = document.getElementById('viewer-title');
   const ymSelect = document.getElementById('ym-select');
   const latentSelect = document.getElementById('latent-select');
 
@@ -122,23 +121,18 @@ function openPopover({ layer, tokenId, ym, latents }) {
     setIframe(layer, first);
   }
 
-  ymSelect.addEventListener('change', () => {
+  ymSelect.onchange = () => {
     state.selected.ym = ymSelect.value;
     populateLatentSelect(state.selected.ym);
-  });
+  };
 
-  latentSelect.addEventListener('change', () => {
+  latentSelect.onchange = () => {
     const val = latentSelect.value ? Number(latentSelect.value) : null;
     state.selected.latent = val;
     setIframe(layer, val);
-  });
+  };
 
   populateLatentSelect(ym);
-  pop.classList.remove('hidden');
-}
-
-function closePopover() {
-  document.getElementById('popover').classList.add('hidden');
 }
 
 function renderGrid(data) {
@@ -162,7 +156,10 @@ function renderGrid(data) {
           hasAny = true;
           const dot = el('div', { class: 'cluster', title: `${ymKey} • ${latents.length} latents` });
           dot.style.background = colorForYm(ymKey);
-          dot.addEventListener('click', () => openPopover({ layer, tokenId: t, ym: ymKey, latents }));
+          dot.addEventListener('click', () => {
+            openPopover({ layer, tokenId: t, ym: ymKey, latents });
+            highlightInputToken(t);
+          });
           cell.append(dot);
         }
       });
@@ -221,6 +218,7 @@ function hydrate(data) {
   renderGrid(data);
   renderPlanning(data.planning || null);
   renderSteering(data.steering || null);
+  renderIO(data.metadata || null, data);
   setupScrollSync();
 }
 
@@ -259,7 +257,6 @@ async function onSubmit(e) {
 
 function main() {
   document.getElementById('query-form').addEventListener('submit', onSubmit);
-  document.getElementById('popover-close').addEventListener('click', closePopover);
   initFormFromQuery();
   // Auto-submit if both values present
   const pid = document.getElementById('prompt-id').value;
@@ -285,5 +282,46 @@ function setupScrollSync() {
 }
 
 window.addEventListener('DOMContentLoaded', main);
+
+// ---------- Input/Output rendering ----------
+function renderIO(metadata, fullData) {
+  const strip = document.getElementById('input-strip');
+  const basePre = document.getElementById('base-text');
+  if (!strip || !basePre) return;
+  strip.innerHTML = '';
+  basePre.textContent = '';
+
+  if (!metadata) {
+    strip.append(el('div', { class: 'muted', text: 'No input tokens available' }));
+    basePre.textContent = '';
+    return;
+  }
+
+  // Expecting metadata to possibly contain tokenized strings in future; for now, render token ids from meta.tokenIds
+  const tokenIds = (fullData && fullData.meta && fullData.meta.tokenIds) || [];
+  tokenIds.forEach((tid) => {
+    const tokenEl = el('span', { class: 'input-token', text: String(tid) });
+    tokenEl.dataset.tokenId = String(tid);
+    strip.append(tokenEl);
+  });
+
+  // Baseline text: prefer metadata.baseline_text; fallback to any steering base_text for the current ym if needed
+  let baseText = metadata.baseline_text;
+  if (!baseText && fullData && fullData.steering) {
+    const anyYm = Object.keys(fullData.steering)[0];
+    if (anyYm && fullData.steering[anyYm] && fullData.steering[anyYm].base_text) {
+      baseText = fullData.steering[anyYm].base_text;
+    }
+  }
+  basePre.textContent = baseText || '';
+}
+
+function highlightInputToken(tokenId) {
+  const strip = document.getElementById('input-strip');
+  if (!strip) return;
+  strip.querySelectorAll('.input-token').forEach((elx) => elx.classList.remove('active'));
+  const elx = strip.querySelector(`.input-token[data-token-id="${String(tokenId)}"]`);
+  if (elx) elx.classList.add('active');
+}
 
 

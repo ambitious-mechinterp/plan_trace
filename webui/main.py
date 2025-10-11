@@ -122,16 +122,19 @@ def _build_data_response(
     clusters_path = base_dir / "clusters.json"
     planning_path = base_dir / "planning_analysis.json"
     steering_path = base_dir / "steering_results.json"
+    metadata_path = base_dir / "metadata.json"
 
     clusters = _safe_read_json(clusters_path)
     planning = _safe_read_json(planning_path)
     steering = _safe_read_json(steering_path)
+    metadata = _safe_read_json(metadata_path)
 
     # Compute helpful metadata and an index structure for quick lookup
     meta: Dict[str, Any] = {
         "hasClusters": clusters is not None,
         "hasPlanning": planning is not None,
         "hasSteering": steering is not None,
+        "hasMetadata": metadata is not None,
         "yms": [],
         "layers": [],
         "tokenIds": [],
@@ -178,10 +181,12 @@ def _build_data_response(
             "clusters": str(clusters_path),
             "planning": str(planning_path),
             "steering": str(steering_path),
+            "metadata": str(metadata_path),
         },
         "clusters": clusters,
         "planning": planning,
         "steering": steering,
+        "metadata": metadata,
         "meta": meta,
         "index": index,
     }
@@ -196,7 +201,12 @@ def get_data(
     yn_ind: int = Query(..., description="Token index (current token), e.g., 293"),
 ) -> JSONResponse:
     resp = _build_data_response(prompt_id=prompt_id, yn_ind=yn_ind)
-    if not (resp["meta"]["hasClusters"] or resp["meta"]["hasPlanning"] or resp["meta"]["hasSteering"]):
+    if not (
+        resp["meta"].get("hasClusters")
+        or resp["meta"].get("hasPlanning")
+        or resp["meta"].get("hasSteering")
+        or resp["meta"].get("hasMetadata")
+    ):
         raise HTTPException(status_code=404, detail="No data files found for the given prompt_id and yn_ind")
     return JSONResponse(content=resp)
 

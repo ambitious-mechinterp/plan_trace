@@ -20,7 +20,7 @@ html, body { height: 100%; margin: 0; background: var(--bg); color: var(--text);
 .query-form button { padding: 8px 12px; border-radius: 6px; border: 1px solid var(--grid-border); background: #0d0f14; color: var(--text); cursor: pointer; }
 .status { font-size: 12px; color: var(--muted); }
 
-.app-main { display: grid; grid-template-columns: 1fr 320px; gap: 16px; padding: 16px; height: calc(100% - 54px); }
+.app-main { display: grid; grid-template-columns: 1fr 320px; gap: 16px; padding: 16px; height: auto; }
 
 .grid-panel { display: flex; flex-direction: column; background: var(--panel); border: 1px solid var(--grid-border); border-radius: 8px; min-width: 0; }
 .grid-header { display: grid; grid-template-columns: 56px 1fr; border-bottom: 1px solid var(--grid-border); }
@@ -29,7 +29,7 @@ html, body { height: 100%; margin: 0; background: var(--bg); color: var(--text);
 .x-axis-inner { display: grid; grid-auto-flow: column; grid-auto-columns: 28px; will-change: transform; }
 .x-axis-inner .token { display: flex; align-items: center; justify-content: center; height: 28px; border-right: 1px solid var(--grid-border); }
 
-.grid-body { display: grid; grid-template-columns: 56px 1fr; min-height: 400px; }
+.grid-body { display: grid; grid-template-columns: 56px 1fr; min-height: 280px; }
 .y-axis { border-right: 1px solid var(--grid-border); padding: 0; font-size: 12px; color: var(--muted); overflow: hidden; }
 .y-axis-inner { display: grid; grid-auto-rows: 28px; will-change: transform; }
 .y-axis-inner .layer { display: flex; align-items: center; border-bottom: 1px solid var(--grid-border); }
@@ -50,16 +50,33 @@ html, body { height: 100%; margin: 0; background: var(--bg); color: var(--text);
 .sidebar .coeff { color: var(--muted); font-size: 12px; }
 .sidebar .steer { border: 1px solid var(--grid-border); border-radius: 6px; padding: 6px; margin-top: 6px; background: #10131a; }
 
-.popover { position: fixed; right: 16px; bottom: 16px; width: 600px; max-width: calc(100% - 32px); background: var(--panel); border: 1px solid var(--grid-border); border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
-.popover.hidden { display: none; }
-.popover-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border-bottom: 1px solid var(--grid-border); }
-.popover-title { font-size: 14px; color: var(--muted); }
-.close-btn { background: transparent; color: var(--muted); border: none; font-size: 20px; cursor: pointer; }
-.popover-body { padding: 10px 12px; }
-.popover .row { display: flex; gap: 12px; margin-bottom: 8px; }
-.popover label { display: flex; flex-direction: column; font-size: 12px; color: var(--muted); }
-.popover select { padding: 6px 8px; border-radius: 6px; border: 1px solid var(--grid-border); background: #0d0f14; color: var(--text); }
+/* IO panel */
+.io-panel { background: var(--panel); border: 1px solid var(--grid-border); border-radius: 8px; }
+.io-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border-bottom: 1px solid var(--grid-border); }
+.io-header h2 { margin: 0; font-size: 16px; }
+.io-body { padding: 8px 12px; display: grid; gap: 8px; }
+.input-strip { display: flex; flex-wrap: wrap; gap: 4px; overflow-x: hidden; padding-bottom: 4px; border-bottom: 1px solid var(--grid-border); }
+.input-token { padding: 2px 6px; border-radius: 4px; background: #10131a; border: 1px solid var(--grid-border); font-size: 12px; white-space: nowrap; }
+.input-token.active { outline: 2px solid var(--accent); outline-offset: 1px; background: #0f1520; }
+.base-output { display: grid; grid-template-columns: 40px 1fr; align-items: start; gap: 8px; }
+.base-output .label { color: var(--muted); font-size: 12px; padding-top: 4px; }
+.base-text { margin: 0; background: #0d0f14; border: 1px solid var(--grid-border); border-radius: 6px; padding: 8px; overflow: auto; max-height: 200px; }
+
+/* Inline viewer panel */
+.viewer-panel { background: var(--panel); border: 1px solid var(--grid-border); border-radius: 8px; }
+.viewer-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border-bottom: 1px solid var(--grid-border); gap: 12px; }
+.viewer-title { font-size: 14px; color: var(--muted); }
+.viewer-controls { display: flex; gap: 12px; }
+.viewer-controls label { display: flex; flex-direction: column; font-size: 12px; color: var(--muted); }
+.viewer-controls select { padding: 6px 8px; border-radius: 6px; border: 1px solid var(--grid-border); background: #0d0f14; color: var(--text); }
+.viewer-body { padding: 10px 12px; }
 .neuronpedia { height: 320px; }
+
+/* detail panels side-by-side */
+.detail-panels { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 0 16px 16px; }
+
+/* slightly reduce sidebar vertical size */
+.sidebar { max-height: 460px; }
 
 .muted { color: var(--muted); }
 .error { color: var(--danger); }

@@ -43,25 +43,41 @@
       </aside>
     </main>
 
-    <div id="popover" class="popover hidden" role="dialog" aria-modal="true">
-      <div class="popover-header">
-        <div class="popover-title" id="popover-title">Latent Viewer</div>
-        <button id="popover-close" class="close-btn" aria-label="Close">×</button>
-      </div>
-      <div class="popover-body">
-        <div class="row">
-          <label>
-            ym
-            <select id="ym-select"></select>
-          </label>
-          <label>
-            latent
-            <select id="latent-select"></select>
-          </label>
+    <section class="detail-panels">
+      <section class="viewer-panel" id="viewer-panel">
+        <div class="viewer-header">
+          <div class="viewer-title" id="viewer-title">Latent Viewer</div>
+          <div class="viewer-controls">
+            <label>
+              ym
+              <select id="ym-select"></select>
+            </label>
+            <label>
+              latent
+              <select id="latent-select"></select>
+            </label>
+          </div>
         </div>
-        <div id="neuronpedia" class="neuronpedia"></div>
+        <div class="viewer-body">
+          <div id="neuronpedia" class="neuronpedia"></div>
+        </div>
+      </section>
+
+      <section class="io-panel" id="io-panel">
+      <div class="io-header">
+        <h2>Input & Base Generation</h2>
       </div>
-    </div>
+      <div class="io-body">
+        <div class="input-strip" id="input-strip"></div>
+        <div class="base-output">
+          <div class="label">base</div>
+          <pre id="base-text" class="base-text"></pre>
+        </div>
+      </div>
+      </section>
+    </section>
+
+    <!-- removed floating popover; viewer is inline above -->
 
     <script src="/static/app.js"></script>
   </body>

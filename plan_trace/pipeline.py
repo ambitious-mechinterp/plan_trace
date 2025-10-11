@@ -149,6 +149,14 @@ def save_pipeline_results(
         "num_clusters": len(result["clusters"]) if result["clusters"] else 0,
         "cluster_labels": list(result["clusters"].keys()) if result["clusters"] else [],
     }
+
+    # Optionally include tokenized inputs and baseline if provided in result
+    if "input_prefix_text" in result:
+        metadata["input_prefix_text"] = result["input_prefix_text"]
+    if "input_prefix_token_strings" in result:
+        metadata["input_prefix_token_strings"] = result["input_prefix_token_strings"]
+    if "baseline_token_strings" in result:
+        metadata["baseline_token_strings"] = result["baseline_token_strings"]
     
     metadata_path = folder_path / "metadata.json"
     with open(metadata_path, 'w') as f:
@@ -347,6 +355,20 @@ def run_full_pipeline(
         "baseline_text": baseline_suffix,
         "status": "success"
     }
+
+    # Attach tokenized inputs and baseline (string tokens only) to result for metadata
+    try:
+        input_prefix_text = model.to_string(out_BL[0, :inter_token_id])
+        input_prefix_token_strings = model.to_str_tokens(input_prefix_text)
+        baseline_token_strings = model.to_str_tokens(baseline_suffix)
+
+        result.update({
+            "input_prefix_text": input_prefix_text,
+            "input_prefix_token_strings": input_prefix_token_strings,
+            "baseline_token_strings": baseline_token_strings,
+        })
+    except Exception:
+        pass
     
     # Save outputs if requested
     if save_outputs:
@@ -773,7 +795,7 @@ def run_single_token_analysis(
         return_tokens=return_tokens
     )
     
-    return {
+    result: Dict[str, Any] = {
         "prompt_idx": -1,  # Will be filled by caller
         "inter_token_id": inter_token_id,
         "circuit_entries": entries,
@@ -782,6 +804,22 @@ def run_single_token_analysis(
         "baseline_text": baseline_suffix,
         "status": "success"
     }
+
+    # Attach tokenized inputs and baseline (string tokens only) to result for metadata
+    try:
+        input_prefix_text = model.to_string(inter_toks_BL[0])
+        input_prefix_token_strings = model.to_str_tokens(input_prefix_text)
+        baseline_token_strings = model.to_str_tokens(baseline_suffix)
+
+        result.update({
+            "input_prefix_text": input_prefix_text,
+            "input_prefix_token_strings": input_prefix_token_strings,
+            "baseline_token_strings": baseline_token_strings,
+        })
+    except Exception:
+        pass
+
+    return result
 
 
 def demo_circuit_analyzer():
