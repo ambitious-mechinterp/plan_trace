@@ -548,20 +548,19 @@ def run_automated_token_pipeline(
         data = json.load(f)
     
     entry = data[prompt_idx]
-    
-    question_prompt = entry['prompt']
+
+    prompt = (
+        "You are an expert Python programmer, and here is your task: "
+        f"{entry["prompt"]} Your code should pass these tests:\n\n"
+        + "\n".join(entry["test_list"]) + "\nWrite your code below starting with \"```python\" and ending with \"```\".\n```python\n"
+    )
 
     # Optionally use the augmented docstring in the prompt.
     if use_augmented_docstring:
         if "augmented_prompt" not in entry:
             raise ValueError("No augmented prompt found in data entry for use_augmented_docstring=True")
-        question_prompt = entry['augmented_prompt']
-    
-    prompt = (
-            "You are an expert Python programmer, and here is your task: "
-            f"{question_prompt} Your code should pass these tests:\n\n"
-            + "\n".join(entry["test_list"]) + "\nWrite your code below starting with \"```python\" and ending with \"```\".\n```python\n"
-        )
+        prompt = entry["augmented_prompt"]
+
     
     # Generate full sequence
     if verbose:
