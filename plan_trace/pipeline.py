@@ -494,7 +494,7 @@ def run_automated_token_pipeline(
     cluster_saved_dir: Optional[str] = "outputs/agg_per_layer_top20",
     cluster_saved_topk: int = 20,
     use_augmented_docstring: bool = False,
-    save_augmented_docstring: bool = True,
+    save_augmented_docstring: bool = False,
 ) -> Dict[str, Any]:
     """
     Run the pipeline automatically over multiple token positions.
