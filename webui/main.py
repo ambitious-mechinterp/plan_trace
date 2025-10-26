@@ -3,15 +3,16 @@ Goal: make an html or something for circuit display along with evidence of plann
 
 # ui inputs 
 
+- output_dir (base or instruct)
 - prompt_id 
 - yn_ind (current token being predicted)
 
 
 # files to get 
 
-- clusters: /work/pi_jensen_umass_edu/jnainani_umass_edu/plan_trace/outputs/topkfile/prompt_{prompt_id}/token_{yn_ind}/clusters.json
-- planning_analysis: /work/pi_jensen_umass_edu/jnainani_umass_edu/plan_trace/outputs/topkfile/prompt_{prompt_id}/token_{yn_ind}/planning_analysis.json
-- steering_results: /work/pi_jensen_umass_edu/jnainani_umass_edu/plan_trace/outputs/topkfile/prompt_{prompt_id}/token_{yn_ind}/steering_results.json
+- clusters: /work/pi_jensen_umass_edu/jnainani_umass_edu/plan_trace/outputs/{output_dir}/prompt_{prompt_id}/token_{yn_ind}/clusters.json
+- planning_analysis: /work/pi_jensen_umass_edu/jnainani_umass_edu/plan_trace/outputs/{output_dir}/prompt_{prompt_id}/token_{yn_ind}/planning_analysis.json
+- steering_results: /work/pi_jensen_umass_edu/jnainani_umass_edu/plan_trace/outputs/{output_dir}/prompt_{prompt_id}/token_{yn_ind}/steering_results.json
 
 ## file structure
 
@@ -100,7 +101,7 @@ from starlette.staticfiles import StaticFiles
 WEBUI_DIR = Path(__file__).resolve().parent
 REPO_ROOT = WEBUI_DIR.parent
 STATIC_DIR = WEBUI_DIR / "static"
-OUTPUTS_DIR = REPO_ROOT / "outputs" / "instruct"
+OUTPUTS_DIR = REPO_ROOT / "outputs"
 TOKEN_MAP_PATH = REPO_ROOT / "outputs" / "prompt_tokenized_map.json"
 
 
@@ -115,10 +116,11 @@ def _safe_read_json(path: Path) -> Optional[Any]:
 
 
 def _build_data_response(
+    output_dir: str,
     prompt_id: int,
     yn_ind: int,
 ) -> Dict[str, Any]:
-    base_dir = OUTPUTS_DIR / f"prompt_{prompt_id}" / f"token_{yn_ind}"
+    base_dir = OUTPUTS_DIR / output_dir / f"prompt_{prompt_id}" / f"token_{yn_ind}"
 
     clusters_path = base_dir / "clusters.json"
     planning_path = base_dir / "planning_analysis.json"
@@ -235,10 +237,15 @@ app = FastAPI(title="Plan Trace UI")
 
 @app.get("/api/data")
 def get_data(
+    output_dir: str = Query("instruct", description="Output directory: 'base' or 'instruct'"),
     prompt_id: int = Query(..., description="Prompt ID, e.g., 15"),
     yn_ind: int = Query(..., description="Token index (current token), e.g., 293"),
 ) -> JSONResponse:
-    resp = _build_data_response(prompt_id=prompt_id, yn_ind=yn_ind)
+    # Validate output_dir
+    if output_dir not in ["base", "instruct"]:
+        raise HTTPException(status_code=400, detail="output_dir must be 'base' or 'instruct'")
+    
+    resp = _build_data_response(output_dir=output_dir, prompt_id=prompt_id, yn_ind=yn_ind)
     if not (
         resp["meta"].get("hasClusters")
         or resp["meta"].get("hasPlanning")
@@ -246,7 +253,10 @@ def get_data(
         or resp["meta"].get("hasMetadata")
         or resp["meta"].get("hasTokenized")
     ):
-        raise HTTPException(status_code=404, detail="No data files found for the given prompt_id and yn_ind")
+        raise HTTPException(
+            status_code=404, 
+            detail=f"No data files found for output_dir='{output_dir}', prompt_id={prompt_id}, yn_ind={yn_ind}"
+        )
     return JSONResponse(content=resp)
 
 

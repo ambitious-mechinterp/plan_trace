@@ -11,6 +11,13 @@
       <h1>Plan Trace</h1>
       <form id="query-form" class="query-form">
         <label>
+          output_dir
+          <select id="output-dir" name="output_dir" required>
+            <option value="instruct" selected>instruct</option>
+            <option value="base">base</option>
+          </select>
+        </label>
+        <label>
           prompt_id
           <input type="number" id="prompt-id" name="prompt_id" min="0" required />
         </label>
@@ -22,10 +29,11 @@
         <span id="status" class="status"></span>
       </form>
       <nav class="tab-nav">
-  </nav>
+      </nav>
     </header>
 
     <main class="app-main">
+      <section class="grid-section">
         <div class="grid-header">
           <div class="y-axis-label">layers</div>
           <div class="x-axis"><div id="x-axis-inner" class="x-axis-inner"></div></div>
@@ -65,23 +73,19 @@
       </section>
 
       <section class="io-panel" id="io-panel">
-      <div class="io-header">
-        <h2>Input & Base Generation</h2>
-      </div>
-      <div class="io-body">
-        <div class="input-strip" id="input-strip"></div>
-        <div class="base-output">
+        <div class="io-header">
+          <h2>Input & Base Generation</h2>
+        </div>
+        <div class="io-body">
+          <div class="input-strip" id="input-strip"></div>
+          <div class="base-output">
             <div class="label">base</div>
             <div id="baseline-strip" class="baseline-strip"></div>
+          </div>
         </div>
-      </div>
       </section>
     </section>
 
-    <!-- removed floating popover; viewer is inline above -->
-
     <script src="/static/app.js"></script>
   </body>
-  </html>
-
-
+</html>

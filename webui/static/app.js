@@ -1,6 +1,7 @@
 /* globals window, document, fetch */
 
 const state = {
+  outputDir: 'instruct',
   promptId: null,
   ynInd: null,
   data: null,
@@ -38,8 +39,8 @@ function setStatus(msg, isError = false) {
   status.className = 'status' + (isError ? ' error' : '');
 }
 
-async function fetchData(promptId, ynInd) {
-  const url = `/api/data?prompt_id=${encodeURIComponent(promptId)}&yn_ind=${encodeURIComponent(ynInd)}`;
+async function fetchData(outputDir, promptId, ynInd) {
+  const url = `/api/data?output_dir=${encodeURIComponent(outputDir)}&prompt_id=${encodeURIComponent(promptId)}&yn_ind=${encodeURIComponent(ynInd)}`;
   const res = await fetch(url);
   if (!res.ok) {
     const text = await res.text();
@@ -228,28 +229,33 @@ function hydrate(data) {
 
 function initFormFromQuery() {
   const params = new URLSearchParams(window.location.search);
+  const outputDir = params.get('output_dir');
   const promptId = params.get('prompt_id');
   const ynInd = params.get('yn_ind');
+  if (outputDir) document.getElementById('output-dir').value = outputDir;
   if (promptId) document.getElementById('prompt-id').value = Number(promptId);
   if (ynInd) document.getElementById('yn-ind').value = Number(ynInd);
 }
 
 async function onSubmit(e) {
   e.preventDefault();
+  const outputDir = document.getElementById('output-dir').value;
   const promptId = Number(document.getElementById('prompt-id').value);
   const ynInd = Number(document.getElementById('yn-ind').value);
   if (Number.isNaN(promptId) || Number.isNaN(ynInd)) {
     setStatus('Invalid inputs', true);
     return;
   }
+  state.outputDir = outputDir;
   state.promptId = promptId;
   state.ynInd = ynInd;
   setStatus('Loading...');
   try {
-    const data = await fetchData(promptId, ynInd);
+    const data = await fetchData(outputDir, promptId, ynInd);
     hydrate(data);
     setStatus('Loaded');
     const url = new URL(window.location.href);
+    url.searchParams.set('output_dir', outputDir);
     url.searchParams.set('prompt_id', String(promptId));
     url.searchParams.set('yn_ind', String(ynInd));
     window.history.replaceState({}, '', url.toString());
@@ -262,10 +268,11 @@ async function onSubmit(e) {
 function main() {
   document.getElementById('query-form').addEventListener('submit', onSubmit);
   initFormFromQuery();
-  // Auto-submit if both values present
+  // Auto-submit if all values present
+  const od = document.getElementById('output-dir').value;
   const pid = document.getElementById('prompt-id').value;
   const ti = document.getElementById('yn-ind').value;
-  if (pid && ti) {
+  if (od && pid && ti) {
     document.getElementById('query-form').dispatchEvent(new Event('submit'));
   }
 }
@@ -326,5 +333,3 @@ function highlightInputToken(tokenId) {
   const elx = strip.querySelector(`.input-token[data-token-id="${String(tokenId)}"]`);
   if (elx) elx.classList.add('active');
 }
-
-
