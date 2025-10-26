@@ -19,11 +19,15 @@
         </label>
         <label>
           prompt_id
-          <input type="number" id="prompt-id" name="prompt_id" min="0" required />
+          <select id="prompt-id" name="prompt_id" required>
+            <option value="">Loading...</option>
+          </select>
         </label>
         <label>
           token index (yn_ind)
-          <input type="number" id="yn-ind" name="yn_ind" min="0" required />
+          <select id="yn-ind" name="yn_ind" required>
+            <option value="">Select prompt first</option>
+          </select>
         </label>
         <button type="submit">Load</button>
         <span id="status" class="status"></span>

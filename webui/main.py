@@ -89,6 +89,7 @@ at a given token_pos, layer, we want to make a cluster of latents for each ym_i.
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -113,6 +114,42 @@ def _safe_read_json(path: Path) -> Optional[Any]:
             return json.load(f)
     except Exception:
         return None
+
+
+def _list_prompts(output_dir: str) -> List[int]:
+    """List all available prompt IDs in the given output directory."""
+    dir_path = OUTPUTS_DIR / output_dir
+    if not dir_path.exists():
+        return []
+    
+    prompt_ids = []
+    prompt_pattern = re.compile(r'^prompt_(\d+)$')
+    
+    for item in dir_path.iterdir():
+        if item.is_dir():
+            match = prompt_pattern.match(item.name)
+            if match:
+                prompt_ids.append(int(match.group(1)))
+    
+    return sorted(prompt_ids)
+
+
+def _list_tokens(output_dir: str, prompt_id: int) -> List[int]:
+    """List all available token indices for a given prompt ID."""
+    dir_path = OUTPUTS_DIR / output_dir / f"prompt_{prompt_id}"
+    if not dir_path.exists():
+        return []
+    
+    token_indices = []
+    token_pattern = re.compile(r'^token_(\d+)$')
+    
+    for item in dir_path.iterdir():
+        if item.is_dir():
+            match = token_pattern.match(item.name)
+            if match:
+                token_indices.append(int(match.group(1)))
+    
+    return sorted(token_indices)
 
 
 def _build_data_response(
@@ -233,6 +270,34 @@ def _build_data_response(
 
 
 app = FastAPI(title="Plan Trace UI")
+
+
+@app.get("/api/list-options")
+def list_options(
+    output_dir: str = Query("instruct", description="Output directory: 'base' or 'instruct'"),
+    prompt_id: Optional[int] = Query(None, description="Prompt ID to list tokens for (optional)"),
+) -> JSONResponse:
+    """
+    List available prompt IDs and optionally token indices.
+    If prompt_id is provided, also return available token indices for that prompt.
+    """
+    # Validate output_dir
+    if output_dir not in ["base", "instruct"]:
+        raise HTTPException(status_code=400, detail="output_dir must be 'base' or 'instruct'")
+    
+    prompts = _list_prompts(output_dir)
+    
+    result = {
+        "output_dir": output_dir,
+        "prompts": prompts,
+    }
+    
+    if prompt_id is not None:
+        tokens = _list_tokens(output_dir, prompt_id)
+        result["prompt_id"] = prompt_id
+        result["tokens"] = tokens
+    
+    return JSONResponse(content=result)
 
 
 @app.get("/api/data")

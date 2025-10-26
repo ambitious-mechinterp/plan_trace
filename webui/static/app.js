@@ -6,6 +6,8 @@ const state = {
   ynInd: null,
   data: null,
   selected: { layer: null, tokenId: null, ym: null, latent: null },
+  availablePrompts: [],
+  availableTokens: [],
 };
 
 // YM color palette (deterministic mapping)
@@ -39,6 +41,19 @@ function setStatus(msg, isError = false) {
   status.className = 'status' + (isError ? ' error' : '');
 }
 
+async function fetchOptions(outputDir, promptId = null) {
+  let url = `/api/list-options?output_dir=${encodeURIComponent(outputDir)}`;
+  if (promptId !== null) {
+    url += `&prompt_id=${encodeURIComponent(promptId)}`;
+  }
+  const res = await fetch(url);
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || `Request failed: ${res.status}`);
+  }
+  return res.json();
+}
+
 async function fetchData(outputDir, promptId, ynInd) {
   const url = `/api/data?output_dir=${encodeURIComponent(outputDir)}&prompt_id=${encodeURIComponent(promptId)}&yn_ind=${encodeURIComponent(ynInd)}`;
   const res = await fetch(url);
@@ -47,6 +62,81 @@ async function fetchData(outputDir, promptId, ynInd) {
     throw new Error(text || `Request failed: ${res.status}`);
   }
   return res.json();
+}
+
+async function loadPromptOptions(outputDir, selectPromptId = null) {
+  const promptSelect = document.getElementById('prompt-id');
+  const tokenSelect = document.getElementById('yn-ind');
+  
+  try {
+    const options = await fetchOptions(outputDir);
+    state.availablePrompts = options.prompts || [];
+    
+    promptSelect.innerHTML = '';
+    if (state.availablePrompts.length === 0) {
+      promptSelect.append(el('option', { value: '', text: 'No prompts available' }));
+      tokenSelect.innerHTML = '';
+      tokenSelect.append(el('option', { value: '', text: 'Select prompt first' }));
+      return;
+    }
+    
+    // Populate prompt dropdown
+    state.availablePrompts.forEach((pid) => {
+      const opt = el('option', { value: String(pid), text: String(pid) });
+      if (selectPromptId !== null && pid === selectPromptId) {
+        opt.selected = true;
+      }
+      promptSelect.append(opt);
+    });
+    
+    // If nothing selected, select first
+    if (selectPromptId === null || !state.availablePrompts.includes(selectPromptId)) {
+      promptSelect.value = String(state.availablePrompts[0]);
+    }
+    
+    // Load tokens for the selected prompt
+    const selectedPrompt = Number(promptSelect.value);
+    if (!isNaN(selectedPrompt)) {
+      await loadTokenOptions(outputDir, selectedPrompt);
+    }
+  } catch (err) {
+    console.error('Failed to load prompt options:', err);
+    promptSelect.innerHTML = '';
+    promptSelect.append(el('option', { value: '', text: 'Error loading prompts' }));
+  }
+}
+
+async function loadTokenOptions(outputDir, promptId, selectTokenInd = null) {
+  const tokenSelect = document.getElementById('yn-ind');
+  
+  try {
+    const options = await fetchOptions(outputDir, promptId);
+    state.availableTokens = options.tokens || [];
+    
+    tokenSelect.innerHTML = '';
+    if (state.availableTokens.length === 0) {
+      tokenSelect.append(el('option', { value: '', text: 'No tokens available' }));
+      return;
+    }
+    
+    // Populate token dropdown
+    state.availableTokens.forEach((tid) => {
+      const opt = el('option', { value: String(tid), text: String(tid) });
+      if (selectTokenInd !== null && tid === selectTokenInd) {
+        opt.selected = true;
+      }
+      tokenSelect.append(opt);
+    });
+    
+    // If nothing selected, select first
+    if (selectTokenInd === null || !state.availableTokens.includes(selectTokenInd)) {
+      tokenSelect.value = String(state.availableTokens[0]);
+    }
+  } catch (err) {
+    console.error('Failed to load token options:', err);
+    tokenSelect.innerHTML = '';
+    tokenSelect.append(el('option', { value: '', text: 'Error loading tokens' }));
+  }
 }
 
 function renderAxes(meta) {
@@ -232,9 +322,14 @@ function initFormFromQuery() {
   const outputDir = params.get('output_dir');
   const promptId = params.get('prompt_id');
   const ynInd = params.get('yn_ind');
-  if (outputDir) document.getElementById('output-dir').value = outputDir;
-  if (promptId) document.getElementById('prompt-id').value = Number(promptId);
-  if (ynInd) document.getElementById('yn-ind').value = Number(ynInd);
+  
+  if (outputDir) {
+    document.getElementById('output-dir').value = outputDir;
+    state.outputDir = outputDir;
+  }
+  
+  // Load prompts and tokens asynchronously
+  return { promptId: promptId ? Number(promptId) : null, ynInd: ynInd ? Number(ynInd) : null };
 }
 
 async function onSubmit(e) {
@@ -242,14 +337,17 @@ async function onSubmit(e) {
   const outputDir = document.getElementById('output-dir').value;
   const promptId = Number(document.getElementById('prompt-id').value);
   const ynInd = Number(document.getElementById('yn-ind').value);
+  
   if (Number.isNaN(promptId) || Number.isNaN(ynInd)) {
     setStatus('Invalid inputs', true);
     return;
   }
+  
   state.outputDir = outputDir;
   state.promptId = promptId;
   state.ynInd = ynInd;
   setStatus('Loading...');
+  
   try {
     const data = await fetchData(outputDir, promptId, ynInd);
     hydrate(data);
@@ -265,15 +363,70 @@ async function onSubmit(e) {
   }
 }
 
-function main() {
-  document.getElementById('query-form').addEventListener('submit', onSubmit);
-  initFormFromQuery();
-  // Auto-submit if all values present
-  const od = document.getElementById('output-dir').value;
-  const pid = document.getElementById('prompt-id').value;
-  const ti = document.getElementById('yn-ind').value;
-  if (od && pid && ti) {
-    document.getElementById('query-form').dispatchEvent(new Event('submit'));
+async function main() {
+  const form = document.getElementById('query-form');
+  const outputDirSelect = document.getElementById('output-dir');
+  const promptSelect = document.getElementById('prompt-id');
+  
+  // Setup event handlers
+  form.addEventListener('submit', onSubmit);
+  
+  // When output_dir changes, reload prompt options
+  outputDirSelect.addEventListener('change', async () => {
+    const outputDir = outputDirSelect.value;
+    state.outputDir = outputDir;
+    setStatus('Loading options...');
+    try {
+      await loadPromptOptions(outputDir);
+      setStatus('');
+    } catch (err) {
+      console.error('Failed to load options:', err);
+      setStatus('Failed to load options', true);
+    }
+  });
+  
+  // When prompt_id changes, reload token options
+  promptSelect.addEventListener('change', async () => {
+    const promptId = Number(promptSelect.value);
+    if (isNaN(promptId)) return;
+    setStatus('Loading tokens...');
+    try {
+      await loadTokenOptions(state.outputDir, promptId);
+      setStatus('');
+    } catch (err) {
+      console.error('Failed to load tokens:', err);
+      setStatus('Failed to load tokens', true);
+    }
+  });
+  
+  // Initialize from query params
+  const fromQuery = initFormFromQuery();
+  
+  // Load initial options
+  setStatus('Loading options...');
+  try {
+    await loadPromptOptions(state.outputDir, fromQuery.promptId);
+    
+    // If we have a token from query, select it
+    if (fromQuery.ynInd !== null) {
+      const tokenSelect = document.getElementById('yn-ind');
+      if (state.availableTokens.includes(fromQuery.ynInd)) {
+        tokenSelect.value = String(fromQuery.ynInd);
+      }
+    }
+    
+    setStatus('');
+    
+    // Auto-submit if all values present
+    const od = outputDirSelect.value;
+    const pid = promptSelect.value;
+    const tid = document.getElementById('yn-ind').value;
+    if (od && pid && tid) {
+      form.dispatchEvent(new Event('submit'));
+    }
+  } catch (err) {
+    console.error('Failed to initialize:', err);
+    setStatus('Failed to load options', true);
   }
 }
 
