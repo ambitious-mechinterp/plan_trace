@@ -57,6 +57,8 @@ def load_model(
         WEIGHTS_DIR = None  # Use default cache directory
         load_dotenv()
         hf_token = os.getenv("HF_TOKEN")
+        if hf_token:
+            print("Logging into HuggingFace using token from .env file.")
         login(token=hf_token)
     
     model = HookedSAETransformer.from_pretrained(

@@ -94,6 +94,8 @@ def _compute_repetition_metrics(tokens_1d: torch.Tensor, n_list=(2, 3, 4), top_k
             "top_k_ratio": 0.0,
             **{f"ngram_repeat_frac_{n}": 0.0 for n in n_list},
         }
+    
+    # detect the maximum run length of a token in the sequence.
     max_run = 1
     current_run = 1
     for i in range(1, total_len):
@@ -103,10 +105,14 @@ def _compute_repetition_metrics(tokens_1d: torch.Tensor, n_list=(2, 3, 4), top_k
                 max_run = current_run
         else:
             current_run = 1
+    
+    # compute unique top-k ratio -> how much of the sequence is covered by the top-k most frequent tokens.
     unique_ratio = float(torch.unique(tokens_1d).numel()) / float(total_len)
     _, counts = torch.unique(tokens_1d, return_counts=True)
     top_counts, _ = torch.topk(counts.float(), k=min(top_k, counts.numel()))
     top_k_ratio = float(top_counts.sum().item() / total_len)
+
+    # compute n-gram repeat fractions in the whole sequence.
     ngram_repeat_fracs = {}
     for n in n_list:
         if total_len < n:
@@ -119,6 +125,7 @@ def _compute_repetition_metrics(tokens_1d: torch.Tensor, n_list=(2, 3, 4), top_k
             counts_map[key] = counts_map.get(key, 0) + 1
         repeated = sum(1 for c in counts_map.values() if c > 1)
         ngram_repeat_fracs[f"ngram_repeat_frac_{n}"] = float(repeated) / float(len(counts_map))
+
     return {
         "length": total_len,
         "max_run_len": int(max_run),
@@ -145,6 +152,8 @@ def _compute_continuation_ppl(model, prefix_tokens_2d: torch.Tensor, continuatio
         logprobs = torch.log_softmax(logits[:, :-1, :], dim=-1)
         target = full[:, 1:]
         cont_logprobs = logprobs[0, prefix_len - 1 :, :].gather(1, target[0, prefix_len - 1 :].unsqueeze(1)).squeeze(1)
+
+        # get mean NLL and PPL of the contiuation tokens after the input.
         mean_nll = float((-cont_logprobs).mean().item())
         ppl = float(torch.exp(-cont_logprobs.mean()).item())
     return {"mean_nll": mean_nll, "ppl": ppl}
@@ -180,13 +189,20 @@ def detect_degenerate_continuation(
     reasons = []
     is_degen = False
     if L >= thresholds["min_len_for_rules"]:
+        ## simple repetition.
         if metrics["max_run_len"] >= thresholds["extreme_max_run_len"]:
             is_degen = True
             reasons.append("rule:max_run_len_extreme")
+        
+        ## if n_gram repeats are high and support is high.
         if not is_degen and metrics.get("ngram_repeat_frac_3", 0.0) >= thresholds["high_trigram_repeat"]:
+            
+            # high support - top-k ratio is also high and unique ratio is low.
             if metrics["top_k_ratio"] >= thresholds["high_top_k_ratio"] or metrics["unique_ratio"] <= thresholds["low_unique_ratio"]:
                 is_degen = True
                 reasons.append("rule:high_trigram+support")
+        
+        ## if n_gram repeats are moderate and support is high and ppl is low.
         if (
             not is_degen
             and metrics.get("ngram_repeat_frac_3", 0.0) >= thresholds["mid_trigram_repeat"]
@@ -196,6 +212,7 @@ def detect_degenerate_continuation(
         ):
             is_degen = True
             reasons.append("rule:mid_trigram+topk+ppl_support")
+
     return {"is_degenerate": is_degen, "reasons": reasons, "metrics": metrics}
 
 

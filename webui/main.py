@@ -100,7 +100,7 @@ from starlette.staticfiles import StaticFiles
 WEBUI_DIR = Path(__file__).resolve().parent
 REPO_ROOT = WEBUI_DIR.parent
 STATIC_DIR = WEBUI_DIR / "static"
-OUTPUTS_DIR = REPO_ROOT / "outputs" / "topkfile"
+OUTPUTS_DIR = REPO_ROOT / "outputs" / "instruct"
 TOKEN_MAP_PATH = REPO_ROOT / "outputs" / "prompt_tokenized_map.json"
 
 
