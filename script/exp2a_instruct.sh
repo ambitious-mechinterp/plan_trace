@@ -36,6 +36,7 @@ for PROMPT in "${PROMPTS[@]}"; do
     --cluster-saved-dir outputs/agg_per_layer_top20 \
     --cluster-saved-topk 20 \
     --data-path data/external/first_100_examples_without_docstrings.json \
+    --use-nodocstring \
     --k-max 70001
 done
 
