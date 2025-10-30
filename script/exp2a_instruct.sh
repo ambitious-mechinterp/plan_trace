@@ -27,7 +27,7 @@ conda activate finetuning
 PROMPTS=(64 80)
 
 for PROMPT in "${PROMPTS[@]}"; do
-  echo "Running prompt ${PROMPT} with base model (gemma-2-2b)"
+  echo "Running prompt ${PROMPT} from new `no_docstring` file with instruct model"
   python -m plan_trace.pipeline ${PROMPT} \
     --max-tokens 50 \
     --save \

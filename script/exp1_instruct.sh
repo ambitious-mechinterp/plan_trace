@@ -27,10 +27,11 @@ conda activate finetuning
 PROMPTS=(11 24)
 
 for PROMPT in "${PROMPTS[@]}"; do
-  echo "Running prompt ${PROMPT} with base model (gemma-2-2b)"
+  echo "Running prompt ${PROMPT} from data file and with instruct model including docstring"
   python -m plan_trace.pipeline ${PROMPT} \
     --max-tokens 50 \
     --save \
+    --include_docstring \
     --output-dir outputs/exp2/base-comp \
     --cluster-mode saved_topk \
     --cluster-saved-dir outputs/agg_per_layer_top20 \
