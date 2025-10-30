@@ -23,7 +23,7 @@ echo "Working directory: $(pwd)"
 module load conda/latest
 conda activate finetuning
 
-# Prompts to run for the base model
+# Prompts to run for the instruct model
 PROMPTS=(64 80)
 
 for PROMPT in "${PROMPTS[@]}"; do
@@ -31,7 +31,7 @@ for PROMPT in "${PROMPTS[@]}"; do
   python -m plan_trace.pipeline ${PROMPT} \
     --max-tokens 50 \
     --save \
-    --output-dir outputs/exp2/base-comp \
+    --output-dir outputs/exp2/instruct-comp \
     --cluster-mode saved_topk \
     --cluster-saved-dir outputs/agg_per_layer_top20 \
     --cluster-saved-topk 20 \

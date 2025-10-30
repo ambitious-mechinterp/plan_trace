@@ -23,7 +23,7 @@ echo "Working directory: $(pwd)"
 module load conda/latest
 conda activate finetuning
 
-# Prompts to run for the base model
+# Prompts to run for the instruct model
 PROMPTS=(11 24)
 
 for PROMPT in "${PROMPTS[@]}"; do
@@ -32,7 +32,7 @@ for PROMPT in "${PROMPTS[@]}"; do
     --max-tokens 50 \
     --save \
     --include_docstring \
-    --output-dir outputs/exp2/base-comp \
+    --output-dir outputs/exp1/instruct \
     --cluster-mode saved_topk \
     --cluster-saved-dir outputs/agg_per_layer_top20 \
     --cluster-saved-topk 20 \
