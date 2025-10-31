@@ -613,7 +613,7 @@ def run_automated_token_pipeline(
     # Detect docstrings if needed to adjust start positions and/or save augmented docstring.
     docstring_ranges = []
     last_docstring_end: Optional[int] = None
-    if skip_docstrings or save_augmented_docstring:
+    if not use_nodocstring_prompt and (skip_docstrings or save_augmented_docstring):
         if verbose:
             print("Detecting docstring ranges...")
         docstring_ranges = detect_docstring_tokens(model, out_BL, toks_BL.shape[-1])

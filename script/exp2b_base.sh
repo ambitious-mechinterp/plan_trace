@@ -24,7 +24,7 @@ module load conda/latest
 conda activate finetuning
 
 # Prompts to run for the base model
-PROMPTS=(64 80)
+PROMPTS=(13 22 64)
 
 for PROMPT in "${PROMPTS[@]}"; do
   echo "Running prompt ${PROMPT} from new `no_docstring` file with base model (gemma-2-2b)"
@@ -36,8 +36,8 @@ for PROMPT in "${PROMPTS[@]}"; do
     --cluster-mode saved_topk \
     --cluster-saved-dir outputs/agg_per_layer_top20 \
     --cluster-saved-topk 20 \
-    --data-path data/external/first_100_examples_without_docstrings.json \
-    --use-no-docstring \
+    --data-path data/external/first_100_passing_examples_without_docstrings.json \
+    --no-docstring \
     --k-max 70001
 done
 
