@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH -c 4
 #SBATCH --mem=200GB
-#SBATCH -p gpu-preempt
+#SBATCH -p gpu
 #SBATCH -G 1
 #SBATCH --nodes=1
 #SBATCH -t 12:00:00
