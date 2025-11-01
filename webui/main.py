@@ -285,8 +285,8 @@ def list_options(
     If prompt_id is provided, also return available token indices for that prompt.
     """
     # Validate output_dir
-    if output_dir not in ["base", "instruct"]:
-        raise HTTPException(status_code=400, detail="output_dir must be 'base' or 'instruct'")
+    # if output_dir not in ["base", "instruct"]:
+    #     raise HTTPException(status_code=400, detail="output_dir must be 'base' or 'instruct'")
     
     prompts = _list_prompts(output_dir)
     
@@ -310,8 +310,8 @@ def get_data(
     yn_ind: int = Query(..., description="Token index (current token), e.g., 293"),
 ) -> JSONResponse:
     # Validate output_dir
-    if output_dir not in ["base", "instruct"]:
-        raise HTTPException(status_code=400, detail="output_dir must be 'base' or 'instruct'")
+    # if output_dir not in ["base", "instruct"]:
+    #     raise HTTPException(status_code=400, detail="output_dir must be 'base' or 'instruct'")
     
     resp = _build_data_response(output_dir=output_dir, prompt_id=prompt_id, yn_ind=yn_ind)
     if not (
