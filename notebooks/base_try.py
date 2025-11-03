@@ -33,6 +33,15 @@ model = load_model(model_name, device=device, use_custom_cache=True, dtype=torch
 # %%
 model_it = load_model("gemma-2-2b-it", device=device, use_custom_cache=True, dtype=torch.bfloat16)
 
+# %%
+
+input_text = "You are an expert Python programmer, and here is your task: Write a function without docstring to find the nth tetrahedral number. Your code should pass these tests:\n\nassert tetrahedral_number(5) == 35\nassert tetrahedral_number(6) == 56\nassert tetrahedral_number(7) == 84\nWrite your code below starting with \"```python\" and ending with \"```\".\n```python\ndef tetrahedral_number(n):\n"
+resp = model.generate(input_text, max_new_tokens=50, temperature=0.0)
+print(resp)
+# %%
+
+
+
 
 # %%
 input_text = "You are an expert Python programmer, and here is your task: Write a python function to find the largest number that can be formed with the given list of digits. No docstring. Your code should pass these tests:\n\nassert find_Max_Num([1,2,3]) == 321\nassert find_Max_Num([4,5,6,1]) == 6541\nassert find_Max_Num([1,2,3,9]) == 9321\nWrite your code below starting with \"```python\" and ending with \"```\".\n```python\n"
