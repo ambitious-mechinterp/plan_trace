@@ -1,0 +1,132 @@
+[
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 17,
+        "prompt": "Write a function that returns the perimeter of a square given its side length as input.",
+        "code": "def square_perimeter(a):\n  perimeter=4*a\n  return perimeter",
+        "test_imports": [],
+        "test_list": [
+            "assert square_perimeter(10)==40",
+            "assert square_perimeter(5)==20",
+            "assert square_perimeter(4)==16"
+        ],
+        "model_output": "def square_perimeter(side_length):\n    return side_length * 4"
+    },
+    {
+        "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 64,
+        "prompt": "Write a function to sort a list of tuples using the second value of each tuple.",
+        "code": "def subject_marks(subjectmarks):\n#subject_marks = [('English', 88), ('Science', 90), ('Maths', 97), ('Social sciences', 82)])\n subjectmarks.sort(key = lambda x: x[1])\n return subjectmarks",
+        "test_imports": [],
+        "test_list": [
+            "assert subject_marks([('English', 88), ('Science', 90), ('Maths', 97), ('Social sciences', 82)])==[('Social sciences', 82), ('English', 88), ('Science', 90), ('Maths', 97)]",
+            "assert subject_marks([('Telugu',49),('Hindhi',54),('Social',33)])==([('Social',33),('Telugu',49),('Hindhi',54)])",
+            "assert subject_marks([('Physics',96),('Chemistry',97),('Biology',45)])==([('Biology',45),('Physics',96),('Chemistry',97)])"
+        ],
+        "model_output": "def subject_marks(marks):\n    return sorted(marks, key=lambda x: x[1])"
+    },
+    {
+        "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 66,
+        "prompt": "Write a python function to count the number of positive numbers in a list.",
+        "code": "def pos_count(list):\n  pos_count= 0\n  for num in list: \n    if num >= 0: \n      pos_count += 1\n  return pos_count ",
+        "test_imports": [],
+        "test_list": [
+            "assert pos_count([1,-2,3,-4]) == 2",
+            "assert pos_count([3,4,5,-1]) == 3",
+            "assert pos_count([1,2,3,4]) == 4"
+        ],
+        "model_output": "def pos_count(l):\n    count = 0\n    for i in l:\n        if i > 0:\n            count += 1\n    return count"
+    },
+    {
+        "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 77,
+        "prompt": "Write a python function to find whether a number is divisible by 11.",
+        "code": "def is_Diff(n): \n    return (n % 11 == 0) ",
+        "test_imports": [],
+        "test_list": [
+            "assert is_Diff (12345) == False",
+            "assert is_Diff(1212112) == True",
+            "assert is_Diff(1212) == False"
+        ],
+        "model_output": "def is_Diff(num):\n    if num % 11 == 0:\n        return True\n    else:\n        return False"
+    },
+    {
+        "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 89,
+        "prompt": "Write a function to find the closest smaller number than n.",
+        "code": "def closest_num(N):\n  return (N - 1)",
+        "test_imports": [],
+        "test_list": [
+            "assert closest_num(11) == 10",
+            "assert closest_num(7) == 6",
+            "assert closest_num(12) == 11"
+        ],
+        "model_output": "def closest_num(n):\n    return n - 1"
+    },
+    {
+        "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 127,
+        "prompt": "Write a function to multiply two integers.",
+        "code": "def multiply_int(x, y):\n    if y < 0:\n        return -multiply_int(x, -y)\n    elif y == 0:\n        return 0\n    elif y == 1:\n        return x\n    else:\n        return x + multiply_int(x, y - 1)",
+        "test_imports": [],
+        "test_list": [
+            "assert multiply_int(10,20)==200",
+            "assert multiply_int(5,10)==50",
+            "assert multiply_int(4,8)==32"
+        ],
+        "model_output": "def multiply_int(a,b):\n    return a*b"
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 171,
+        "prompt": "Write a function to find the perimeter of a regular pentagon from the length of its sides.",
+        "code": "import math\ndef perimeter_pentagon(a):\n  perimeter=(5*a)\n  return perimeter",
+        "test_imports": [],
+        "test_list": [
+            "assert perimeter_pentagon(5) == 25",
+            "assert perimeter_pentagon(10) == 50",
+            "assert perimeter_pentagon(15) == 75"
+        ],
+        "model_output": "def perimeter_pentagon(n):\n    return n * 5"
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 232,
+        "prompt": "Write a function that takes in a list and an integer n and returns a list containing the n largest items from the list.",
+        "code": "import heapq\ndef larg_nnum(list1,n):\n largest=heapq.nlargest(n,list1)\n return largest",
+        "test_imports": [],
+        "test_list": [
+            "assert set(larg_nnum([10, 20, 50, 70, 90, 20, 50, 40, 60, 80, 100],2))==set([100,90])",
+            "assert set(larg_nnum([10, 20, 50, 70, 90, 20, 50, 40, 60, 80, 100],5))==set([100,90,80,70,60])",
+            "assert set(larg_nnum([10, 20, 50, 70, 90, 20, 50, 40, 60, 80, 100],3))==set([100,90,80])"
+        ],
+        "model_output": "def larg_nnum(lst,n):\n    return sorted(lst,reverse=True)[0:n]"
+    },
+    {
+        "source_file": "Benchmark Questions Verification V2.ipynb",
+        "task_id": 249,
+        "prompt": "Write a function to find the intersection of two arrays.",
+        "code": "def intersection_array(array_nums1,array_nums2):\n result = list(filter(lambda x: x in array_nums1, array_nums2)) \n return result",
+        "test_imports": [],
+        "test_list": [
+            "assert intersection_array([1, 2, 3, 5, 7, 8, 9, 10],[1, 2, 4, 8, 9])==[1, 2, 8, 9]",
+            "assert intersection_array([1, 2, 3, 5, 7, 8, 9, 10],[3,5,7,9])==[3,5,7,9]",
+            "assert intersection_array([1, 2, 3, 5, 7, 8, 9, 10],[10,20,30,40])==[10]"
+        ],
+        "model_output": "def intersection_array(array1, array2):\n    \"\"\"\n    Find the intersection of two arrays.\n    :param array1:\n    :param array2:\n    :return:\n    \"\"\"\n    return [x for x in array1 if x in array2]"
+    },
+    {
+        "source_file": "Ellen's Copy of Benchmark Questions Verification V2.ipynb",
+        "task_id": 309,
+        "prompt": "Write a python function to find the maximum of two numbers.",
+        "code": "def maximum(a,b):   \n    if a >= b: \n        return a \n    else: \n        return b ",
+        "test_imports": [],
+        "test_list": [
+            "assert maximum(5,10) == 10",
+            "assert maximum(-1,-2) == -1",
+            "assert maximum(9,7) == 9"
+        ],
+        "model_output": "def maximum(a,b):\n    if a > b:\n        return a\n    else:\n        return b"
+    }
+]
