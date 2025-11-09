@@ -169,7 +169,8 @@ def sweep_coefficients_multi(
     stop_tok: int = 1917,
     device: str = "cuda",
     max_tokens: int = 100,
-    return_tokens: bool = False
+    return_tokens: bool = False,
+    skip_change: bool = False
 ) -> Dict[float, str]:
     """
     Sweep over multiple steering coefficients and generate text for each.
@@ -220,7 +221,7 @@ def sweep_coefficients_multi(
         changed, new_id, bl_id = steering_effect_on_next_token(
             model, inter_toks_BL, saes, interventions, c, stop_tok
         )
-        if not changed:
+        if not skip_change and not changed:
             continue 
             
         per_coeff = steer_by_coeff[c]
@@ -264,7 +265,8 @@ def run_steering_sweep(
     coeff_grid: Sequence[int],
     stop_tok: int,
     max_tokens: int = 100,
-    return_tokens: bool = False
+    return_tokens: bool = False,
+    skip_change: bool = False
 ) -> Dict[str, Dict[str, Any]]:
     """
     Run steering sweeps for all clusters in saved_pair_dict.
@@ -306,7 +308,8 @@ def run_steering_sweep(
             inter_toks_BL=inter_toks_BL,
             stop_tok=stop_tok,
             max_tokens=max_tokens,
-            return_tokens=return_tokens
+            return_tokens=return_tokens,
+            skip_change=skip_change
         )
 
         label_metrics: List[Dict[str, Any]] = []

@@ -181,3 +181,6 @@ logs/
 
 # scratchpad.
 commands.txt
+
+# specific to custom steering.
+custom-steer
