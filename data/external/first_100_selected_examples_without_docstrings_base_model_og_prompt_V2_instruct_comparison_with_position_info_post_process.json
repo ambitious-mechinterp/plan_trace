@@ -25,7 +25,9 @@
     "base_plans": [],
     "instruct_plans": [
       "int"
-    ]
+    ],
+    "base_cs": true,
+    "instruct_cs": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -51,9 +53,11 @@
     "base_pass": false,
     "base_plans": [],
     "instruct_plans": [
-      "if",
-      "replace"
-    ]
+      "replace",
+      "if"
+    ],
+    "base_cs": false,
+    "instruct_cs": true
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -78,18 +82,20 @@
     },
     "base_pass": false,
     "base_plans": [
-      "*",
-      "+",
-      "//",
       "%",
       "while",
-      "-"
+      "//",
+      "-",
+      "+",
+      "*"
     ],
     "instruct_plans": [
-      "*",
       "int",
-      "-"
-    ]
+      "-",
+      "*"
+    ],
+    "base_cs": false,
+    "instruct_cs": true
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -118,7 +124,9 @@
     ],
     "instruct_plans": [
       "]"
-    ]
+    ],
+    "base_cs": true,
+    "instruct_cs": true
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -143,14 +151,16 @@
     },
     "base_pass": false,
     "base_plans": [
-      "len",
-      "+",
       "for",
-      "-"
+      "len",
+      "-",
+      "+"
     ],
     "instruct_plans": [
       "-"
-    ]
+    ],
+    "base_cs": true,
+    "instruct_cs": true
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -175,14 +185,16 @@
     },
     "base_pass": false,
     "base_plans": [
-      "len",
       "for",
-      "range"
+      "range",
+      "len"
     ],
     "instruct_plans": [
-      "if",
-      "-"
-    ]
+      "-",
+      "if"
+    ],
+    "base_cs": true,
+    "instruct_cs": true
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -207,14 +219,16 @@
     },
     "base_pass": false,
     "base_plans": [
-      "*",
+      "1",
       "+",
       "-",
-      "1"
+      "*"
     ],
     "instruct_plans": [
       "*"
-    ]
+    ],
+    "base_cs": false,
+    "instruct_cs": true
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -241,12 +255,14 @@
     },
     "base_pass": false,
     "base_plans": [
-      "*",
-      "/"
+      "/",
+      "*"
     ],
     "instruct_plans": [
       "/"
-    ]
+    ],
+    "base_cs": true,
+    "instruct_cs": true
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -275,7 +291,9 @@
     "base_plans": [],
     "instruct_plans": [
       "*"
-    ]
+    ],
+    "base_cs": false,
+    "instruct_cs": true
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -302,7 +320,9 @@
     "base_plans": [
       "-"
     ],
-    "instruct_plans": []
+    "instruct_plans": [],
+    "base_cs": true,
+    "instruct_cs": true
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -327,7 +347,9 @@
     },
     "base_pass": false,
     "base_plans": [],
-    "instruct_plans": []
+    "instruct_plans": [],
+    "base_cs": true,
+    "instruct_cs": false
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -352,7 +374,9 @@
     },
     "base_pass": false,
     "base_plans": [],
-    "instruct_plans": []
+    "instruct_plans": [],
+    "base_cs": false,
+    "instruct_cs": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -377,7 +401,9 @@
     },
     "base_pass": false,
     "base_plans": null,
-    "instruct_plans": null
+    "instruct_plans": null,
+    "base_cs": false,
+    "instruct_cs": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -402,7 +428,9 @@
     },
     "base_pass": false,
     "base_plans": [],
-    "instruct_plans": []
+    "instruct_plans": [],
+    "base_cs": false,
+    "instruct_cs": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -429,12 +457,14 @@
     },
     "base_pass": false,
     "base_plans": [
-      "*",
-      "/"
+      "/",
+      "*"
     ],
     "instruct_plans": [
       "/"
-    ]
+    ],
+    "base_cs": true,
+    "instruct_cs": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -463,7 +493,9 @@
     ],
     "instruct_plans": [
       "%"
-    ]
+    ],
+    "base_cs": false,
+    "instruct_cs": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -490,7 +522,9 @@
     "base_plans": [
       "])"
     ],
-    "instruct_plans": []
+    "instruct_plans": [],
+    "base_cs": false,
+    "instruct_cs": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -515,11 +549,13 @@
     },
     "base_pass": false,
     "base_plans": [
-      "+",
+      "sum",
       "for",
-      "sum"
+      "+"
     ],
-    "instruct_plans": []
+    "instruct_plans": [],
+    "base_cs": true,
+    "instruct_cs": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -546,7 +582,9 @@
     "base_plans": [],
     "instruct_plans": [
       "()"
-    ]
+    ],
+    "base_cs": false,
+    "instruct_cs": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -571,12 +609,14 @@
     },
     "base_pass": false,
     "base_plans": [
-      "0",
-      "if",
+      "1",
       "-",
-      "1"
+      "0",
+      "if"
     ],
-    "instruct_plans": []
+    "instruct_plans": [],
+    "base_cs": true,
+    "instruct_cs": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -604,7 +644,9 @@
     "instruct_plans": [
       "sqrt",
       "+"
-    ]
+    ],
+    "base_cs": true,
+    "instruct_cs": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -636,7 +678,9 @@
     ],
     "instruct_plans": [
       "*"
-    ]
+    ],
+    "base_cs": false,
+    "instruct_cs": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -664,7 +708,9 @@
     "instruct_plans": [
       "for",
       "()"
-    ]
+    ],
+    "base_cs": true,
+    "instruct_cs": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -691,7 +737,9 @@
     "base_plans": [
       "1"
     ],
-    "instruct_plans": []
+    "instruct_plans": [],
+    "base_cs": true,
+    "instruct_cs": false
   },
   {
     "source_file": "Ellen's Copy of Benchmark Questions Verification V2.ipynb",
@@ -716,12 +764,14 @@
     },
     "base_pass": false,
     "base_plans": [
-      "if",
-      "for"
+      "for",
+      "if"
     ],
     "instruct_plans": [
       "if"
-    ]
+    ],
+    "base_cs": false,
+    "instruct_cs": false
   },
   {
     "source_file": "Ellen's Copy of Benchmark Questions Verification V2.ipynb",
@@ -748,7 +798,9 @@
     "base_plans": [],
     "instruct_plans": [
       "+"
-    ]
+    ],
+    "base_cs": true,
+    "instruct_cs": false
   },
   {
     "source_file": "Ellen's Copy of Benchmark Questions Verification V2.ipynb",
@@ -775,7 +827,9 @@
     "base_plans": [
       "for"
     ],
-    "instruct_plans": []
+    "instruct_plans": [],
+    "base_cs": false,
+    "instruct_cs": true
   },
   {
     "source_file": "Ellen's Copy of Benchmark Questions Verification V2.ipynb",
@@ -806,7 +860,9 @@
     ],
     "instruct_plans": [
       "**"
-    ]
+    ],
+    "base_cs": false,
+    "instruct_cs": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -831,7 +887,9 @@
     },
     "base_pass": true,
     "base_plans": [],
-    "instruct_plans": []
+    "instruct_plans": [],
+    "base_cs": true,
+    "instruct_cs": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -860,7 +918,9 @@
     ],
     "instruct_plans": [
       "()"
-    ]
+    ],
+    "base_cs": false,
+    "instruct_cs": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -887,7 +947,9 @@
     "base_plans": [
       "*"
     ],
-    "instruct_plans": []
+    "instruct_plans": [],
+    "base_cs": false,
+    "instruct_cs": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -912,13 +974,15 @@
     },
     "base_pass": true,
     "base_plans": [
-      "if",
-      "+"
+      "+",
+      "if"
     ],
     "instruct_plans": [
       "()",
       "set"
-    ]
+    ],
+    "base_cs": true,
+    "instruct_cs": false
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -948,7 +1012,9 @@
     ],
     "instruct_plans": [
       "*"
-    ]
+    ],
+    "base_cs": true,
+    "instruct_cs": true
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -975,7 +1041,9 @@
     "base_plans": [],
     "instruct_plans": [
       "not"
-    ]
+    ],
+    "base_cs": false,
+    "instruct_cs": false
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1000,7 +1068,9 @@
     },
     "base_pass": true,
     "base_plans": [],
-    "instruct_plans": []
+    "instruct_plans": [],
+    "base_cs": true,
+    "instruct_cs": false
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1029,7 +1099,9 @@
     ],
     "instruct_plans": [
       "0"
-    ]
+    ],
+    "base_cs": true,
+    "instruct_cs": false
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1054,13 +1126,15 @@
     },
     "base_pass": true,
     "base_plans": [
-      "if",
-      "+"
+      "+",
+      "if"
     ],
     "instruct_plans": [
-      "if",
-      "-"
-    ]
+      "-",
+      "if"
+    ],
+    "base_cs": true,
+    "instruct_cs": true
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1085,7 +1159,9 @@
     },
     "base_pass": true,
     "base_plans": [],
-    "instruct_plans": []
+    "instruct_plans": [],
+    "base_cs": true,
+    "instruct_cs": false
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1110,7 +1186,9 @@
     },
     "base_pass": true,
     "base_plans": [],
-    "instruct_plans": []
+    "instruct_plans": [],
+    "base_cs": true,
+    "instruct_cs": false
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1135,10 +1213,12 @@
     },
     "base_pass": true,
     "base_plans": [
-      "0",
-      "2"
+      "2",
+      "0"
     ],
-    "instruct_plans": []
+    "instruct_plans": [],
+    "base_cs": true,
+    "instruct_cs": false
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1163,7 +1243,9 @@
     },
     "base_pass": true,
     "base_plans": [],
-    "instruct_plans": []
+    "instruct_plans": [],
+    "base_cs": false,
+    "instruct_cs": false
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1188,10 +1270,12 @@
     },
     "base_pass": true,
     "base_plans": [
-      "0",
-      "for"
+      "for",
+      "0"
     ],
-    "instruct_plans": []
+    "instruct_plans": [],
+    "base_cs": true,
+    "instruct_cs": true
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1216,7 +1300,9 @@
     },
     "base_pass": true,
     "base_plans": [],
-    "instruct_plans": []
+    "instruct_plans": [],
+    "base_cs": false,
+    "instruct_cs": false
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1245,7 +1331,9 @@
     ],
     "instruct_plans": [
       "-"
-    ]
+    ],
+    "base_cs": true,
+    "instruct_cs": false
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1270,7 +1358,9 @@
     },
     "base_pass": true,
     "base_plans": [],
-    "instruct_plans": []
+    "instruct_plans": [],
+    "base_cs": false,
+    "instruct_cs": false
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1299,7 +1389,9 @@
     ],
     "instruct_plans": [
       "if"
-    ]
+    ],
+    "base_cs": false,
+    "instruct_cs": true
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1324,7 +1416,9 @@
     },
     "base_pass": true,
     "base_plans": [],
-    "instruct_plans": []
+    "instruct_plans": [],
+    "base_cs": false,
+    "instruct_cs": true
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1349,12 +1443,14 @@
     },
     "base_pass": true,
     "base_plans": [
-      "if",
-      "for"
+      "for",
+      "if"
     ],
     "instruct_plans": [
       "if"
-    ]
+    ],
+    "base_cs": false,
+    "instruct_cs": false
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1379,7 +1475,9 @@
     },
     "base_pass": true,
     "base_plans": [],
-    "instruct_plans": []
+    "instruct_plans": [],
+    "base_cs": true,
+    "instruct_cs": true
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1408,7 +1506,9 @@
     ],
     "instruct_plans": [
       "if"
-    ]
+    ],
+    "base_cs": true,
+    "instruct_cs": false
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1433,17 +1533,19 @@
     },
     "base_pass": true,
     "base_plans": [
-      "0",
-      "*",
+      "[",
       "+",
-      "["
+      "0",
+      "*"
     ],
     "instruct_plans": [
-      "]",
       "0",
+      "+",
       "*",
-      "+"
-    ]
+      "]"
+    ],
+    "base_cs": true,
+    "instruct_cs": false
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1472,7 +1574,9 @@
     ],
     "instruct_plans": [
       "*"
-    ]
+    ],
+    "base_cs": false,
+    "instruct_cs": true
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1497,10 +1601,12 @@
     },
     "base_pass": true,
     "base_plans": [
-      "if",
-      "for"
+      "for",
+      "if"
     ],
-    "instruct_plans": []
+    "instruct_plans": [],
+    "base_cs": false,
+    "instruct_cs": false
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1525,10 +1631,12 @@
     },
     "base_pass": true,
     "base_plans": [
-      "if",
-      "for"
+      "for",
+      "if"
     ],
-    "instruct_plans": []
+    "instruct_plans": [],
+    "base_cs": true,
+    "instruct_cs": false
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1553,7 +1661,9 @@
     },
     "base_pass": true,
     "base_plans": [],
-    "instruct_plans": []
+    "instruct_plans": [],
+    "base_cs": false,
+    "instruct_cs": false
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1578,13 +1688,15 @@
     },
     "base_pass": true,
     "base_plans": [
-      "]",
+      "-",
       "0",
-      "-"
+      "]"
     ],
     "instruct_plans": [
       "-"
-    ]
+    ],
+    "base_cs": true,
+    "instruct_cs": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -1609,7 +1721,9 @@
     },
     "base_pass": true,
     "base_plans": [],
-    "instruct_plans": []
+    "instruct_plans": [],
+    "base_cs": true,
+    "instruct_cs": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -1634,12 +1748,14 @@
     },
     "base_pass": true,
     "base_plans": [
-      "if",
-      "for"
+      "for",
+      "if"
     ],
     "instruct_plans": [
       "if"
-    ]
+    ],
+    "base_cs": true,
+    "instruct_cs": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -1668,7 +1784,9 @@
     ],
     "instruct_plans": [
       "*"
-    ]
+    ],
+    "base_cs": false,
+    "instruct_cs": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -1693,12 +1811,14 @@
     },
     "base_pass": true,
     "base_plans": [
-      "[",
-      "0"
+      "0",
+      "["
     ],
     "instruct_plans": [
       "0"
-    ]
+    ],
+    "base_cs": true,
+    "instruct_cs": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -1723,7 +1843,9 @@
     },
     "base_pass": true,
     "base_plans": [],
-    "instruct_plans": []
+    "instruct_plans": [],
+    "base_cs": true,
+    "instruct_cs": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -1748,7 +1870,9 @@
     },
     "base_pass": true,
     "base_plans": [],
-    "instruct_plans": []
+    "instruct_plans": [],
+    "base_cs": false,
+    "instruct_cs": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -1777,7 +1901,9 @@
     ],
     "instruct_plans": [
       "()"
-    ]
+    ],
+    "base_cs": false,
+    "instruct_cs": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -1802,7 +1928,9 @@
     },
     "base_pass": true,
     "base_plans": [],
-    "instruct_plans": []
+    "instruct_plans": [],
+    "base_cs": false,
+    "instruct_cs": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -1829,7 +1957,9 @@
     "base_plans": [
       "if"
     ],
-    "instruct_plans": []
+    "instruct_plans": [],
+    "base_cs": true,
+    "instruct_cs": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -1856,7 +1986,9 @@
     "base_plans": [
       "if"
     ],
-    "instruct_plans": []
+    "instruct_plans": [],
+    "base_cs": true,
+    "instruct_cs": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -1881,7 +2013,9 @@
     },
     "base_pass": true,
     "base_plans": [],
-    "instruct_plans": []
+    "instruct_plans": [],
+    "base_cs": false,
+    "instruct_cs": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -1906,7 +2040,9 @@
     },
     "base_pass": true,
     "base_plans": [],
-    "instruct_plans": []
+    "instruct_plans": [],
+    "base_cs": false,
+    "instruct_cs": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -1931,11 +2067,13 @@
     },
     "base_pass": true,
     "base_plans": [
-      "if",
       "for",
-      "()"
+      "()",
+      "if"
     ],
-    "instruct_plans": []
+    "instruct_plans": [],
+    "base_cs": false,
+    "instruct_cs": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -1960,7 +2098,9 @@
     },
     "base_pass": true,
     "base_plans": [],
-    "instruct_plans": []
+    "instruct_plans": [],
+    "base_cs": true,
+    "instruct_cs": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -1987,7 +2127,9 @@
     "base_plans": [
       "if"
     ],
-    "instruct_plans": []
+    "instruct_plans": [],
+    "base_cs": true,
+    "instruct_cs": false
   },
   {
     "source_file": "Ellen's Copy of Benchmark Questions Verification V2.ipynb",
@@ -2014,7 +2156,9 @@
     "base_plans": [],
     "instruct_plans": [
       "/"
-    ]
+    ],
+    "base_cs": false,
+    "instruct_cs": true
   },
   {
     "source_file": "Ellen's Copy of Benchmark Questions Verification V2.ipynb",
@@ -2039,12 +2183,14 @@
     },
     "base_pass": true,
     "base_plans": [
-      "if",
-      "+",
       "for",
-      "j"
+      "j",
+      "+",
+      "if"
     ],
-    "instruct_plans": []
+    "instruct_plans": [],
+    "base_cs": false,
+    "instruct_cs": false
   },
   {
     "source_file": "Ellen's Copy of Benchmark Questions Verification V2.ipynb",
@@ -2069,7 +2215,9 @@
     },
     "base_pass": true,
     "base_plans": [],
-    "instruct_plans": []
+    "instruct_plans": [],
+    "base_cs": true,
+    "instruct_cs": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -2096,7 +2244,9 @@
     "base_plans": [
       "])"
     ],
-    "instruct_plans": []
+    "instruct_plans": [],
+    "base_cs": false,
+    "instruct_cs": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -2126,7 +2276,9 @@
     "instruct_plans": [
       "for",
       "()"
-    ]
+    ],
+    "base_cs": false,
+    "instruct_cs": true
   },
   {
     "source_file": "charlessutton@: Benchmark Questions Verification V2.ipynb",
@@ -2153,7 +2305,9 @@
     "base_plans": [],
     "instruct_plans": [
       "]"
-    ]
+    ],
+    "base_cs": true,
+    "instruct_cs": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -2178,7 +2332,9 @@
     },
     "base_pass": true,
     "base_plans": [],
-    "instruct_plans": []
+    "instruct_plans": [],
+    "base_cs": true,
+    "instruct_cs": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -2204,9 +2360,11 @@
     "base_pass": true,
     "base_plans": [],
     "instruct_plans": [
-      "if",
-      "else"
-    ]
+      "else",
+      "if"
+    ],
+    "base_cs": false,
+    "instruct_cs": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -2233,7 +2391,9 @@
     "base_plans": [
       "if"
     ],
-    "instruct_plans": []
+    "instruct_plans": [],
+    "base_cs": true,
+    "instruct_cs": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -2258,6 +2418,8 @@
     },
     "base_pass": true,
     "base_plans": [],
-    "instruct_plans": []
+    "instruct_plans": [],
+    "base_cs": true,
+    "instruct_cs": false
   }
 ]
