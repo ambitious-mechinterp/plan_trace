@@ -22,16 +22,10 @@
       "instruct_token_id": 552
     },
     "base_pass": false,
-    "base_plans": [
-      "in",
-      "i",
-      "if"
-    ],
+    "base_plans": [],
     "instruct_plans": [
       "int"
-    ],
-    "category": 2,
-    "steers": []
+    ]
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -57,12 +51,9 @@
     "base_pass": false,
     "base_plans": [],
     "instruct_plans": [
-      "replace",
       "if",
-      "char"
-    ],
-    "category": 2,
-    "steers": []
+      "replace"
+    ]
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -89,34 +80,15 @@
     "base_plans": [
       "*",
       "+",
-      "while",
+      "//",
       "%",
-      "-",
-      "//"
+      "while",
+      "-"
     ],
     "instruct_plans": [
       "*",
-      "-",
-      "int"
-    ],
-    "category": 1,
-    "steers": [
-      [
-        "94",
-        "%"
-      ],
-      [
-        "93",
-        "*"
-      ],
-      [
-        "94",
-        "*"
-      ],
-      [
-        "94",
-        "//"
-      ]
+      "int",
+      "-"
     ]
   },
   {
@@ -146,9 +118,7 @@
     ],
     "instruct_plans": [
       "]"
-    ],
-    "category": 2,
-    "steers": []
+    ]
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -173,19 +143,14 @@
     },
     "base_pass": false,
     "base_plans": [
-      "+",
-      "i",
-      "for",
       "len",
-      "-",
-      "in"
+      "+",
+      "for",
+      "-"
     ],
     "instruct_plans": [
-      "-",
-      "in"
-    ],
-    "category": 2,
-    "steers": []
+      "-"
+    ]
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -210,17 +175,14 @@
     },
     "base_pass": false,
     "base_plans": [
-      "range",
       "len",
       "for",
-      "in"
+      "range"
     ],
     "instruct_plans": [
-      "-",
-      "if"
-    ],
-    "category": 2,
-    "steers": []
+      "if",
+      "-"
+    ]
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -246,15 +208,13 @@
     "base_pass": false,
     "base_plans": [
       "*",
-      "1",
+      "+",
       "-",
-      "+"
+      "1"
     ],
     "instruct_plans": [
       "*"
-    ],
-    "category": 2,
-    "steers": []
+    ]
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -286,9 +246,7 @@
     ],
     "instruct_plans": [
       "/"
-    ],
-    "category": 2,
-    "steers": []
+    ]
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -317,9 +275,7 @@
     "base_plans": [],
     "instruct_plans": [
       "*"
-    ],
-    "category": 2,
-    "steers": []
+    ]
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -346,9 +302,7 @@
     "base_plans": [
       "-"
     ],
-    "instruct_plans": [],
-    "category": 3,
-    "steers": []
+    "instruct_plans": []
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -373,9 +327,7 @@
     },
     "base_pass": false,
     "base_plans": [],
-    "instruct_plans": [],
-    "category": 4,
-    "steers": []
+    "instruct_plans": []
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -400,9 +352,7 @@
     },
     "base_pass": false,
     "base_plans": [],
-    "instruct_plans": [],
-    "category": 4,
-    "steers": []
+    "instruct_plans": []
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -427,9 +377,7 @@
     },
     "base_pass": false,
     "base_plans": null,
-    "instruct_plans": null,
-    "category": 4,
-    "steers": []
+    "instruct_plans": null
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -454,9 +402,7 @@
     },
     "base_pass": false,
     "base_plans": [],
-    "instruct_plans": [],
-    "category": 4,
-    "steers": []
+    "instruct_plans": []
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -488,9 +434,7 @@
     ],
     "instruct_plans": [
       "/"
-    ],
-    "category": 2,
-    "steers": []
+    ]
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -519,13 +463,6 @@
     ],
     "instruct_plans": [
       "%"
-    ],
-    "category": 1,
-    "steers": [
-      [
-        "147",
-        "^"
-      ]
     ]
   },
   {
@@ -553,9 +490,7 @@
     "base_plans": [
       "])"
     ],
-    "instruct_plans": [],
-    "category": 3,
-    "steers": []
+    "instruct_plans": []
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -580,14 +515,11 @@
     },
     "base_pass": false,
     "base_plans": [
-      "sum",
-      "i",
+      "+",
       "for",
-      "+"
+      "sum"
     ],
-    "instruct_plans": [],
-    "category": 3,
-    "steers": []
+    "instruct_plans": []
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -614,9 +546,7 @@
     "base_plans": [],
     "instruct_plans": [
       "()"
-    ],
-    "category": 2,
-    "steers": []
+    ]
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -642,13 +572,11 @@
     "base_pass": false,
     "base_plans": [
       "0",
-      "1",
+      "if",
       "-",
-      "if"
+      "1"
     ],
-    "instruct_plans": [],
-    "category": 3,
-    "steers": []
+    "instruct_plans": []
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -674,11 +602,9 @@
     "base_pass": false,
     "base_plans": [],
     "instruct_plans": [
-      "+",
-      "sqrt"
-    ],
-    "category": 2,
-    "steers": []
+      "sqrt",
+      "+"
+    ]
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -705,14 +631,12 @@
     },
     "base_pass": false,
     "base_plans": [
-      "*",
-      "**"
+      "**",
+      "*"
     ],
     "instruct_plans": [
       "*"
-    ],
-    "category": 2,
-    "steers": []
+    ]
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -740,9 +664,7 @@
     "instruct_plans": [
       "for",
       "()"
-    ],
-    "category": 2,
-    "steers": []
+    ]
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -769,9 +691,7 @@
     "base_plans": [
       "1"
     ],
-    "instruct_plans": [],
-    "category": 3,
-    "steers": []
+    "instruct_plans": []
   },
   {
     "source_file": "Ellen's Copy of Benchmark Questions Verification V2.ipynb",
@@ -796,14 +716,12 @@
     },
     "base_pass": false,
     "base_plans": [
-      "for",
-      "if"
+      "if",
+      "for"
     ],
     "instruct_plans": [
       "if"
-    ],
-    "category": 2,
-    "steers": []
+    ]
   },
   {
     "source_file": "Ellen's Copy of Benchmark Questions Verification V2.ipynb",
@@ -830,9 +748,7 @@
     "base_plans": [],
     "instruct_plans": [
       "+"
-    ],
-    "category": 2,
-    "steers": []
+    ]
   },
   {
     "source_file": "Ellen's Copy of Benchmark Questions Verification V2.ipynb",
@@ -859,9 +775,7 @@
     "base_plans": [
       "for"
     ],
-    "instruct_plans": [],
-    "category": 3,
-    "steers": []
+    "instruct_plans": []
   },
   {
     "source_file": "Ellen's Copy of Benchmark Questions Verification V2.ipynb",
@@ -892,13 +806,6 @@
     ],
     "instruct_plans": [
       "**"
-    ],
-    "category": 1,
-    "steers": [
-      [
-        "215",
-        "**"
-      ]
     ]
   },
   {
@@ -924,9 +831,7 @@
     },
     "base_pass": true,
     "base_plans": [],
-    "instruct_plans": [],
-    "category": 4,
-    "steers": []
+    "instruct_plans": []
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -955,9 +860,7 @@
     ],
     "instruct_plans": [
       "()"
-    ],
-    "category": 2,
-    "steers": []
+    ]
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -984,9 +887,7 @@
     "base_plans": [
       "*"
     ],
-    "instruct_plans": [],
-    "category": 3,
-    "steers": []
+    "instruct_plans": []
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -1012,15 +913,12 @@
     "base_pass": true,
     "base_plans": [
       "if",
-      "+",
-      "in"
+      "+"
     ],
     "instruct_plans": [
-      "set",
-      "()"
-    ],
-    "category": 2,
-    "steers": []
+      "()",
+      "set"
+    ]
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1050,13 +948,6 @@
     ],
     "instruct_plans": [
       "*"
-    ],
-    "category": 1,
-    "steers": [
-      [
-        "116",
-        "*"
-      ]
     ]
   },
   {
@@ -1084,9 +975,7 @@
     "base_plans": [],
     "instruct_plans": [
       "not"
-    ],
-    "category": 2,
-    "steers": []
+    ]
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1111,9 +1000,7 @@
     },
     "base_pass": true,
     "base_plans": [],
-    "instruct_plans": [],
-    "category": 4,
-    "steers": []
+    "instruct_plans": []
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1138,14 +1025,11 @@
     },
     "base_pass": true,
     "base_plans": [
-      "for",
-      "in"
+      "for"
     ],
     "instruct_plans": [
       "0"
-    ],
-    "category": 2,
-    "steers": []
+    ]
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1171,15 +1055,12 @@
     "base_pass": true,
     "base_plans": [
       "if",
-      "+",
-      "in"
+      "+"
     ],
     "instruct_plans": [
-      "-",
-      "if"
-    ],
-    "category": 2,
-    "steers": []
+      "if",
+      "-"
+    ]
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1203,12 +1084,8 @@
       "instruct_token_id": 141
     },
     "base_pass": true,
-    "base_plans": [
-      "in"
-    ],
-    "instruct_plans": [],
-    "category": 3,
-    "steers": []
+    "base_plans": [],
+    "instruct_plans": []
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1232,12 +1109,8 @@
       "instruct_token_id": 139
     },
     "base_pass": true,
-    "base_plans": [
-      "if"
-    ],
-    "instruct_plans": [],
-    "category": 3,
-    "steers": []
+    "base_plans": [],
+    "instruct_plans": []
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1265,9 +1138,7 @@
       "0",
       "2"
     ],
-    "instruct_plans": [],
-    "category": 3,
-    "steers": []
+    "instruct_plans": []
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1292,9 +1163,7 @@
     },
     "base_pass": true,
     "base_plans": [],
-    "instruct_plans": [],
-    "category": 4,
-    "steers": []
+    "instruct_plans": []
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1320,27 +1189,9 @@
     "base_pass": true,
     "base_plans": [
       "0",
-      "for",
-      "in"
+      "for"
     ],
-    "instruct_plans": [
-      "in"
-    ],
-    "category": 1,
-    "steers": [
-      [
-        "110",
-        "0"
-      ],
-      [
-        "110",
-        "for"
-      ],
-      [
-        "110",
-        "in"
-      ]
-    ]
+    "instruct_plans": []
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1365,9 +1216,7 @@
     },
     "base_pass": true,
     "base_plans": [],
-    "instruct_plans": [],
-    "category": 4,
-    "steers": []
+    "instruct_plans": []
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1392,15 +1241,11 @@
     },
     "base_pass": true,
     "base_plans": [
-      "min",
-      "for",
-      "in"
+      "for"
     ],
     "instruct_plans": [
       "-"
-    ],
-    "category": 2,
-    "steers": []
+    ]
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1425,9 +1270,7 @@
     },
     "base_pass": true,
     "base_plans": [],
-    "instruct_plans": [],
-    "category": 4,
-    "steers": []
+    "instruct_plans": []
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1456,9 +1299,7 @@
     ],
     "instruct_plans": [
       "if"
-    ],
-    "category": 2,
-    "steers": []
+    ]
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1483,9 +1324,7 @@
     },
     "base_pass": true,
     "base_plans": [],
-    "instruct_plans": [],
-    "category": 4,
-    "steers": []
+    "instruct_plans": []
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1510,14 +1349,12 @@
     },
     "base_pass": true,
     "base_plans": [
-      "for",
-      "if"
+      "if",
+      "for"
     ],
     "instruct_plans": [
       "if"
-    ],
-    "category": 2,
-    "steers": []
+    ]
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1541,14 +1378,8 @@
       "instruct_token_id": 139
     },
     "base_pass": true,
-    "base_plans": [
-      "int"
-    ],
-    "instruct_plans": [
-      "int"
-    ],
-    "category": 2,
-    "steers": []
+    "base_plans": [],
+    "instruct_plans": []
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1577,13 +1408,6 @@
     ],
     "instruct_plans": [
       "if"
-    ],
-    "category": 1,
-    "steers": [
-      [
-        "98",
-        "if"
-      ]
     ]
   },
   {
@@ -1609,19 +1433,17 @@
     },
     "base_pass": true,
     "base_plans": [
-      "*",
       "0",
-      "[",
-      "+"
+      "*",
+      "+",
+      "["
     ],
     "instruct_plans": [
-      "*",
+      "]",
       "0",
-      "+",
-      "]"
-    ],
-    "category": 2,
-    "steers": []
+      "*",
+      "+"
+    ]
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1650,17 +1472,6 @@
     ],
     "instruct_plans": [
       "*"
-    ],
-    "category": 1,
-    "steers": [
-      [
-        "103",
-        "*"
-      ],
-      [
-        "102",
-        "*"
-      ]
     ]
   },
   {
@@ -1686,12 +1497,10 @@
     },
     "base_pass": true,
     "base_plans": [
-      "for",
-      "if"
+      "if",
+      "for"
     ],
-    "instruct_plans": [],
-    "category": 3,
-    "steers": []
+    "instruct_plans": []
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1716,13 +1525,10 @@
     },
     "base_pass": true,
     "base_plans": [
-      "in",
-      "for",
-      "if"
+      "if",
+      "for"
     ],
-    "instruct_plans": [],
-    "category": 3,
-    "steers": []
+    "instruct_plans": []
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1747,9 +1553,7 @@
     },
     "base_pass": true,
     "base_plans": [],
-    "instruct_plans": [],
-    "category": 4,
-    "steers": []
+    "instruct_plans": []
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1774,15 +1578,13 @@
     },
     "base_pass": true,
     "base_plans": [
+      "]",
       "0",
-      "-",
-      "]"
+      "-"
     ],
     "instruct_plans": [
       "-"
-    ],
-    "category": 2,
-    "steers": []
+    ]
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -1807,9 +1609,7 @@
     },
     "base_pass": true,
     "base_plans": [],
-    "instruct_plans": [],
-    "category": 4,
-    "steers": []
+    "instruct_plans": []
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -1834,23 +1634,11 @@
     },
     "base_pass": true,
     "base_plans": [
-      "i",
-      "for",
-      "if"
+      "if",
+      "for"
     ],
     "instruct_plans": [
       "if"
-    ],
-    "category": 1,
-    "steers": [
-      [
-        "126",
-        "if"
-      ],
-      [
-        "130",
-        "i"
-      ]
     ]
   },
   {
@@ -1880,13 +1668,6 @@
     ],
     "instruct_plans": [
       "*"
-    ],
-    "category": 1,
-    "steers": [
-      [
-        "108",
-        "*"
-      ]
     ]
   },
   {
@@ -1912,26 +1693,11 @@
     },
     "base_pass": true,
     "base_plans": [
-      "0",
-      "["
+      "[",
+      "0"
     ],
     "instruct_plans": [
       "0"
-    ],
-    "category": 1,
-    "steers": [
-      [
-        "136",
-        "["
-      ],
-      [
-        "136",
-        "0"
-      ],
-      [
-        "137",
-        "0"
-      ]
     ]
   },
   {
@@ -1957,9 +1723,7 @@
     },
     "base_pass": true,
     "base_plans": [],
-    "instruct_plans": [],
-    "category": 4,
-    "steers": []
+    "instruct_plans": []
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -1984,9 +1748,7 @@
     },
     "base_pass": true,
     "base_plans": [],
-    "instruct_plans": [],
-    "category": 4,
-    "steers": []
+    "instruct_plans": []
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -2015,9 +1777,7 @@
     ],
     "instruct_plans": [
       "()"
-    ],
-    "category": 2,
-    "steers": []
+    ]
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -2042,9 +1802,7 @@
     },
     "base_pass": true,
     "base_plans": [],
-    "instruct_plans": [],
-    "category": 4,
-    "steers": []
+    "instruct_plans": []
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -2071,9 +1829,7 @@
     "base_plans": [
       "if"
     ],
-    "instruct_plans": [],
-    "category": 3,
-    "steers": []
+    "instruct_plans": []
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -2098,14 +1854,9 @@
     },
     "base_pass": true,
     "base_plans": [
-      "int",
       "if"
     ],
-    "instruct_plans": [
-      "int"
-    ],
-    "category": 2,
-    "steers": []
+    "instruct_plans": []
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -2130,9 +1881,7 @@
     },
     "base_pass": true,
     "base_plans": [],
-    "instruct_plans": [],
-    "category": 4,
-    "steers": []
+    "instruct_plans": []
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -2157,9 +1906,7 @@
     },
     "base_pass": true,
     "base_plans": [],
-    "instruct_plans": [],
-    "category": 4,
-    "steers": []
+    "instruct_plans": []
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -2184,13 +1931,11 @@
     },
     "base_pass": true,
     "base_plans": [
-      "for",
       "if",
+      "for",
       "()"
     ],
-    "instruct_plans": [],
-    "category": 3,
-    "steers": []
+    "instruct_plans": []
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -2214,13 +1959,8 @@
       "instruct_token_id": 141
     },
     "base_pass": true,
-    "base_plans": [
-      "x",
-      "in"
-    ],
-    "instruct_plans": [],
-    "category": 3,
-    "steers": []
+    "base_plans": [],
+    "instruct_plans": []
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -2247,9 +1987,7 @@
     "base_plans": [
       "if"
     ],
-    "instruct_plans": [],
-    "category": 3,
-    "steers": []
+    "instruct_plans": []
   },
   {
     "source_file": "Ellen's Copy of Benchmark Questions Verification V2.ipynb",
@@ -2276,9 +2014,7 @@
     "base_plans": [],
     "instruct_plans": [
       "/"
-    ],
-    "category": 2,
-    "steers": []
+    ]
   },
   {
     "source_file": "Ellen's Copy of Benchmark Questions Verification V2.ipynb",
@@ -2308,9 +2044,7 @@
       "for",
       "j"
     ],
-    "instruct_plans": [],
-    "category": 3,
-    "steers": []
+    "instruct_plans": []
   },
   {
     "source_file": "Ellen's Copy of Benchmark Questions Verification V2.ipynb",
@@ -2335,9 +2069,7 @@
     },
     "base_pass": true,
     "base_plans": [],
-    "instruct_plans": [],
-    "category": 4,
-    "steers": []
+    "instruct_plans": []
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -2364,9 +2096,7 @@
     "base_plans": [
       "])"
     ],
-    "instruct_plans": [],
-    "category": 3,
-    "steers": []
+    "instruct_plans": []
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -2395,11 +2125,8 @@
     ],
     "instruct_plans": [
       "for",
-      "in",
       "()"
-    ],
-    "category": 2,
-    "steers": []
+    ]
   },
   {
     "source_file": "charlessutton@: Benchmark Questions Verification V2.ipynb",
@@ -2423,14 +2150,10 @@
       "instruct_token_id": 139
     },
     "base_pass": true,
-    "base_plans": [
-      "["
-    ],
+    "base_plans": [],
     "instruct_plans": [
       "]"
-    ],
-    "category": 2,
-    "steers": []
+    ]
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -2455,9 +2178,7 @@
     },
     "base_pass": true,
     "base_plans": [],
-    "instruct_plans": [],
-    "category": 4,
-    "steers": []
+    "instruct_plans": []
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -2483,11 +2204,9 @@
     "base_pass": true,
     "base_plans": [],
     "instruct_plans": [
-      "else",
-      "if"
-    ],
-    "category": 2,
-    "steers": []
+      "if",
+      "else"
+    ]
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -2512,19 +2231,9 @@
     },
     "base_pass": true,
     "base_plans": [
-      "if",
-      "in"
+      "if"
     ],
-    "instruct_plans": [
-      "in"
-    ],
-    "category": 1,
-    "steers": [
-      [
-        "189",
-        "if"
-      ]
-    ]
+    "instruct_plans": []
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -2549,8 +2258,6 @@
     },
     "base_pass": true,
     "base_plans": [],
-    "instruct_plans": [],
-    "category": 4,
-    "steers": []
+    "instruct_plans": []
   }
 ]
