@@ -96,7 +96,7 @@
         "entry_idx": 7,
         "tag": "base to instruct",
         "label": false,
-        "base_pass": false
+        "base_pass": true
     },
     {
         "model_code": "import math\n\ndef volume_sphere(radius):\n  return (4/3) * math.pi * radius**3\n",
@@ -105,7 +105,7 @@
         "entry_idx": 7,
         "tag": "instruct to base",
         "label": false,
-        "base_pass": false
+        "base_pass": true
     },
     {
         "model_code": "def area_polygon(n, s):\n    return n * s * s / (4 * math.tan(math.pi / n))",
@@ -114,7 +114,7 @@
         "entry_idx": 14,
         "tag": "base to instruct",
         "label": false,
-        "base_pass": false
+        "base_pass": true
     },
     {
         "model_code": "import math\n\ndef area_polygon(sides, side_length):\n    return (sides * side_length**2) / (4 * math.tan(math.pi / sides))\n",
@@ -123,7 +123,7 @@
         "entry_idx": 14,
         "tag": "instruct to base",
         "label": false,
-        "base_pass": false
+        "base_pass": true
     },
     {
         "model_code": "def find_even_pair(list):\n    even_pairs = 0\n    for i in range(len(list)):\n        for j in range(i+1, len(list)):\n            if list[i] ^ list[j] == 0:\n                even_pairs += 1\n    return even_pairs",
@@ -150,7 +150,7 @@
         "entry_idx": 21,
         "tag": "base to instruct",
         "label": false,
-        "base_pass": false
+        "base_pass": true
     },
     {
         "model_code": "import math\n\ndef volume_cylinder(radius, height):\n    return math.pi * radius**2 * height\n",
@@ -159,7 +159,7 @@
         "entry_idx": 21,
         "tag": "instruct to base",
         "label": false,
-        "base_pass": false
+        "base_pass": true
     },
     {
         "model_code": "def max_length(list_of_lists):\n    max_length = 0\n    for i in list_of_lists:\n        if len(i) > max_length:\n            max_length = len(i)\n    return max_length",
@@ -186,7 +186,7 @@
         "entry_idx": 27,
         "tag": "base to instruct",
         "label": false,
-        "base_pass": false
+        "base_pass": true
     },
     {
         "model_code": "import math\n\ndef volume_cone(radius, height):\n    return (1/3) * math.pi * radius**2 * height\n",
@@ -195,7 +195,7 @@
         "entry_idx": 27,
         "tag": "instruct to base",
         "label": false,
-        "base_pass": false
+        "base_pass": true
     },
     {
         "model_code": "def find_char_long(string):\n    return [word for word in string.split() if len(word) >= 4]",
