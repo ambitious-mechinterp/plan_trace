@@ -5,7 +5,7 @@
         "complement_code": "def check(n):\n  return n == 2 * int(str(n)[::-1]) - 1\n",
         "entry_idx": 2,
         "tag": "base to instruct",
-        "label": false,
+        "label": true,
         "base_pass": false
     },
     {
@@ -77,7 +77,7 @@
         "complement_code": "def tetrahedral_number(n):\n    if n == 1:\n        return 1\n    return (n * (n + 1) * (n + 2)) // 6\n",
         "entry_idx": 6,
         "tag": "base to instruct",
-        "label": false,
+        "label": true,
         "base_pass": false
     },
     {
@@ -140,7 +140,7 @@
         "complement_code": "def find_even_pair(list):\n    even_pairs = 0\n    for i in range(len(list)):\n        for j in range(i+1, len(list)):\n            if list[i] ^ list[j] == 0:\n                even_pairs += 1\n    return even_pairs",
         "entry_idx": 15,
         "tag": "instruct to base",
-        "label": false,
+        "label": true,
         "base_pass": false
     },
     {
@@ -212,7 +212,7 @@
         "complement_code": "def find_char_long(string):\n    return [word for word in string.split() if len(word) >= 4]",
         "entry_idx": 29,
         "tag": "instruct to base",
-        "label": false,
+        "label": true,
         "base_pass": true
     },
     {
@@ -230,7 +230,7 @@
         "complement_code": "def test_duplicate(arr):\n    for i in range(len(arr)):\n        for j in range(i+1, len(arr)):\n            if arr[i] == arr[j]:\n                return True\n    return False",
         "entry_idx": 31,
         "tag": "instruct to base",
-        "label": false,
+        "label": true,
         "base_pass": true
     },
     {
@@ -284,7 +284,7 @@
         "complement_code": "def comb_sort(arr):\n    for i in range(len(arr)):\n        for j in range(i+1, len(arr)):\n            if arr[i] > arr[j]:\n                arr[i], arr[j] = arr[j], arr[i]\n    return arr",
         "entry_idx": 36,
         "tag": "instruct to base",
-        "label": false,
+        "label": true,
         "base_pass": true
     },
     {
@@ -437,7 +437,7 @@
         "complement_code": "def perimeter_pentagon(n):\n  return 5 * n\n",
         "entry_idx": 58,
         "tag": "base to instruct",
-        "label": false,
+        "label": true,
         "base_pass": true
     },
     {
@@ -500,7 +500,7 @@
         "complement_code": "def check_distinct(t):\n    return len(set(t)) == len(t)",
         "entry_idx": 75,
         "tag": "instruct to base",
-        "label": false,
+        "label": true,
         "base_pass": true
     }
 ]
