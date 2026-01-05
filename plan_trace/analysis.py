@@ -152,6 +152,79 @@ class CircuitAnalyzer:
             "position_effect": position_effect,
         }
 
+    def run_single_position(
+        self,
+        prompt_idx: int,
+        token_pred_idx: int,
+        layer: int,
+        token_pos: int,
+        *,
+        keys: Optional[Iterable[str]] = None,
+        thresh: float = 0.0,
+    ) -> Dict[str, object]:
+        """
+        Measure planning effect for exactly one (layer, token_pos) position.
+        
+        This variant avoids aggregating across other positions. It loads the same
+        saved-pair mapping as in run(), but filters latents strictly to the
+        requested (layer, token_pos) pair before measuring effects.
+        
+        Args:
+            prompt_idx: Index into the dataset
+            token_pred_idx: Index of the prediction position to analyze
+            layer: SAE layer index to test
+            token_pos: Absolute token index within the prompt+prefix to steer at
+            keys: Saved‑pair dict keys to consider for collecting latents
+            thresh: Threshold for steering effect magnitude to be considered significant
+        
+        Returns:
+            Dict containing:
+            - C: Set of (layer, token) positions discovered in the circuit
+            - tested_pair: The single (layer, token_pos) that was evaluated
+            - F_prime: Set with the tested pair if it exceeds thresh, else empty
+            - position_effect: Dict with a single entry {(layer, token_pos): effect}
+        """
+        # Load circuit entries (C) & baseline prompt
+        hits_path = self.cfg.hits_root / f"prompt_{prompt_idx}/pred_{token_pred_idx}/hits.pt"
+        trial = torch.load(hits_path, weights_only=True)
+        C = {(l, t) for l, t, *_ in trial["entries"]}
+        clean_prompt = trial["prompt"].lstrip("<bos>")
+        
+        # Build saved‑pair dict for logit lens clustering (fast path)
+        uniq_ids = gather_unique_tokens(self.model, clean_prompt, stop_tok=self.cfg.stop_token_id)
+        prompt_ids = self.model.to_tokens(clean_prompt)[0].tolist()
+        filtered = [tok for tok in uniq_ids if tok not in prompt_ids]
+        saved_pair_dict = build_saved_pair_dict_fastest(
+            self.model, self.saes, trial["entries"], filtered
+        )
+        
+        # Collect latents ONLY for the requested (layer, token_pos)
+        pair_to_latents: Dict[Tuple[int, int], List[int]] = {}
+        for k in (list(saved_pair_dict.keys()) if keys is None else list(keys)):
+            for layer_i, latent_i, tok_pos_list in saved_pair_dict[k]:
+                if layer_i == layer and token_pos in tok_pos_list:
+                    pair_to_latents.setdefault((layer, token_pos), []).append(latent_i)
+        
+        # Measure steering effect for the single position (if any latents found)
+        position_effect: Dict[Tuple[int, int], float] = {}
+        F_prime: Set[Tuple[int, int]] = set()
+        if pair_to_latents:
+            position_effect = self._measure_effects(pair_to_latents, clean_prompt)
+            eff = position_effect.get((layer, token_pos), 0.0)
+            if abs(eff) > thresh:
+                F_prime.add((layer, token_pos))
+        
+        return {
+            "prompt_idx": prompt_idx,
+            "token_pred_idx": token_pred_idx,
+            "keys": list(saved_pair_dict.keys()) if keys is None else list(keys),
+            "C": C,
+            "tested_pair": (layer, token_pos),
+            "F_all": {(layer, token_pos)} if pair_to_latents else set(),
+            "F_prime": F_prime,
+            "position_effect": position_effect,
+        }
+
     def _measure_effects(
         self, 
         pair_to_latents: Dict[Tuple[int, int], List[int]], 
