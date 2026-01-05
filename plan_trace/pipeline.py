@@ -17,6 +17,7 @@ Shape Suffix Definition:
 
 import json
 import re
+import time
 import torch
 import os
 import argparse
@@ -160,6 +161,12 @@ def save_pipeline_results(
         metadata["baseline_token_strings"] = result["baseline_token_strings"]
     
     metadata_path = folder_path / "metadata.json"
+    # Include timings if present
+    if "timings" in result:
+        try:
+            metadata["timings"] = result["timings"]
+        except Exception:
+            pass
     with open(metadata_path, 'w') as f:
         json.dump(metadata, f, indent=2)
     if verbose:
@@ -502,6 +509,7 @@ def run_automated_token_pipeline(
     use_nodocstring_prompt: bool = False,
     use_pos_info: bool = False,
     pos_info_offset: int = 2,
+    per_position: bool = False,
 ) -> Dict[str, Any]:
     """
     Run the pipeline automatically over multiple token positions.
@@ -693,6 +701,7 @@ def run_automated_token_pipeline(
             cluster_api_timeout=cluster_api_timeout,
             cluster_saved_dir=cluster_saved_dir,
             cluster_saved_topk=cluster_saved_topk,
+            per_position=per_position,
         )
         
         # Analyze planning evidence if successful
@@ -721,7 +730,7 @@ def run_automated_token_pipeline(
     for token_idx, token_result in results["token_results"].items():
         if token_result.get("planning_analysis"):
             for label, status in token_result["planning_analysis"].items():
-                if status == "planning":
+                if status == "Plan":
                     if label not in all_planning:
                         all_planning[label] = []
                     all_planning[label].append(token_idx)
@@ -779,6 +788,8 @@ def run_single_token_analysis(
     cluster_api_timeout: float = API_TIMEOUT,
     cluster_saved_dir: Optional[str] = "outputs/agg_per_layer_top20",
     cluster_saved_topk: int = 20,
+    *,
+    per_position: bool = False,
 ) -> Dict[str, Any]:
     """
     Run pipeline analysis for a single token position.
@@ -809,6 +820,9 @@ def run_single_token_analysis(
     if coeff_grid is None:
         coeff_grid = list(range(-100, 0, 20))
     
+    timings: Dict[str, float] = {}
+    total_start = time.perf_counter()
+    
     # Extract the specific prediction position
     inter_toks_BL = out_BL[:, :inter_token_id]
     baseline_suffix = model.to_string(out_BL[0, inter_token_id:])
@@ -817,6 +831,7 @@ def run_single_token_analysis(
         print(f"Baseline continuation: {baseline_suffix[:50]}...")
     
     # Circuit Discovery
+    t0 = time.perf_counter()
     entries = discover_circuit(
         model=model,
         saes=saes,
@@ -827,8 +842,10 @@ def run_single_token_analysis(
         k_step=k_step,
         k_thres=k_thres
     )
+    timings["circuit_discovery_s"] = time.perf_counter() - t0
     
     if entries is None:
+        timings["total_s"] = time.perf_counter() - total_start
         return {
             "prompt_idx": -1,  # Will be filled by caller
             "inter_token_id": inter_token_id,
@@ -836,7 +853,8 @@ def run_single_token_analysis(
             "clusters": None,
             "steering_results": None,
             "baseline_text": baseline_suffix,
-            "status": "no_circuit_found"
+            "status": "no_circuit_found",
+            "timings": timings,
         }
     
     if verbose:
@@ -847,6 +865,7 @@ def run_single_token_analysis(
         cluster_score_threshold if cluster_mode == "logit_lens" else None
     )
 
+    t0 = time.perf_counter()
     saved_pair_dict = find_logit_lens_clusters(
         model,
         saes,
@@ -863,11 +882,13 @@ def run_single_token_analysis(
         saved_contexts_dir=cluster_saved_dir,
         saved_topk=cluster_saved_topk,
     )
+    timings["clustering_s"] = time.perf_counter() - t0
     
     if verbose:
         print(f"Found {len(saved_pair_dict)} clusters: {list(saved_pair_dict.keys())}")
     
     # Steering Sweep
+    t0 = time.perf_counter()
     steering_results = run_steering_sweep(
         model=model,
         saes=saes,
@@ -879,13 +900,65 @@ def run_single_token_analysis(
         max_tokens=100,
         return_tokens=return_tokens
     )
+    timings["steering_sweep_s"] = time.perf_counter() - t0
+    if verbose:
+        print(f"Steering sweep completed in {timings['steering_sweep_s']:.2f} seconds")
     
+    earliest_position: Optional[Tuple[int, int]] = None
+    if per_position:
+        per_pos_total_start = time.perf_counter()
+        # Build sorted list of unique (layer, token_pos) pairs from the clusters
+        positions = sorted({
+            (layer_i, tok_pos)
+            for infos in saved_pair_dict.values()
+            for (layer_i, _latent_i, tok_positions) in infos
+            for tok_pos in tok_positions
+        }, key=lambda p: p[1])
+        
+        # Iterate positions in ascending token_pos and run sweep on per-position filtered clusters
+        per_pos_count = 0
+        for (layer_i, tok_pos) in positions:
+            filtered: Dict[str, List[Tuple[int, int, List[int]]]] = {}
+            for label, infos in saved_pair_dict.items():
+                sub = []
+                for li, latent_i, tok_positions in infos:
+                    if li == layer_i and tok_pos in tok_positions:
+                        sub.append((li, latent_i, [tok_pos]))
+                if sub:
+                    filtered[label] = sub
+            if not filtered:
+                continue
+            step_start = time.perf_counter()
+            pos_steering = run_steering_sweep(
+                model=model,
+                saes=saes,
+                inter_toks_BL=inter_toks_BL,
+                saved_pair_dict=filtered,
+                baseline_text=baseline_suffix,
+                coeff_grid=coeff_grid,
+                stop_tok=stop_token_id,
+                max_tokens=100,
+                return_tokens=return_tokens
+            )
+            labels = label_steering_clusters(
+                pos_steering, model=model, prefix_tokens_2d=inter_toks_BL
+            )
+            per_pos_count += 1
+            if any(v["final_label"] == "Plan" for v in labels.values()):
+                earliest_position = (layer_i, tok_pos)
+                break
+        timings["per_position_total_s"] = time.perf_counter() - per_pos_total_start
+        timings["per_position_checked"] = float(per_pos_count)
+        if verbose:
+            print(f"Earliest planning position: {earliest_position}")
+
     result: Dict[str, Any] = {
         "prompt_idx": -1,  # Will be filled by caller
         "inter_token_id": inter_token_id,
         "circuit_entries": entries,
         "clusters": saved_pair_dict,
         "steering_results": steering_results,
+        "earliest_position": earliest_position,
         "baseline_text": baseline_suffix,
         "status": "success"
     }
@@ -903,6 +976,9 @@ def run_single_token_analysis(
         })
     except Exception:
         pass
+    
+    timings["total_s"] = time.perf_counter() - total_start
+    result["timings"] = timings
 
     return result
 
@@ -1066,6 +1142,12 @@ def main():
                         help="Use position info from data entry to set analysis range.")
     parser.add_argument("--pos-info-offset", type=int, default=2,
                         help="Offset to apply to position info for start and end token positions (default: 2)")
+    # Per-position sweep option
+    parser.add_argument(
+        "--per-position",
+        action="store_true",
+        help="Run steering sweeps per (layer, token_pos) to find earliest planning position",
+    )
     
     args = parser.parse_args()
     
@@ -1092,6 +1174,7 @@ def main():
             f"  Saved contexts: dir='{args.cluster_saved_dir}', topk={args.cluster_saved_topk}"
         )
     print(f"  Save outputs: {args.save}")
+    print(f"  Per-position sweep: {args.per_position}")
     print()
     
     # Run the automated pipeline
@@ -1125,6 +1208,7 @@ def main():
         use_nodocstring_prompt=args.no_docstring,
         use_pos_info=args.use_pos_info,
         pos_info_offset=args.pos_info_offset,
+        per_position=args.per_position,
     )
     
     # Print final summary
