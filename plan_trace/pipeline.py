@@ -55,6 +55,7 @@ def save_pipeline_results(
     - clusters.json: Logit lens clusters
     - steering_results.json: Steering sweep results  
     - metadata.json: Run metadata and configuration
+    - earliest_position.json: (Optional) The earliest position, where steering is detected with label marked as "Plan"
     
     Args:
         result: Pipeline result dictionary
@@ -139,6 +140,18 @@ def save_pipeline_results(
             json.dump(result["planning_analysis"], f, indent=2)
         if verbose:
             print(f"Saved planning analysis to: {planning_path}")
+    
+    if result.get("earliest_position") is not None:
+        earliest_position_path = folder_path / "earliest_position.json"
+        earliest_position_dump = {
+            "position": result["earliest_position"],
+            "steering_results": result["earliest_position_steering_results"]
+        }
+        with open(earliest_position_path, "w") as f:
+            json.dump(_json_safe_steering(earliest_position_dump), f, indent = 2)
+        if verbose:
+            print(f"Saved earliest position details to {earliest_position_path}")
+
 
     # Save metadata
     metadata = {
@@ -825,6 +838,7 @@ def run_single_token_analysis(
     
     # Extract the specific prediction position
     inter_toks_BL = out_BL[:, :inter_token_id]
+    rest_BL = out_BL[:, inter_token_id + 1]
     baseline_suffix = model.to_string(out_BL[0, inter_token_id:])
     
     if verbose:
@@ -881,6 +895,7 @@ def run_single_token_analysis(
         api_timeout=cluster_api_timeout,
         saved_contexts_dir=cluster_saved_dir,
         saved_topk=cluster_saved_topk,
+        timings=timings
     )
     timings["clustering_s"] = time.perf_counter() - t0
     
@@ -904,25 +919,26 @@ def run_single_token_analysis(
     if verbose:
         print(f"Steering sweep completed in {timings['steering_sweep_s']:.2f} seconds")
     
-    earliest_position: Optional[Tuple[int, int]] = None
+    earliest_position: Optional[int] = None
+    earliest_position_steering_results: Optional[Dict[str, Dict[str, Any]]] = None
     if per_position:
         per_pos_total_start = time.perf_counter()
         # Build sorted list of unique (layer, token_pos) pairs from the clusters
         positions = sorted({
-            (layer_i, tok_pos)
+            tok_pos
             for infos in saved_pair_dict.values()
-            for (layer_i, _latent_i, tok_positions) in infos
+            for (_, _, tok_positions) in infos
             for tok_pos in tok_positions
-        }, key=lambda p: p[1])
+        })
         
         # Iterate positions in ascending token_pos and run sweep on per-position filtered clusters
         per_pos_count = 0
-        for (layer_i, tok_pos) in positions:
+        for tok_pos in positions:
             filtered: Dict[str, List[Tuple[int, int, List[int]]]] = {}
             for label, infos in saved_pair_dict.items():
                 sub = []
                 for li, latent_i, tok_positions in infos:
-                    if li == layer_i and tok_pos in tok_positions:
+                    if tok_pos in tok_positions:
                         sub.append((li, latent_i, [tok_pos]))
                 if sub:
                     filtered[label] = sub
@@ -940,13 +956,16 @@ def run_single_token_analysis(
                 max_tokens=100,
                 return_tokens=return_tokens
             )
-            labels = label_steering_clusters(
+            pos_labels = label_steering_clusters(
                 pos_steering, model=model, prefix_tokens_2d=inter_toks_BL
             )
             per_pos_count += 1
-            if any(v["final_label"] == "Plan" for v in labels.values()):
-                earliest_position = (layer_i, tok_pos)
+            if any(v["final_label"] == "Plan" for v in pos_labels.values()):
+                earliest_position = tok_pos
+                earliest_position_steering_results = pos_steering
                 break
+        
+        
         timings["per_position_total_s"] = time.perf_counter() - per_pos_total_start
         timings["per_position_checked"] = float(per_pos_count)
         if verbose:
@@ -959,6 +978,7 @@ def run_single_token_analysis(
         "clusters": saved_pair_dict,
         "steering_results": steering_results,
         "earliest_position": earliest_position,
+        "earliest_position_steering_results": earliest_position_steering_results,
         "baseline_text": baseline_suffix,
         "status": "success"
     }

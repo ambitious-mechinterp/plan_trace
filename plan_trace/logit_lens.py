@@ -18,6 +18,7 @@ from typing import Any, Dict, List, MutableMapping, Sequence, Tuple, Union, Opti
 import requests
 import torch
 import torch.nn.functional as F
+import time
 from tqdm import tqdm
 
 from .utils import cleanup_cuda
@@ -509,6 +510,7 @@ def find_logit_lens_clusters(
     saved_topk: int = DEFAULT_API_TOPK,
     saved_window: int = 5,
     saved_min_context_matches: int = 15,
+    timings: Optional[Dict[str, float]] = None
 ) -> Dict[str, List[Tuple[int, int, List[int]]]]:
     """
     Find clusters of SAE latents based on their decoding directions or Neuronpedia top contexts.
@@ -518,6 +520,7 @@ def find_logit_lens_clusters(
     any of the top-k activation contexts contain candidate tokens.
     """
     # Generate unique tokens not in the original prompt
+    t0 = time.perf_counter()
     uniq_ids = gather_unique_tokens(model, inter_toks_BL, stop_tok=stop_tok)
     prompt_tokens = inter_toks_BL[0]
     prompt_id_set = set(prompt_tokens.detach().cpu().tolist())
@@ -530,6 +533,11 @@ def find_logit_lens_clusters(
         return bool(label) and _has_boundary_match(prompt_str, label)
 
     filtered_uniq_ids = [tok for tok in uniq_ids if not token_in_prompt(tok)]
+
+    if timings is not None:
+        timings["clustering_s_gather"] = time.perf_counter() - t0
+    
+    t0 = time.perf_counter()
 
     if verbose:
         print(
@@ -577,5 +585,7 @@ def find_logit_lens_clusters(
         )
     else:
         raise ValueError(f"Unknown clustering mode '{mode}'.")
-
+    
+    if timings is not None:
+        timings["clustering_s_neuronpedia"] = time.perf_counter() - t0 
     return saved_pair_dict
