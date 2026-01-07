@@ -495,7 +495,7 @@ def run_automated_token_pipeline(
     model_name: str = "gemma-2-2b-it",
     device: str = "cuda",
     skip_docstrings: bool = True,
-    use_custom_cache: bool = True,
+    use_custom_cache: bool = False,
     start_token_offset: int = 0,
     max_tokens_to_analyze: int = 50,
     ig_steps: int = 10,
@@ -582,7 +582,7 @@ def run_automated_token_pipeline(
     # use no docstring prompt if specified.
     prompt = (
             "You are an expert Python programmer, and here is your task: "
-            f"{entry["prompt"]} Your code should pass these tests:\n\n"
+            f"{entry['prompt']} Your code should pass these tests:\n\n"
             + "\n".join(entry["test_list"]) + "\nWrite your code below starting with \"```python\" and ending with \"```\".\n```python\n"
         )
     if use_nodocstring_prompt:
@@ -608,7 +608,7 @@ def run_automated_token_pipeline(
 
         prompt = (
             "You are an expert Python programmer, and here is your task: "
-            f"{entry["prompt"]} {docstring} Your code should pass these tests:\n\n"
+            f"{entry['prompt']} {docstring} Your code should pass these tests:\n\n"
             + "\n".join(entry["test_list"]) + "\nWrite your code below starting with \"```python\" and ending with \"```\".\n```python\n"
         )
 
@@ -1061,6 +1061,11 @@ def main():
     # Model and device options
     parser.add_argument("--model", default="gemma-2-2b-it", help="HuggingFace model name")
     parser.add_argument("--device", default="cuda", help="Device (cuda/cpu)")
+    parser.add_argument(
+        "--use-custom-cache",
+        action="store_true",
+        help="Use custom local cache directories for model weights (default: False)",
+    )
     
     # Analysis range options
     parser.add_argument("--start-offset", type=int, default=0, 
@@ -1201,7 +1206,7 @@ def main():
     result = run_automated_token_pipeline(
         prompt_idx=args.prompt_idx,
         model_name=args.model,
-        use_custom_cache=False,
+        use_custom_cache=args.use_custom_cache,
         device=args.device,
         skip_docstrings=not args.include_docstrings,
         start_token_offset=args.start_offset,
