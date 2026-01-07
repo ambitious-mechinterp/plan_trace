@@ -184,3 +184,6 @@ commands.txt
 
 # specific to custom steering.
 custom-steer
+
+## ignore cache.
+cache/
