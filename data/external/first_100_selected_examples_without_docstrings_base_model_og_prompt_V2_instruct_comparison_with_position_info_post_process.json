@@ -53,8 +53,8 @@
     "base_pass": false,
     "base_plans": [],
     "instruct_plans": [
-      "replace",
-      "if"
+      "if",
+      "replace"
     ],
     "base_cs": false,
     "instruct_cs": true
@@ -82,17 +82,17 @@
     },
     "base_pass": false,
     "base_plans": [
-      "*",
-      "-",
-      "while",
       "//",
       "%",
-      "+"
+      "-",
+      "while",
+      "+",
+      "*"
     ],
     "instruct_plans": [
       "int",
-      "*",
-      "-"
+      "-",
+      "*"
     ],
     "base_cs": false,
     "instruct_cs": true
@@ -151,10 +151,10 @@
     },
     "base_pass": false,
     "base_plans": [
-      "for",
-      "len",
+      "-",
       "+",
-      "-"
+      "len",
+      "for"
     ],
     "instruct_plans": [
       "-"
@@ -185,9 +185,9 @@
     },
     "base_pass": false,
     "base_plans": [
-      "for",
+      "len",
       "range",
-      "len"
+      "for"
     ],
     "instruct_plans": [
       "if",
@@ -220,9 +220,9 @@
     "base_pass": false,
     "base_plans": [
       "1",
+      "-",
       "*",
-      "+",
-      "-"
+      "+"
     ],
     "instruct_plans": [
       "*"
@@ -550,8 +550,8 @@
     "base_pass": false,
     "base_plans": [
       "sum",
-      "for",
-      "+"
+      "+",
+      "for"
     ],
     "instruct_plans": [],
     "base_cs": true,
@@ -609,10 +609,10 @@
     },
     "base_pass": false,
     "base_plans": [
-      "0",
-      "1",
       "if",
-      "-"
+      "1",
+      "-",
+      "0"
     ],
     "instruct_plans": [],
     "base_cs": true,
@@ -642,8 +642,8 @@
     "base_pass": false,
     "base_plans": [],
     "instruct_plans": [
-      "+",
-      "sqrt"
+      "sqrt",
+      "+"
     ],
     "base_cs": true,
     "instruct_cs": false
@@ -673,13 +673,11 @@
     },
     "base_pass": true,
     "base_plans": [
-      "**",
-      "*"
+      "*",
+      "**"
     ],
-    "instruct_plans": [
-      "*"
-    ],
-    "base_cs": false,
+    "instruct_plans": [],
+    "base_cs": true,
     "instruct_cs": true
   },
   {
@@ -764,8 +762,8 @@
     },
     "base_pass": false,
     "base_plans": [
-      "for",
-      "if"
+      "if",
+      "for"
     ],
     "instruct_plans": [
       "if"
@@ -858,9 +856,7 @@
     "base_plans": [
       "**"
     ],
-    "instruct_plans": [
-      "**"
-    ],
+    "instruct_plans": [],
     "base_cs": false,
     "instruct_cs": true
   },
@@ -1126,8 +1122,8 @@
     },
     "base_pass": true,
     "base_plans": [
-      "+",
-      "if"
+      "if",
+      "+"
     ],
     "instruct_plans": [
       "if",
@@ -1270,8 +1266,8 @@
     },
     "base_pass": true,
     "base_plans": [
-      "0",
-      "for"
+      "for",
+      "0"
     ],
     "instruct_plans": [],
     "base_cs": true,
@@ -1443,13 +1439,13 @@
     },
     "base_pass": true,
     "base_plans": [
-      "for",
-      "if"
+      "if",
+      "for"
     ],
     "instruct_plans": [
       "if"
     ],
-    "base_cs": false,
+    "base_cs": true,
     "instruct_cs": false
   },
   {
@@ -1534,14 +1530,14 @@
     "base_pass": true,
     "base_plans": [
       "[",
-      "0",
+      "+",
       "*",
-      "+"
+      "0"
     ],
     "instruct_plans": [
-      "*",
       "0",
       "]",
+      "*",
       "+"
     ],
     "base_cs": true,
@@ -1601,8 +1597,8 @@
     },
     "base_pass": true,
     "base_plans": [
-      "for",
-      "if"
+      "if",
+      "for"
     ],
     "instruct_plans": [],
     "base_cs": false,
@@ -1631,8 +1627,8 @@
     },
     "base_pass": true,
     "base_plans": [
-      "for",
-      "if"
+      "if",
+      "for"
     ],
     "instruct_plans": [],
     "base_cs": true,
@@ -1688,9 +1684,9 @@
     },
     "base_pass": true,
     "base_plans": [
-      "0",
+      "-",
       "]",
-      "-"
+      "0"
     ],
     "instruct_plans": [
       "-"
@@ -1748,8 +1744,8 @@
     },
     "base_pass": true,
     "base_plans": [
-      "for",
-      "if"
+      "if",
+      "for"
     ],
     "instruct_plans": [
       "if"
@@ -1779,13 +1775,11 @@
       "instruct_token_id": 139
     },
     "base_pass": true,
-    "base_plans": [
-      "*"
-    ],
+    "base_plans": [],
     "instruct_plans": [
       "*"
     ],
-    "base_cs": false,
+    "base_cs": true,
     "instruct_cs": true
   },
   {
@@ -2068,11 +2062,10 @@
     "base_pass": true,
     "base_plans": [
       "()",
-      "for",
-      "if"
+      "for"
     ],
     "instruct_plans": [],
-    "base_cs": false,
+    "base_cs": true,
     "instruct_cs": false
   },
   {
@@ -2183,10 +2176,10 @@
     },
     "base_pass": true,
     "base_plans": [
-      "for",
       "if",
+      "j",
       "+",
-      "j"
+      "for"
     ],
     "instruct_plans": [],
     "base_cs": false,
@@ -2360,8 +2353,8 @@
     "base_pass": true,
     "base_plans": [],
     "instruct_plans": [
-      "else",
-      "if"
+      "if",
+      "else"
     ],
     "base_cs": false,
     "instruct_cs": false
