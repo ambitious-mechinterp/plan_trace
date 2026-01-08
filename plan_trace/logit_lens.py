@@ -168,6 +168,84 @@ def _load_saved_layer_contexts(
     _SAVED_LAYER_CACHE[cache_key] = data
     return data
 
+def build_saved_pair_dict_from_cached_files(
+    model,
+    trial_entries: Sequence[Tuple[int, int, int, float]],
+    unique_token_ids: Sequence[int],
+    *,
+    cache_dir: str,
+) -> Dict[str, List[Tuple[int, int, List[int]]]]:
+    """Build saved_pair_dict using pre-cached latent-token match files.
+    
+    Args:
+        model: Model to convert token_ids to strings
+        trial_entries: List of (layer_idx, token_pos, latent_idx, activation) tuples
+        unique_token_ids: Token IDs to look for
+        cache_dir: Directory containing cached L{i}.top20.match.json files
+        
+    Returns:
+        Dictionary mapping token labels to list of (layer_idx, latent_idx, positions)
+    """
+    # Get unique layers and latents
+    layer_to_latents: Dict[int, set[int]] = defaultdict(set)
+    for layer_idx, _, latent_idx, _ in trial_entries:
+        layer_to_latents[layer_idx].add(latent_idx)
+
+    # Build token labels from unique_token_ids
+    token_labels: Dict[int, str] = {}
+    for tok_id in unique_token_ids:
+        label = model.to_string(tok_id)
+        if not isinstance(label, str):
+            continue
+        label = label.strip()
+        if label:
+            token_labels[tok_id] = label
+
+    if not token_labels:
+        return {}
+
+    # Precompute positions per (layer, latent)
+    entry_positions: Dict[Tuple[int, int], List[int]] = defaultdict(list)
+    for layer_idx, token_pos, latent_idx, _ in trial_entries:
+        entry_positions[(layer_idx, latent_idx)].append(token_pos)
+
+    saved_pair_dict: Dict[str, List[Tuple[int, int, List[int]]]] = defaultdict(list)
+
+    # Process each layer
+    for layer_idx in sorted(layer_to_latents.keys()):
+        cache_file = os.path.join(cache_dir, f"L{layer_idx}.top20.match.json")
+        
+        if not os.path.exists(cache_file):
+            print(f"Warning: Cache file not found: {cache_file}")
+            continue
+        
+        try:
+            with open(cache_file, "r") as f:
+                latent_window_token_map = json.load(f)
+        except Exception as e:
+            print(f"Error loading {cache_file}: {e}")
+            continue
+        
+        # Process each latent in this layer that appears in trial_entries
+        for latent_idx in sorted(layer_to_latents[layer_idx]):
+            latent_key = str(latent_idx)
+            if latent_key not in latent_window_token_map:
+                continue
+            
+            matching_tokens = latent_window_token_map[latent_key]
+            if not isinstance(matching_tokens, list):
+                continue
+            
+            # Check if any of our target tokens appear in the cached matches
+            # Match the original behavior: take first matching token and break
+            for tok_id, label in token_labels.items():
+                if label in matching_tokens:
+                    positions = entry_positions.get((layer_idx, latent_idx), [])
+                    saved_pair_dict[label].append((layer_idx, latent_idx, positions))
+                    break
+    
+    return dict(saved_pair_dict)
+
 
 def build_saved_pair_dict_from_files(
     model,
@@ -177,7 +255,7 @@ def build_saved_pair_dict_from_files(
     saved_dir: str,
     top_contexts: int,
     window_size: int = 5,
-    min_context_matches: int = 1,
+    min_context_matches: int = 1
 ) -> Dict[str, List[Tuple[int, int, List[int]]]]:
     """Build saved_pair_dict using previously saved per-layer context JSONs.
 
@@ -268,7 +346,6 @@ def build_saved_pair_dict_from_files(
                     break
 
     return dict(saved_pair_dict)
-
 
 
 def gather_unique_tokens(
@@ -510,6 +587,7 @@ def find_logit_lens_clusters(
     saved_topk: int = DEFAULT_API_TOPK,
     saved_window: int = 5,
     saved_min_context_matches: int = 15,
+    saved_topk_fast_cache_dir: Optional[str] = None,
     timings: Optional[Dict[str, float]] = None
 ) -> Dict[str, List[Tuple[int, int, List[int]]]]:
     """
@@ -582,6 +660,15 @@ def find_logit_lens_clusters(
             top_contexts=saved_topk,
             window_size=saved_window,
             min_context_matches=saved_min_context_matches,
+        )
+    elif mode == "saved_topk_fast":
+        if not saved_topk_fast_cache_dir:
+            raise ValueError("saved_topk_fast is required when mode='saved_topk_fast'")
+        saved_pair_dict = build_saved_pair_dict_from_cached_files(
+            model,
+            entries,
+            filtered_uniq_ids,
+            cache_dir=saved_topk_fast_cache_dir,
         )
     else:
         raise ValueError(f"Unknown clustering mode '{mode}'.")

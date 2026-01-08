@@ -516,6 +516,7 @@ def run_automated_token_pipeline(
     cluster_api_model: Optional[str] = None,
     cluster_api_timeout: float = API_TIMEOUT,
     cluster_saved_dir: Optional[str] = "outputs/agg_per_layer_top20",
+    cluster_saved_cache_dir: Optional[str] = "cache/lt_cache_dir_win5_top20_match15",
     cluster_saved_topk: int = 20,
     use_augmented_docstring: bool = False,
     save_augmented_docstring: bool = False,
@@ -714,6 +715,7 @@ def run_automated_token_pipeline(
             cluster_api_timeout=cluster_api_timeout,
             cluster_saved_dir=cluster_saved_dir,
             cluster_saved_topk=cluster_saved_topk,
+            cluster_saved_cache_dir=cluster_saved_cache_dir,
             per_position=per_position,
         )
         
@@ -801,6 +803,7 @@ def run_single_token_analysis(
     cluster_api_timeout: float = API_TIMEOUT,
     cluster_saved_dir: Optional[str] = "outputs/agg_per_layer_top20",
     cluster_saved_topk: int = 20,
+    cluster_saved_cache_dir: Optional[str] = "cache/lt_cache_dir_win5_top20_match15",
     *,
     per_position: bool = False,
 ) -> Dict[str, Any]:
@@ -895,6 +898,7 @@ def run_single_token_analysis(
         api_timeout=cluster_api_timeout,
         saved_contexts_dir=cluster_saved_dir,
         saved_topk=cluster_saved_topk,
+        saved_topk_fast_cache_dir=cluster_saved_cache_dir,
         timings=timings
     )
     timings["clustering_s"] = time.perf_counter() - t0
@@ -1098,7 +1102,7 @@ def main():
     # Clustering options
     parser.add_argument(
         "--cluster-mode",
-        choices=["saved_topk", "logit_lens", "neuronpedia_topk"],
+        choices=["saved_topk", "logit_lens", "neuronpedia_topk", "saved_topk_fast"],
         default="saved_topk",
         help="Strategy for grouping latents (default: saved_topk)",
     )
@@ -1140,6 +1144,11 @@ def main():
         type=int,
         default=20,
         help="Top-k contexts per latent to use from saved files in saved_topk mode",
+    )
+    parser.add_argument(
+        "--cluster-saved-topk-fast-cache",
+        default="cache/lt_cache_dir_win5_top20_match15",
+        help="Window token match list for each token in saved_topk_fast mode"
     )
     
     # Data and output options
@@ -1228,6 +1237,7 @@ def main():
         cluster_api_timeout=args.cluster_api_timeout,
         cluster_saved_dir=args.cluster_saved_dir,
         cluster_saved_topk=args.cluster_saved_topk,
+        cluster_saved_cache_dir=args.cluster_saved_topk_fast_cache,
         save_augmented_docstring=args.save_augmented_docstring,
         use_augmented_docstring=args.use_augmented_docstring,
         use_nodocstring_prompt=args.no_docstring,

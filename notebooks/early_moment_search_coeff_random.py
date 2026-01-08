@@ -195,31 +195,33 @@ def _randomly_sample_latents(data, n = 5, label = "1"):
 labels = ["1", "x", "key"]
 n_vals = [1, 2, 5, 10, 20, 100]
 
-for label in labels:
-    for n in n_vals:
-        random_filtered_dict = _randomly_sample_latents(saved_pair_dict, n, label)
-        pos_steering = run_steering_sweep(
-            model=model,
-            saes=saes,
-            inter_toks_BL=inter_toks_BL,
-            saved_pair_dict=random_filtered_dict,
-            baseline_text=baseline_suffix,
-            coeff_grid=coeff_grid_local,
-            stop_tok=stop_token_id,
-            max_tokens=max_tokens_local,
-            return_tokens=False,
-        )
+# for label in labels:
+#     for n in n_vals:
+for i in range(10):
+    random_filtered_dict = _randomly_sample_latents(saved_pair_dict, 5, "1")
+    pos_steering = run_steering_sweep(
+        model=model,
+        saes=saes,
+        inter_toks_BL=inter_toks_BL,
+        saved_pair_dict=random_filtered_dict,
+        baseline_text=baseline_suffix,
+        coeff_grid=coeff_grid_local,
+        stop_tok=stop_token_id,
+        max_tokens=max_tokens_local,
+        return_tokens=False,
+    )
 
-        print(f"=== Randomly sampled latent check n = {n}, label = {label} ===")
-
-        for item in pos_steering.get(label, {}).get('steered', []):
-            coeff = item.get('coeff')
-            steered_text = item.get('steered_text', '')
-            if hasattr(steered_text, "tolist"):
-                try:
-                    steered_text = model.to_string(steered_text.tolist())
-                except Exception:
-                    steered_text = str(steered_text)
-            steered_preview = (steered_text[:200] if isinstance(steered_text, str) else str(steered_text)) \
-                .replace("\n", " ")
-            print(f"  coeff {coeff:>4}: " + steered_preview)
+    # print(f"=== Randomly sampled latent check n = {n}, label = {label} ===")
+    print(f"=== Randomly sampled latent check n = 5, label = \"1\" ===")
+    # for item in pos_steering.get(label, {}).get('steered', []):
+    for item in pos_steering.get("1", {}).get('steered', []):
+        coeff = item.get('coeff')
+        steered_text = item.get('steered_text', '')
+        if hasattr(steered_text, "tolist"):
+            try:
+                steered_text = model.to_string(steered_text.tolist())
+            except Exception:
+                steered_text = str(steered_text)
+        steered_preview = (steered_text[:200] if isinstance(steered_text, str) else str(steered_text)) \
+            .replace("\n", " ")
+        print(f"  coeff {coeff:>4}: " + steered_preview)
