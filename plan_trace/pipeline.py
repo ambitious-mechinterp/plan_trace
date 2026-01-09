@@ -503,6 +503,7 @@ def run_automated_token_pipeline(
     k_step: int = 10000,
     k_thres: float = 0.6,
     coeff_grid: List[int] = None,
+    per_position_coeff_grid: List[int] = None,  # Add this parameter
     stop_token_id: int = 1917,
     data_path: str = "data/first_100_passing_examples.json",
     save_outputs: bool = True,
@@ -676,6 +677,8 @@ def run_automated_token_pipeline(
             if diff_pos is not None:
                 start_analysis = diff_pos - pos_info_offset
                 end_analysis = min(diff_pos + pos_info_offset + 1, out_BL.shape[-1] - 1)
+        else:
+            print(f"Falling back on max_tokens from start analysis to end analysis - {max_tokens_to_analyze}")
 
     results = {
         "prompt_idx": prompt_idx,
@@ -704,6 +707,7 @@ def run_automated_token_pipeline(
             k_step=k_step,
             k_thres=k_thres,
             coeff_grid=coeff_grid,
+            per_position_coeff_grid=per_position_coeff_grid,
             stop_token_id=stop_token_id,
             verbose=verbose,
             return_tokens=return_tokens,
@@ -792,6 +796,7 @@ def run_single_token_analysis(
     k_step: int = 10000,
     k_thres: float = 0.6,
     coeff_grid: List[int] = None,
+    per_position_coeff_grid: List[int] = None,  # Add this parameter
     stop_token_id: int = 1917,
     verbose: bool = False,
     return_tokens: bool = True,
@@ -955,7 +960,7 @@ def run_single_token_analysis(
                 inter_toks_BL=inter_toks_BL,
                 saved_pair_dict=filtered,
                 baseline_text=baseline_suffix,
-                coeff_grid=coeff_grid,
+                coeff_grid=per_position_coeff_grid,
                 stop_tok=stop_token_id,
                 max_tokens=100,
                 return_tokens=return_tokens
@@ -1098,6 +1103,14 @@ def main():
                        help="Ending steering coefficient (default: 0)")
     parser.add_argument("--coeff-step", type=int, default=20,
                        help="Steering coefficient step size (default: 20)")
+    
+    # Per-position steering parameters
+    parser.add_argument("--per-position-coeff-start", type=int, default=-400,
+                    help="Starting coefficient for per-position steering (default: -400)")
+    parser.add_argument("--per-position-coeff-end", type=int, default=0,
+                    help="Ending coefficient for per-position steering (default: 0)")
+    parser.add_argument("--per-position-coeff-step", type=int, default=100,
+                    help="Coefficient step size for per-position steering (default: 100)")
 
     # Clustering options
     parser.add_argument(
@@ -1187,6 +1200,12 @@ def main():
     
     # Build coefficient grid
     coeff_grid = list(range(args.coeff_start, args.coeff_end, args.coeff_step))
+    # Build per-position coefficient grid (can be different from main grid)
+    per_position_coeff_grid = list(range(
+        args.per_position_coeff_start, 
+        args.per_position_coeff_end, 
+        args.per_position_coeff_step
+    ))
     
     print(f"Starting automated pipeline analysis:")
     print(f"  Prompt index: {args.prompt_idx}")
@@ -1195,6 +1214,8 @@ def main():
     print(f"  Max tokens to analyze: {args.max_tokens}")
     print(f"  Skip docstrings: {not args.include_docstrings}")
     print(f"  Steering coefficients: {coeff_grid}")
+    if args.per_position:
+        print(f"  Per-position coefficients: {per_position_coeff_grid}")
     print(f"  Cluster mode: {args.cluster_mode}")
     if args.cluster_mode == "logit_lens":
         print(f"  Cluster score threshold: {args.cluster_score_threshold}")
@@ -1225,6 +1246,7 @@ def main():
         k_step=args.k_step,
         k_thres=args.k_thres,
         coeff_grid=coeff_grid,
+        per_position_coeff_grid=per_position_coeff_grid,  # Add this line
         data_path=args.data_path,
         save_outputs=args.save,
         output_dir=args.output_dir,
