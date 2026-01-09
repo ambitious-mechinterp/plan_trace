@@ -141,14 +141,20 @@ def save_pipeline_results(
         if verbose:
             print(f"Saved planning analysis to: {planning_path}")
     
+    earliest_position = None
+
     if result.get("earliest_position") is not None:
         earliest_position_path = folder_path / "earliest_position.json"
-        earliest_position_dump = {
-            "position": result["earliest_position"],
-            "steering_results": result["earliest_position_steering_results"]
-        }
+        earliest_position_plan_path = folder_path / "earliest_position_planning_analysis.json"
+        earliest_position = result["earliest_position"]
+        # earliest_position_dump = {
+        #     "position": result["earliest_position"],
+        #     "steering_results": result["earliest_position_steering_results"]
+        # }
         with open(earliest_position_path, "w") as f:
-            json.dump(_json_safe_steering(earliest_position_dump), f, indent = 2)
+            json.dump(_json_safe_steering(result["earliest_position_steering_results"]), f, indent = 2)
+        with open(earliest_position_plan_path, "w") as f:
+            json.dump(result["earliest_position_planning_analysis"], f, indent = 2)
         if verbose:
             print(f"Saved earliest position details to {earliest_position_path}")
 
@@ -163,6 +169,7 @@ def save_pipeline_results(
         "num_circuit_entries": len(result["circuit_entries"]) if result["circuit_entries"] else 0,
         "num_clusters": len(result["clusters"]) if result["clusters"] else 0,
         "cluster_labels": list(result["clusters"].keys()) if result["clusters"] else [],
+        "earliest_position": earliest_position
     }
 
     # Optionally include tokenized inputs and baseline if provided in result
@@ -930,6 +937,7 @@ def run_single_token_analysis(
     
     earliest_position: Optional[int] = None
     earliest_position_steering_results: Optional[Dict[str, Dict[str, Any]]] = None
+    earliest_position_planning_analysis: Optional[Dict[str, str]] = None
     if per_position:
         per_pos_total_start = time.perf_counter()
         # Build sorted list of unique (layer, token_pos) pairs from the clusters
@@ -972,6 +980,7 @@ def run_single_token_analysis(
             if any(v["final_label"] == "Plan" for v in pos_labels.values()):
                 earliest_position = tok_pos
                 earliest_position_steering_results = pos_steering
+                earliest_position_planning_analysis = pos_labels
                 break
         
         
@@ -988,6 +997,7 @@ def run_single_token_analysis(
         "steering_results": steering_results,
         "earliest_position": earliest_position,
         "earliest_position_steering_results": earliest_position_steering_results,
+        "earliest_position_planning_analysis": earliest_position_planning_analysis,
         "baseline_text": baseline_suffix,
         "status": "success"
     }
