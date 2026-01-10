@@ -1,27 +1,46 @@
 #!/bin/bash
 
-START=0
-END=391
-BATCH_SIZE=30
+BATCH_SIZE=12
 
-PROMPTS=($(seq $START $END))
+# Explicit prompt list
+PROMPTS=(
+  14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29
+  41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59
+  66
+  84 85 86 87 88 89
+  106
+  115 116 117 118 119 120
+  129
+  148 149 152
+  167 168 169 170 171 172 173 174 175 176 177 178 179 180
+  203 204 205 206 207 208 209
+  229
+  233 234 235 236 237 238 239
+  244
+  265 266 267 268 269
+  279
+  293 294 295 296 297 298 299
+  356 357 358 359
+  373
+  384 385 386 387 388 389 390
+  166 202 264
+)
+
 TOTAL=${#PROMPTS[@]}
 
 i=0
 while [ $i -lt $TOTAL ]; do
-    # Extract the next batch of N prompts
+    # Take next batch
     BATCH=("${PROMPTS[@]:$i:$BATCH_SIZE}")
 
-    # Name the job using the first and last element of the batch
     BATCH_START=${BATCH[0]}
-    BATCH_END=${BATCH[-1]}
+    BATCH_END=${BATCH[${#BATCH[@]}-1]}
     JOB_NAME="scale_test_${BATCH_START}_${BATCH_END}_base"
 
-    echo "Submitting batch: ${BATCH[*]} with job name: $JOB_NAME"
+    echo "Submitting batch: ${BATCH[*]}"
+    echo "Job name: $JOB_NAME"
 
-    # Submit SLURM job with arguments
     sbatch --job-name="$JOB_NAME" script/all_exp_scale_base.sh "${BATCH[@]}"
 
-    # Move to next batch
     ((i+=BATCH_SIZE))
 done
