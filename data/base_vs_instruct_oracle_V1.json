@@ -205,8 +205,8 @@
     "base_pass": false,
     "base_plans": [],
     "instruct_plans": [
-      "return",
       "1",
+      "return",
       "["
     ],
     "base_cs": true,
@@ -238,9 +238,9 @@
     "base_pass": false,
     "base_plans": [],
     "instruct_plans": [
+      "+",
       "return",
-      "0",
-      "+"
+      "0"
     ],
     "base_cs": false,
     "instruct_cs": false,
@@ -296,9 +296,9 @@
     "base_pass": false,
     "base_plans": [],
     "instruct_plans": [
+      "+",
       "]",
-      "1",
-      "+"
+      "1"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -360,8 +360,8 @@
     "base_pass": false,
     "base_plans": [],
     "instruct_plans": [
-      "if",
-      "replace"
+      "replace",
+      "if"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -391,12 +391,12 @@
     "instruct_pass": true,
     "base_pass": true,
     "base_plans": [
-      "if",
-      "+"
+      "+",
+      "if"
     ],
     "instruct_plans": [
-      "()",
       "set",
+      "()",
       "if"
     ],
     "base_cs": true,
@@ -430,9 +430,9 @@
       "return"
     ],
     "instruct_plans": [
-      "%",
+      "1",
       "return",
-      "1"
+      "%"
     ],
     "base_cs": false,
     "instruct_cs": false,
@@ -462,13 +462,13 @@
     "instruct_pass": true,
     "base_pass": false,
     "base_plans": [
-      "%",
-      "return",
+      "while",
       "//",
-      "+",
-      "-",
       "*",
-      "while"
+      "return",
+      "-",
+      "+",
+      "%"
     ],
     "instruct_plans": [
       "*",
@@ -505,10 +505,10 @@
       "0"
     ],
     "instruct_plans": [
+      "-",
       "if",
       "+",
       "int",
-      "-",
       "()"
     ],
     "base_cs": true,
@@ -676,8 +676,8 @@
       "-"
     ],
     "instruct_plans": [
-      "-",
-      "+"
+      "+",
+      "-"
     ],
     "base_cs": false,
     "instruct_cs": false,
@@ -731,9 +731,9 @@
       "return"
     ],
     "instruct_plans": [
-      "return",
+      "+",
       "not",
-      "+"
+      "return"
     ],
     "base_cs": false,
     "instruct_cs": true,
@@ -888,8 +888,8 @@
     "instruct_pass": true,
     "base_pass": true,
     "base_plans": [
-      "for",
-      "return"
+      "return",
+      "for"
     ],
     "instruct_plans": [
       "return",
@@ -923,9 +923,9 @@
     "instruct_pass": true,
     "base_pass": true,
     "base_plans": [
+      "+",
       "return",
-      "if",
-      "+"
+      "if"
     ],
     "instruct_plans": [
       "-"
@@ -959,8 +959,8 @@
     "base_pass": false,
     "base_plans": [
       "return",
-      "-",
-      "//"
+      "//",
+      "-"
     ],
     "instruct_plans": [
       "int",
@@ -997,8 +997,8 @@
       "return"
     ],
     "instruct_plans": [
-      "for",
-      "return"
+      "return",
+      "for"
     ],
     "base_cs": true,
     "instruct_cs": false,
@@ -1089,8 +1089,8 @@
     "base_pass": true,
     "base_plans": [
       "return",
-      "0",
-      "2"
+      "2",
+      "0"
     ],
     "instruct_plans": [],
     "base_cs": true,
@@ -1189,8 +1189,8 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "for",
-      "return"
+      "return",
+      "for"
     ],
     "instruct_plans": [
       "sum"
@@ -1258,9 +1258,9 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
+      "+",
       "/",
-      "*",
-      "+"
+      "*"
     ],
     "instruct_plans": [
       "*",
@@ -1444,13 +1444,13 @@
     "base_pass": false,
     "base_plans": [
       "return",
+      "%",
       "-",
-      "0",
-      "%"
+      "0"
     ],
     "instruct_plans": [
-      "for",
       "return",
+      "for",
       "0"
     ],
     "base_cs": true,
@@ -1727,13 +1727,13 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "()",
-      "replace"
+      "replace",
+      "()"
     ],
     "instruct_plans": [
+      "1",
       "for",
-      "0",
-      "1"
+      "0"
     ],
     "base_cs": true,
     "instruct_cs": false,
@@ -1764,9 +1764,9 @@
     "base_pass": false,
     "base_plans": null,
     "instruct_plans": [
+      "+",
       "*",
-      "-",
-      "+"
+      "-"
     ],
     "base_cs": false,
     "instruct_cs": false,
@@ -1923,8 +1923,8 @@
     "base_pass": false,
     "base_plans": [],
     "instruct_plans": [
-      "()",
-      "return"
+      "return",
+      "()"
     ],
     "base_cs": true,
     "instruct_cs": false,
@@ -2019,14 +2019,14 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "*",
-      "+"
+      "+",
+      "*"
     ],
     "instruct_plans": [
+      "+",
       "*",
       "]",
-      "0",
-      "+"
+      "0"
     ],
     "base_cs": true,
     "instruct_cs": false,
@@ -2108,12 +2108,12 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "-",
-      "+"
+      "+",
+      "-"
     ],
     "instruct_plans": [
-      "return",
-      "+"
+      "+",
+      "return"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -2320,18 +2320,18 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "']",
-      "]",
       "1",
       "'",
+      "]",
+      "']",
       "()"
     ],
     "instruct_plans": [
-      "0",
-      "-",
-      "[",
+      "1",
       "]",
-      "1"
+      "[",
+      "-",
+      "0"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -2428,10 +2428,10 @@
       "2"
     ],
     "instruct_plans": [
-      "return",
-      "if",
-      "-",
       "*",
+      "return",
+      "-",
+      "if",
       "2"
     ],
     "base_cs": true,
@@ -2467,16 +2467,16 @@
       "/"
     ],
     "instruct_plans": [
-      "0",
-      "any",
       "**",
-      ")",
-      "[",
-      "be",
-      "The",
-      "]",
       "use",
-      "="
+      "]",
+      "any",
+      "[",
+      ")",
+      "The",
+      "=",
+      "be",
+      "0"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -2596,9 +2596,9 @@
       "+"
     ],
     "instruct_plans": [
+      "+",
       "for",
-      "if",
-      "+"
+      "if"
     ],
     "base_cs": false,
     "instruct_cs": false,
@@ -2658,8 +2658,8 @@
     "base_pass": false,
     "base_plans": [],
     "instruct_plans": [
-      "for",
       "return",
+      "for",
       "if"
     ],
     "base_cs": true,
@@ -2840,8 +2840,8 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "return",
-      "+"
+      "+",
+      "return"
     ],
     "instruct_plans": [],
     "base_cs": false,
@@ -2875,8 +2875,8 @@
       "return"
     ],
     "instruct_plans": [
-      "%",
-      "return"
+      "return",
+      "%"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -2907,8 +2907,8 @@
     "base_pass": false,
     "base_plans": [],
     "instruct_plans": [
-      ">>",
-      "+"
+      "+",
+      ">>"
     ],
     "base_cs": true,
     "instruct_cs": false,
@@ -3131,13 +3131,13 @@
     "instruct_pass": true,
     "base_pass": false,
     "base_plans": [
-      "return",
-      "sum",
-      "range",
-      "if",
-      "+",
       "&",
-      "for"
+      "range",
+      "sum",
+      "for",
+      "return",
+      "if",
+      "+"
     ],
     "instruct_plans": [
       "return"
@@ -3171,12 +3171,12 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "0",
       "!=",
-      "[",
       "for",
-      "2",
-      "))"
+      "[",
+      "))",
+      "0",
+      "2"
     ],
     "instruct_plans": [
       "return",
@@ -3241,9 +3241,9 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
+      "<<",
       "return",
-      "&",
-      "<<"
+      "&"
     ],
     "instruct_plans": [],
     "base_cs": true,
@@ -3277,9 +3277,9 @@
       "return"
     ],
     "instruct_plans": [
-      "()",
+      "+",
       "return",
-      "+"
+      "()"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -3544,9 +3544,9 @@
     ],
     "instruct_plans": [
       "**",
-      "0",
+      "2",
       "((",
-      "2"
+      "0"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -3644,10 +3644,10 @@
       "/"
     ],
     "instruct_plans": [
+      "+",
       "/",
       "return",
-      "))",
-      "+"
+      "))"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -4378,9 +4378,9 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
+      "+",
       "*",
-      "/",
-      "+"
+      "/"
     ],
     "instruct_plans": [
       "*"
@@ -4506,12 +4506,12 @@
     "instruct_pass": true,
     "base_pass": false,
     "base_plans": [
-      "return",
-      "1"
+      "1",
+      "return"
     ],
     "instruct_plans": [
-      "return",
-      "1"
+      "1",
+      "return"
     ],
     "base_cs": true,
     "instruct_cs": false,
@@ -4757,8 +4757,8 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "0",
-      "+"
+      "+",
+      "0"
     ],
     "instruct_plans": [],
     "base_cs": true,
@@ -4789,9 +4789,9 @@
     "instruct_pass": true,
     "base_pass": true,
     "base_plans": [
-      "for",
+      "+",
       "return",
-      "+"
+      "for"
     ],
     "instruct_plans": [],
     "base_cs": true,
@@ -4891,8 +4891,8 @@
       "**"
     ],
     "instruct_plans": [
-      "==",
-      "return"
+      "return",
+      "=="
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -4927,8 +4927,8 @@
     ],
     "instruct_plans": [
       "+",
-      "return",
       "not",
+      "return",
       "["
     ],
     "base_cs": true,
@@ -5021,8 +5021,8 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "),",
-      "+"
+      "+",
+      "),"
     ],
     "instruct_plans": [
       "-"
@@ -5055,8 +5055,8 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "return",
-      "+"
+      "+",
+      "return"
     ],
     "instruct_plans": [],
     "base_cs": true,
@@ -5394,8 +5394,8 @@
     "instruct_pass": true,
     "base_pass": true,
     "base_plans": [
-      "return",
-      "len"
+      "len",
+      "return"
     ],
     "instruct_plans": [
       "for",
@@ -5489,8 +5489,8 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "for",
-      "return"
+      "return",
+      "for"
     ],
     "instruct_plans": [],
     "base_cs": true,
@@ -5689,8 +5689,8 @@
     "base_pass": true,
     "base_plans": [],
     "instruct_plans": [
-      "%",
-      "return"
+      "return",
+      "%"
     ],
     "base_cs": false,
     "instruct_cs": false,
@@ -5723,11 +5723,11 @@
       "return"
     ],
     "instruct_plans": [
+      "for",
       "return",
-      "0",
       "int",
       "import",
-      "for"
+      "0"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -5823,8 +5823,8 @@
     "base_pass": false,
     "base_plans": [],
     "instruct_plans": [
-      "()",
-      "]"
+      "]",
+      "()"
     ],
     "base_cs": true,
     "instruct_cs": false,
@@ -5952,8 +5952,8 @@
       "return"
     ],
     "instruct_plans": [
-      "for",
-      "return"
+      "return",
+      "for"
     ],
     "base_cs": false,
     "instruct_cs": true,
@@ -5983,16 +5983,16 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "for",
       "return",
+      "for",
       "if"
     ],
     "instruct_plans": [
-      "0",
-      "if",
+      "1",
       "elements",
+      "if",
       "+",
-      "1"
+      "0"
     ],
     "base_cs": true,
     "instruct_cs": false,
@@ -6117,8 +6117,8 @@
     "instruct_pass": true,
     "base_pass": false,
     "base_plans": [
-      "]",
-      "+"
+      "+",
+      "]"
     ],
     "instruct_plans": [],
     "base_cs": true,
@@ -6149,9 +6149,9 @@
     "instruct_pass": true,
     "base_pass": false,
     "base_plans": [
+      "**",
       "/",
       "return",
-      "**",
       "+"
     ],
     "instruct_plans": [
@@ -6311,14 +6311,14 @@
     "instruct_pass": true,
     "base_pass": true,
     "base_plans": [
-      "gap",
-      "return",
       "while",
-      "-"
+      "return",
+      "-",
+      "gap"
     ],
     "instruct_plans": [
-      "-",
-      "+"
+      "+",
+      "-"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -6351,8 +6351,8 @@
       "sum"
     ],
     "instruct_plans": [
-      "for",
-      "+"
+      "+",
+      "for"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -6386,9 +6386,9 @@
       "*"
     ],
     "instruct_plans": [
+      "+",
       "/",
-      "((",
-      "+"
+      "(("
     ],
     "base_cs": true,
     "instruct_cs": false,
@@ -6448,8 +6448,8 @@
     "base_pass": false,
     "base_plans": [],
     "instruct_plans": [
-      "/",
-      "+"
+      "+",
+      "/"
     ],
     "base_cs": true,
     "instruct_cs": false,
@@ -6500,8 +6500,8 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "return",
-      "1"
+      "1",
+      "return"
     ],
     "instruct_plans": [],
     "base_cs": false,
@@ -6595,8 +6595,8 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "()",
-      "return"
+      "return",
+      "()"
     ],
     "instruct_plans": [
       "return"
@@ -6661,16 +6661,16 @@
       "+"
     ],
     "instruct_plans": [
-      "return",
-      "\\",
-      "if",
-      "match",
       "(),",
+      "return",
       "-",
+      "if",
       "pattern",
-      "?",
+      "match",
+      "(-",
       "))",
-      "(-"
+      "?",
+      "\\"
     ],
     "base_cs": false,
     "instruct_cs": true,
@@ -7016,8 +7016,8 @@
       "-"
     ],
     "instruct_plans": [
-      "-",
-      "price"
+      "price",
+      "-"
     ],
     "base_cs": false,
     "instruct_cs": false,
@@ -7285,8 +7285,8 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "for",
-      "return"
+      "return",
+      "for"
     ],
     "instruct_plans": [
       "return"
@@ -7384,9 +7384,9 @@
     "instruct_pass": true,
     "base_pass": true,
     "base_plans": [
-      "]",
-      "key",
       "!=",
+      "key",
+      "]",
       "["
     ],
     "instruct_plans": [
@@ -7420,11 +7420,11 @@
     "instruct_pass": true,
     "base_pass": false,
     "base_plans": [
+      "]",
+      "[",
       "return",
       "if",
-      "key",
-      "[",
-      "]"
+      "key"
     ],
     "instruct_plans": [],
     "base_cs": true,
@@ -7491,8 +7491,8 @@
     ],
     "instruct_plans": [
       "return",
-      "-",
-      "]"
+      "]",
+      "-"
     ],
     "base_cs": true,
     "instruct_cs": false,
@@ -7773,8 +7773,8 @@
     "instruct_pass": true,
     "base_pass": true,
     "base_plans": [
-      "for",
       "%",
+      "for",
       "if"
     ],
     "instruct_plans": [
@@ -7809,10 +7809,10 @@
     "base_pass": true,
     "base_plans": null,
     "instruct_plans": [
-      "for",
-      "-",
       "**",
-      "range"
+      "for",
+      "range",
+      "-"
     ],
     "base_cs": false,
     "instruct_cs": false,
@@ -7842,13 +7842,13 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "%",
-      "j",
-      "if",
       "range",
-      "+",
       "for",
-      "^"
+      "j",
+      "^",
+      "if",
+      "+",
+      "%"
     ],
     "instruct_plans": [],
     "base_cs": true,
@@ -8110,8 +8110,8 @@
     "instruct_pass": true,
     "base_pass": true,
     "base_plans": [
-      "return",
-      "+"
+      "+",
+      "return"
     ],
     "instruct_plans": [
       "-"
@@ -8198,8 +8198,8 @@
     "instruct_pass": false,
     "base_pass": true,
     "base_plans": [
-      "for",
-      "return"
+      "return",
+      "for"
     ],
     "instruct_plans": [],
     "base_cs": true,
@@ -8261,13 +8261,13 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
+      "+",
       "*",
-      "**",
-      "+"
+      "**"
     ],
     "instruct_plans": [
-      "*",
-      "+"
+      "+",
+      "*"
     ],
     "base_cs": true,
     "instruct_cs": false,
@@ -8366,8 +8366,8 @@
       "for"
     ],
     "instruct_plans": [
-      "[]",
-      "return"
+      "return",
+      "[]"
     ],
     "base_cs": true,
     "instruct_cs": false,
@@ -8514,11 +8514,11 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
+      "]",
+      "[",
       "return",
       "if",
-      "+",
-      "[",
-      "]"
+      "+"
     ],
     "instruct_plans": [
       "()"
@@ -8739,8 +8739,8 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "0",
-      "],"
+      "],",
+      "0"
     ],
     "instruct_plans": [
       "-"
@@ -8773,10 +8773,10 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
+      "+",
       "*",
       "return",
-      "))",
-      "+"
+      "))"
     ],
     "instruct_plans": [],
     "base_cs": true,
@@ -8808,9 +8808,9 @@
     "base_pass": false,
     "base_plans": [],
     "instruct_plans": [
-      "for",
-      "[]",
       "return",
+      "[]",
+      "for",
       "if"
     ],
     "base_cs": true,
@@ -8874,11 +8874,11 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "return",
-      "if",
-      "[",
       "for",
-      "]"
+      "]",
+      "[",
+      "return",
+      "if"
     ],
     "instruct_plans": [
       "%",
@@ -9039,10 +9039,10 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "if",
+      "[",
       "return",
       "]",
-      "["
+      "if"
     ],
     "instruct_plans": [
       "]"
@@ -9109,8 +9109,8 @@
       "#"
     ],
     "instruct_plans": [
-      "()",
-      "return"
+      "return",
+      "()"
     ],
     "base_cs": true,
     "instruct_cs": false,
@@ -9205,9 +9205,9 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
+      "+",
       "else",
-      "-",
-      "+"
+      "-"
     ],
     "instruct_plans": [
       "for",
@@ -9243,8 +9243,8 @@
     "base_pass": false,
     "base_plans": [],
     "instruct_plans": [
-      "-",
-      "+"
+      "+",
+      "-"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -9436,19 +9436,19 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "-",
-      "+"
+      "+",
+      "-"
     ],
     "instruct_plans": [
-      "return",
-      "+",
-      "-",
-      "')",
-      "else",
+      "]",
+      "('",
       "[",
       "*",
-      "]",
-      "('"
+      "')",
+      "return",
+      "-",
+      "+",
+      "else"
     ],
     "base_cs": false,
     "instruct_cs": true,
@@ -9664,8 +9664,8 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "0",
-      "],"
+      "],",
+      "0"
     ],
     "instruct_plans": [],
     "base_cs": true,
@@ -9759,8 +9759,8 @@
     "instruct_pass": true,
     "base_pass": false,
     "base_plans": [
-      "else",
-      "return"
+      "return",
+      "else"
     ],
     "instruct_plans": [
       "_"
@@ -9796,12 +9796,12 @@
       "return"
     ],
     "instruct_plans": [
-      "where",
-      "that",
       "of",
       "(",
       "from",
-      "in"
+      "that",
+      "in",
+      "where"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -9860,8 +9860,8 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "for",
-      "^"
+      "^",
+      "for"
     ],
     "instruct_plans": [],
     "base_cs": true,
@@ -9892,19 +9892,19 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "return",
-      "j",
-      "if",
+      "],",
       "range",
+      "j",
+      "return",
       "len",
-      "],"
+      "if"
     ],
     "instruct_plans": [
-      "return",
-      "+",
-      "-",
       "!=",
-      "*"
+      "*",
+      "return",
+      "-",
+      "+"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -9969,8 +9969,8 @@
     ],
     "instruct_plans": [
       "*",
-      "-",
-      "(("
+      "((",
+      "-"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -10030,8 +10030,8 @@
     "base_pass": false,
     "base_plans": [],
     "instruct_plans": [
-      "return",
       "0",
+      "return",
       "char",
       "if"
     ],
@@ -10063,13 +10063,13 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
+      "+",
       "/",
-      "*",
-      "+"
+      "*"
     ],
     "instruct_plans": [
-      "*",
-      "+"
+      "+",
+      "*"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -10101,8 +10101,8 @@
     "base_plans": [],
     "instruct_plans": [
       "return",
-      "-",
-      "range"
+      "range",
+      "-"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -10285,8 +10285,8 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "()",
       "return",
+      "()",
       "if"
     ],
     "instruct_plans": [
@@ -10546,11 +10546,11 @@
     "base_pass": false,
     "base_plans": [],
     "instruct_plans": [
-      "0",
-      "+",
       "else",
-      "right",
-      "mid"
+      "+",
+      "mid",
+      "0",
+      "right"
     ],
     "base_cs": true,
     "instruct_cs": false,
@@ -10707,8 +10707,8 @@
     "instruct_pass": false,
     "base_pass": true,
     "base_plans": [
-      "for",
       "]",
+      "for",
       "["
     ],
     "instruct_plans": [
@@ -10749,8 +10749,8 @@
     "instruct_plans": [
       "/",
       "*",
-      "-",
-      "))"
+      "))",
+      "-"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -10874,9 +10874,9 @@
       "/"
     ],
     "instruct_plans": [
+      "**",
       "/",
-      "*",
-      "**"
+      "*"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -11047,8 +11047,8 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "else",
-      "+"
+      "+",
+      "else"
     ],
     "instruct_plans": [],
     "base_cs": false,
@@ -11112,8 +11112,8 @@
       "return"
     ],
     "instruct_plans": [
-      "()",
-      "return"
+      "return",
+      "()"
     ],
     "base_cs": true,
     "instruct_cs": false,
@@ -11614,9 +11614,9 @@
     "base_pass": false,
     "base_plans": [],
     "instruct_plans": [
+      "),",
       "-",
-      "0",
-      "),"
+      "0"
     ],
     "base_cs": false,
     "instruct_cs": false,
@@ -11646,8 +11646,8 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "',",
       "return",
+      "',",
       "]",
       "-"
     ],
@@ -11751,13 +11751,13 @@
     "instruct_pass": true,
     "base_pass": false,
     "base_plans": [
-      "return",
-      "+"
+      "+",
+      "return"
     ],
     "instruct_plans": [
       "int",
-      "return",
-      "="
+      "=",
+      "return"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -11811,11 +11811,11 @@
     "base_pass": false,
     "base_plans": [],
     "instruct_plans": [
-      "%",
-      "+",
       "elif",
       "*",
-      "((("
+      "(((",
+      "+",
+      "%"
     ],
     "base_cs": true,
     "instruct_cs": false,
@@ -11965,8 +11965,8 @@
       "if"
     ],
     "instruct_plans": [
-      "0",
-      "),"
+      "),",
+      "0"
     ],
     "base_cs": false,
     "instruct_cs": false,
@@ -12062,10 +12062,10 @@
     "base_pass": true,
     "base_plans": [],
     "instruct_plans": [
-      "return",
-      "-",
       "1",
-      "!="
+      "!=",
+      "return",
+      "-"
     ],
     "base_cs": true,
     "instruct_cs": false,
@@ -12191,9 +12191,9 @@
     "base_pass": true,
     "base_plans": [],
     "instruct_plans": [
-      "-",
+      "&",
       "((",
-      "&"
+      "-"
     ],
     "base_cs": true,
     "instruct_cs": false,
@@ -12434,8 +12434,8 @@
     "instruct_pass": true,
     "base_pass": true,
     "base_plans": [
-      "%",
       "return",
+      "%",
       "0",
       "if"
     ],
