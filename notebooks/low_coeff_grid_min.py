@@ -195,13 +195,40 @@ def _filter_tokens_first_change(all_tokens, token_map):
     return filtered
 
 
-def update_earliest_position_planning(scale_folder, output_root, max_coeff, token_map=None):
+def _filter_tokens_first_two_changes(all_tokens, token_map):
+    filtered = []
+    for token_planning_folder in all_tokens:
+        prompt_idx, token_idx = _parse_prompt_token(token_planning_folder)
+        if prompt_idx is None:
+            continue
+        bucket = token_map.get(prompt_idx)
+        if not bucket:
+            continue
+        if "/base/" in token_planning_folder and token_idx in (
+            bucket["base"],
+            bucket["base"] + 1,
+        ):
+            filtered.append(token_planning_folder)
+        elif "/instruct/" in token_planning_folder and token_idx in (
+            bucket["instruct"],
+            bucket["instruct"] + 1,
+        ):
+            filtered.append(token_planning_folder)
+    return filtered
+
+
+def update_earliest_position_planning(
+    scale_folder, output_root, max_coeff, token_map=None, position_mode="all"
+):
     all_tokens = [
         *glob.glob(os.path.join(scale_folder, "base", "*", "*")),
         *glob.glob(os.path.join(scale_folder, "instruct", "*", "*")),
     ]
     if token_map is not None:
-        all_tokens = _filter_tokens_first_change(all_tokens, token_map)
+        if position_mode == "first_change":
+            all_tokens = _filter_tokens_first_change(all_tokens, token_map)
+        elif position_mode == "first_two_changes":
+            all_tokens = _filter_tokens_first_two_changes(all_tokens, token_map)
 
     for token_planning_folder in all_tokens:
         metadata = load_json(os.path.join(token_planning_folder, "metadata.json"))
@@ -410,6 +437,8 @@ def _build_output_paths(output_base, max_coeff, desc, output_root, plot_path, po
     mode_tag = ""
     if position_mode == "first_change":
         mode_tag = "_first_change"
+    elif position_mode == "first_two_changes":
+        mode_tag = "_first_two_changes"
     suffix = f"_{desc}" if desc else ""
     resolved_output_root = output_root or os.path.join(
         output_base, f"scale_bvi_{coeff_tag}{mode_tag}{suffix}"
@@ -434,9 +463,12 @@ def main():
     parser.add_argument("--desc", default="")
     parser.add_argument(
         "--position-mode",
-        choices=["all", "first_change"],
+        choices=["all", "first_change", "first_two_changes"],
         default="all",
-        help="Use all tokens or only the first base/instruct token positions.",
+        help=(
+            "Use all tokens, only the first base/instruct token positions, "
+            "or the first two positions."
+        ),
     )
     args = parser.parse_args()
 
@@ -451,11 +483,15 @@ def main():
 
     data = load_json(args.data_path)
     token_map = None
-    if args.position_mode == "first_change":
+    if args.position_mode in {"first_change", "first_two_changes"}:
         token_map = _build_position_token_map(data)
 
     update_earliest_position_planning(
-        args.scale_folder, output_root, args.max_coeff, token_map=token_map
+        args.scale_folder,
+        output_root,
+        args.max_coeff,
+        token_map=token_map,
+        position_mode=args.position_mode,
     )
 
     add_earliest_plan_fields(data, output_root)
@@ -463,6 +499,8 @@ def main():
     title_bits = [f"max_coeff={args.max_coeff}"]
     if args.position_mode == "first_change":
         title_bits.append("first_change")
+    elif args.position_mode == "first_two_changes":
+        title_bits.append("first_two_changes")
     if args.desc:
         title_bits.append(args.desc)
     plot_title = "4x4 Grid (" + ", ".join(title_bits) + ")"
