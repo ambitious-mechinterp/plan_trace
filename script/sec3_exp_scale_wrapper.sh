@@ -3,7 +3,9 @@
 BATCH_SIZE=1
 
 # Prompts from 1 to 10
-PROMPTS=($(seq 1 10))
+# PROMPTS=($(seq 1 10))
+# PROMPTS=($(seq 11 40))
+PROMPTS=($(seq 41 100))
 
 TOTAL=${#PROMPTS[@]}
 
