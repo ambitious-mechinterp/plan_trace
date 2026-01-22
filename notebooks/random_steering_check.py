@@ -32,6 +32,19 @@ MAX_TOKENS = 100
 PLANNING_FILES = ("earliest_position_planning_analysis.json", "planning_analysis.json")
 STEERING_FILES = ("earliest_position.json", "steering_results.json")
 
+
+# %% 
+
+rng = random.Random(SEED)
+model = load_model(MODEL_NAME, device=DEVICE, use_custom_cache=True, dtype=torch.bfloat16)
+layers = list(range(model.cfg.n_layers))
+saes = load_pretrained_saes(
+    layers=layers,
+    release="gemma-scope-2b-pt-mlp-canonical",
+    width="16k",
+    device=DEVICE,
+    canon=True,
+)
 # %%
 
 def run_random_steer_eval_and_min_coeff(
@@ -298,12 +311,393 @@ TODOs for scaling this experiment across many prompts/tokens:
    - Keep logs: selected positions, removed_future list, and found_min_coeff for debugging
 
 6) Parallelization/efficiency
-   - Batch prompts by model warm state, reuse model/SAE loads
+   - Reuse model/SAE loads
    - Cache tokens/out_BL per prompt_idx
    - Consider smaller step_coeff for finer search near 0 if needed
 """
 # %% 
 
+# Scaling implementation for the TODOs above.
+from plan_trace.steering import run_steering_sweep
+from plan_trace.ood_detect import label_steering_clusters
+
+DRIVER_JSON_CANDIDATES = [
+    ROOT_DIR / "data" / "base_vs_instruct_oracle_c200.json",
+    Path("/work/pi_jensen_umass_edu/jnainani_umass_edu/plan_trace/data/base_vs_instruct_oracle_c200.json"),
+]
+PROMPT_DATA_CANDIDATES = [
+    ROOT_DIR / "data" / "external" / "sanitized-mbpp.json",
+    Path("/work/pi_jensen_umass_edu/jnainani_umass_edu/plan_trace/data/external/sanitized-mbpp.json"),
+]
+OG_PARENT_DIR = Path("/work/pi_jensen_umass_edu/jnainani_umass_edu/plan_trace/")
+SCALE_OUTPUT_ROOT = OG_PARENT_DIR / "outputs" / "scale_bvi_c200_first_change"
+SCALE_DATA_OUTPUT_ROOT = PARENT_DIR / "outputs" / "all_scale"
+UPDATED_ANALYSIS_NAME = "updated_planning_analysis.json"
+AUGMENTED_ANALYSIS_NAME = "updated_planning_analysis_random_steer.json"
+
+STOP_TOKEN_ID = 1917
+GEN_LIMIT = 150
+POSITION_SAMPLE_RATIO = 0.2
+PER_POSITION_LATENTS_M = 5
+STEP_COEFF = 25
+
+MAX_RECORDS: Optional[int] = 100 # None  # set to an int for a quick smoke run
+MAX_FUTURES_PER_TOKEN: Optional[int] = None  # cap futures evaluated per token
+PRINT_FIRST_N = 3
+
+# %%
+def _resolve_first_existing(paths: Iterable[Path]) -> Optional[Path]:
+    for p in paths:
+        if p.exists():
+            return p
+    return None
+
+
+def _load_json(path: Path) -> Any:
+    with open(path, "r") as f:
+        return json.load(f)
+
+
+def _build_prompt(entry: Dict[str, Any]) -> str:
+    return (
+        "You are an expert Python programmer, and here is your task: "
+        f"{entry['prompt']} Your code should pass these tests:\n\n"
+        + "\n".join(entry["test_list"])
+        + "\nWrite your code, without docstrings, below starting with \"```python\" and ending with \"```\".\n```python\n"
+    )
+
+
+def _get_prompt_cache(
+    prompt_idx: int,
+    *,
+    model,
+    device: str,
+    data: Sequence[Dict[str, Any]],
+    cache: Dict[int, Dict[str, Any]],
+) -> Dict[str, Any]:
+    if prompt_idx in cache:
+        return cache[prompt_idx]
+
+    entry = data[prompt_idx + 1]
+    prompt = _build_prompt(entry)
+    toks_BL = model.to_tokens(prompt).to(device)
+    out_BL = toks_BL.clone()
+
+    while out_BL.shape[-1] - toks_BL.shape[-1] < GEN_LIMIT:
+        with torch.no_grad():
+            logits_V = model(out_BL)[0, -1]
+        next_id = logits_V.argmax(-1).item()
+        del logits_V
+        if next_id == STOP_TOKEN_ID:
+            break
+        out_BL = torch.cat([out_BL, torch.tensor([[next_id]], device=device)], dim=1)
+
+    cache[prompt_idx] = {"entry": entry, "prompt": prompt, "out_BL": out_BL}
+    return cache[prompt_idx]
+
+
+def _find_earliest_planning_position(
+    *,
+    model,
+    saes,
+    out_BL: torch.Tensor,
+    baseline_suffix: str,
+    token_i: int,
+    selected_label: str,
+    clusters: Dict[str, Any],
+) -> Tuple[Optional[int], Optional[Dict[str, Any]], Optional[Dict[str, Any]]]:
+    if selected_label not in clusters:
+        return None, None, None
+
+    pairs_for_label = clusters[selected_label]
+    positions = sorted({
+        tok_pos
+        for (_li, _latent_i, tok_positions) in pairs_for_label
+        for tok_pos in tok_positions
+    })
+    inter_toks_BL = out_BL[:, :token_i]
+
+    for tok_pos in positions:
+        filtered = {selected_label: []}
+        for li, latent_i, tok_positions in pairs_for_label:
+            if tok_pos in tok_positions:
+                filtered[selected_label].append([li, latent_i, [tok_pos]])
+
+        pos_steering = run_steering_sweep(
+            model=model,
+            saes=saes,
+            inter_toks_BL=inter_toks_BL,
+            saved_pair_dict=filtered,
+            baseline_text=baseline_suffix,
+            coeff_grid=[TARGET_COEFF],
+            stop_tok=STOP_TOKEN_ID,
+            max_tokens=MAX_TOKENS,
+            return_tokens=True,
+        )
+        pos_labels = label_steering_clusters(pos_steering, model=model, prefix_tokens_2d=inter_toks_BL)
+        final_label = pos_labels.get(selected_label, {}).get("final_label", "Can't say")
+        if final_label == "Plan":
+            return tok_pos, pos_steering, pos_labels
+
+    return None, None, None
+
+
+def _steered_text_to_str(val: Any, *, model) -> str:
+    if hasattr(val, "tolist"):
+        return model.to_string(val.tolist())
+    if isinstance(val, list):
+        return model.to_string(val)
+    return str(val)
+
+
+def _serialize_latents(latents: Sequence[Tuple[int, int]]) -> List[List[int]]:
+    return [[int(li), int(latent_i)] for (li, latent_i) in latents]
+
+
+def _serialize_removed_future(
+    removed_future: Sequence[Tuple[int, Sequence[Tuple[int, int]], str]],
+    *,
+    text_limit: int = 1000,
+) -> List[Dict[str, Any]]:
+    out: List[Dict[str, Any]] = []
+    for pos, latents, text in removed_future:
+        out.append({
+            "pos": int(pos),
+            "latents": _serialize_latents(latents),
+            "steered_text": text[:text_limit],
+        })
+    return out
+
+# %%
+driver_path = _resolve_first_existing(DRIVER_JSON_CANDIDATES)
+if driver_path is None:
+    raise FileNotFoundError("Could not locate driver JSON for base_vs_instruct_oracle_c200.")
+
+prompt_data_path = _resolve_first_existing(PROMPT_DATA_CANDIDATES)
+if prompt_data_path is None:
+    raise FileNotFoundError("Could not locate sanitized-mbpp.json for prompts.")
+
+driver_records = _load_json(driver_path)
+if isinstance(driver_records, dict) and "records" in driver_records:
+    driver_records = driver_records["records"]
+
+prompt_data = _load_json(prompt_data_path)
+prompt_cache: Dict[int, Dict[str, Any]] = {}
+task_id_to_index: Dict[int, int] = {}
+for idx, entry in enumerate(prompt_data):
+    try:
+        task_id = int(entry.get("task_id"))
+    except Exception:
+        continue
+    # Keep the first index if duplicates exist.
+    # NOTE: outputs were created with PROMPT_IDX where entry = data[PROMPT_IDX + 1],
+    # so prompt_idx is (data_index - 1).
+    task_id_to_index.setdefault(task_id, idx - 1)
+
+
+# %%
+
+stats = {
+    "records_total": len(driver_records),
+    "records_skipped_no_analysis": 0,
+    "records_processed": 0,
+    "futures_total": 0,
+    "futures_evaluated": 0,
+    "futures_skipped": 0,
+    "futures_not_planning": 0,
+}
+printed_samples = 0
+for rec_i, rec in enumerate(driver_records):
+    if MAX_RECORDS is not None and rec_i >= MAX_RECORDS:
+        break
+
+    mode = rec.get("mode", "instruct")
+    if mode != "instruct":
+        continue
+
+    task_id = rec.get("task_id")
+    if task_id is None:
+        print(f"Skipping record with missing task_id: {rec}")
+        continue
+    task_id = int(task_id)
+    prompt_idx = task_id_to_index.get(task_id)
+    if prompt_idx is None:
+        print(f"Skipping task_id={task_id}: not found in sanitized-mbpp.json")
+        continue
+    if prompt_idx < 0:
+        print(f"Skipping task_id={task_id}: mapped prompt_idx={prompt_idx} invalid")
+        continue
+
+    position_info = rec.get("position_info", {})
+    token_idx = position_info.get("instruct_token_pos")
+    if token_idx is None:
+        print(f"Skipping task_id={task_id}: missing instruct_token_pos")
+        continue
+    token_idx = int(token_idx)
+
+    token_dir = SCALE_OUTPUT_ROOT / mode / f"prompt_{prompt_idx}" / f"token_{token_idx}"
+    token_data_dir = SCALE_DATA_OUTPUT_ROOT / mode / f"prompt_{prompt_idx}" / f"token_{token_idx}"
+    analysis_path = token_dir / UPDATED_ANALYSIS_NAME
+    circuit_path = token_data_dir / "circuit_entries.pt"
+    if not analysis_path.exists() or not circuit_path.exists():
+        stats["records_skipped_no_analysis"] += 1
+        continue
+
+    analysis = _load_json(analysis_path)
+    futures = []
+    for future_tok, verdicts in analysis.items():
+        if not isinstance(verdicts, dict):
+            continue
+        v0 = verdicts.get("original_verdict")
+        v1 = verdicts.get("new_verdict")
+        if (v0 in {"Plan", "Can't say"}) or (v1 in {"Plan", "Can't say"}):
+            futures.append(future_tok)
+
+    stats["futures_total"] += len(futures)
+    if MAX_FUTURES_PER_TOKEN is not None:
+        futures = futures[:MAX_FUTURES_PER_TOKEN]
+
+    if not futures:
+        stats["records_processed"] += 1
+        continue
+
+    if printed_samples < PRINT_FIRST_N:
+        try:
+            sample_entry = prompt_data[prompt_idx]
+            sample_prompt = sample_entry.get("prompt", "")
+        except Exception:
+            sample_prompt = ""
+        print(
+            f"[sample {rec_i}] task_id={task_id} prompt_idx={prompt_idx} "
+            f"token_idx={token_idx} prompt='{sample_prompt[:120]}'"
+        )
+        printed_samples += 1
+
+    cache_entry = _get_prompt_cache(
+        prompt_idx,
+        model=model,
+        device=DEVICE,
+        data=prompt_data,
+        cache=prompt_cache,
+    )
+    out_BL = cache_entry["out_BL"]
+
+    if token_idx >= out_BL.shape[-1]:
+        print(f"Skipping prompt {prompt_idx}, token {token_idx}: token_idx out of range.")
+        stats["records_processed"] += 1
+        continue
+
+    baseline_suffix = model.to_string(out_BL[0, token_idx:])
+
+    circuit_path = token_data_dir / "circuit_entries.pt"
+    clusters_path = token_data_dir / "clusters.json"
+    if (not circuit_path.exists()) or (not clusters_path.exists()):
+        print(f"Skipping prompt {prompt_idx}, token {token_idx}: missing circuit/clusters.")
+        stats["records_processed"] += 1
+        continue
+
+    circuit_entries = torch.load(circuit_path, map_location="cpu")
+    clusters = _load_json(clusters_path)
+
+    for future_tok in futures:
+        stats["futures_evaluated"] += 1
+        selected_label = future_tok
+
+        earliest_position_found, earliest_pos_steering, _pos_labels = _find_earliest_planning_position(
+            model=model,
+            saes=saes,
+            out_BL=out_BL,
+            baseline_suffix=baseline_suffix,
+            token_i=token_idx,
+            selected_label=selected_label,
+            clusters=clusters,
+        )
+
+        if earliest_position_found is None or earliest_pos_steering is None:
+            analysis.setdefault(selected_label, {})["random_steer_debug"] = {
+                "skipped_reason": "no_earliest_planning_position",
+            }
+            stats["futures_skipped"] += 1
+            continue
+
+        pairs_for_label = clusters.get(selected_label, [])
+        earliest_latents: List[Tuple[int, int]] = []
+        for li, latent_i, tok_positions in pairs_for_label:
+            if earliest_position_found in tok_positions:
+                earliest_latents.append((int(li), int(latent_i)))
+
+        if not earliest_latents:
+            analysis.setdefault(selected_label, {})["random_steer_debug"] = {
+                "skipped_reason": "no_latents_at_earliest_position",
+            }
+            stats["futures_skipped"] += 1
+            continue
+
+        ref_entries = earliest_pos_steering[selected_label]["steered"]
+        ref_entry = next((e for e in ref_entries if e.get("coeff") == TARGET_COEFF), None)
+        if ref_entry is None and ref_entries:
+            ref_entry = ref_entries[0]
+        if ref_entry is None:
+            analysis.setdefault(selected_label, {})["random_steer_debug"] = {
+                "skipped_reason": "no_reference_steered_entry",
+            }
+            stats["futures_skipped"] += 1
+            continue
+
+        reference_steered_text = _steered_text_to_str(ref_entry.get("steered_text"), model=model)
+
+        random_eval = run_random_steer_eval_and_min_coeff(
+            model=model,
+            saes=saes,
+            out_BL=out_BL,
+            baseline_suffix=baseline_suffix,
+            selected_label=selected_label,
+            target_coeff=TARGET_COEFF,
+            stop_tok=STOP_TOKEN_ID,
+            max_tokens=MAX_TOKENS,
+            token_i=token_idx,
+            circuit_entries=circuit_entries,
+            earliest_position_found=earliest_position_found,
+            earliest_latents=earliest_latents,
+            reference_steered_text=reference_steered_text,
+            rng_obj=rng,
+            position_sample_ratio=POSITION_SAMPLE_RATIO,
+            per_position_latents_m=PER_POSITION_LATENTS_M,
+            step_coeff=STEP_COEFF,
+            verbose=False,
+        )
+
+        existing_verdict = analysis.get(selected_label, {}).get("new_verdict")
+        if existing_verdict is None:
+            existing_verdict = analysis.get(selected_label, {}).get("original_verdict")
+        new_new_verdict = existing_verdict
+
+        if random_eval.get("removed_future") and random_eval.get("found_min_coeff") is None:
+            new_new_verdict = "Not planning"
+            stats["futures_not_planning"] += 1
+
+        analysis.setdefault(selected_label, {})["new_new_verdict"] = new_new_verdict
+        analysis.setdefault(selected_label, {})["random_steer_debug"] = {
+            "earliest_position_found": int(earliest_position_found),
+            "earliest_latents_count": len(earliest_latents),
+            "selected_positions": [int(p) for p in random_eval.get("selected_positions", [])],
+            "matches_ref": [
+                {"pos": int(pos), "latents": _serialize_latents(lat_list)}
+                for (pos, lat_list) in random_eval.get("matches_ref", [])
+            ],
+            "removed_future": _serialize_removed_future(random_eval.get("removed_future", [])),
+            "found_min_coeff": random_eval.get("found_min_coeff"),
+        }
+
+    output_path = token_dir / AUGMENTED_ANALYSIS_NAME
+    with open(output_path, "w") as f:
+        json.dump(analysis, f, indent=2)
+
+    stats["records_processed"] += 1
+
+print("Random steering scale run stats:", stats)
+
+# %%
 """
 Code from below was used to run experiments on a single prompt and token and optimize code and make it reusable for the rest of the experiments.
 """
