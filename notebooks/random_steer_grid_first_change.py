@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 DEFAULT_DATA_PATH = (
-    "/work/pi_jensen_umass_edu/abhishekmish_umass_edu/plan_trace/data/external/"
+    "/home/jnainani_umass_edu/w/plan_trace/data/external/"
     "all_examples_og_prompt_with_position_info_and_success_V2.json"
 )
 DEFAULT_OUTPUT_BASE = "/home/jnainani_umass_edu/w/plan_trace/outputs"
