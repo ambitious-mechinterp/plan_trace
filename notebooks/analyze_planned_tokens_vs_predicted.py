@@ -323,6 +323,280 @@ def plot_probability_matrix(
     plt.close(fig)
 
 
+def plot_split_probability_matrix(
+    matrix_pass: List[List[float]],
+    matrix_fail: List[List[float]],
+    row_labels: List[str],
+    col_labels: List[str],
+    title: str,
+    out_path: str,
+) -> None:
+    """Plot a heatmap with cells split diagonally showing pass (upper) and fail (lower) probs."""
+    if not matrix_pass or not row_labels or not col_labels:
+        return
+    try:
+        import matplotlib.pyplot as plt  # type: ignore[import-not-found]
+        import numpy as np  # type: ignore[import-not-found]
+    except ImportError:
+        print("matplotlib/numpy required for split matrix; skipping.")
+        return
+
+    n_rows = len(row_labels)
+    n_cols = len(col_labels)
+    fig, ax = plt.subplots(figsize=(max(8, n_cols * 0.8), max(6, n_rows * 0.6)))
+
+    # Create color maps
+    cmap_pass = plt.cm.Greens
+    cmap_fail = plt.cm.Reds
+
+    for i in range(n_rows):
+        for j in range(n_cols):
+            val_pass = matrix_pass[i][j] if not math.isnan(matrix_pass[i][j]) else None
+            val_fail = matrix_fail[i][j] if not math.isnan(matrix_fail[i][j]) else None
+
+            # Draw upper triangle (pass) - green
+            if val_pass is not None:
+                color_pass = cmap_pass(val_pass)
+                triangle_pass = plt.Polygon(
+                    [[j, i], [j + 1, i], [j + 1, i + 1]], color=color_pass
+                )
+                ax.add_patch(triangle_pass)
+                ax.text(
+                    j + 0.7, i + 0.3, f"{val_pass:.2f}",
+                    ha="center", va="center", fontsize=7, color="black"
+                )
+            else:
+                triangle_pass = plt.Polygon(
+                    [[j, i], [j + 1, i], [j + 1, i + 1]], color="lightgray"
+                )
+                ax.add_patch(triangle_pass)
+
+            # Draw lower triangle (fail) - red
+            if val_fail is not None:
+                color_fail = cmap_fail(val_fail)
+                triangle_fail = plt.Polygon(
+                    [[j, i], [j, i + 1], [j + 1, i + 1]], color=color_fail
+                )
+                ax.add_patch(triangle_fail)
+                ax.text(
+                    j + 0.3, i + 0.7, f"{val_fail:.2f}",
+                    ha="center", va="center", fontsize=7, color="black"
+                )
+            else:
+                triangle_fail = plt.Polygon(
+                    [[j, i], [j, i + 1], [j + 1, i + 1]], color="lightgray"
+                )
+                ax.add_patch(triangle_fail)
+
+    ax.set_xlim(0, n_cols)
+    ax.set_ylim(0, n_rows)
+    ax.invert_yaxis()
+    ax.set_xticks([x + 0.5 for x in range(n_cols)])
+    ax.set_yticks([y + 0.5 for y in range(n_rows)])
+    ax.set_xticklabels(col_labels, rotation=45, ha="right")
+    ax.set_yticklabels(row_labels)
+    ax.set_xlabel("Predicted tag")
+    ax.set_ylabel("Planned tag")
+    ax.set_title(f"{title}\n(upper-right=PASS/green, lower-left=FAIL/red)")
+    ax.set_aspect("equal")
+
+    # Add colorbars
+    sm_pass = plt.cm.ScalarMappable(cmap=cmap_pass, norm=plt.Normalize(0, 1))
+    sm_fail = plt.cm.ScalarMappable(cmap=cmap_fail, norm=plt.Normalize(0, 1))
+    cbar_pass = fig.colorbar(sm_pass, ax=ax, location="right", pad=0.02, shrink=0.5)
+    cbar_pass.set_label("P (pass)", fontsize=8)
+    cbar_fail = fig.colorbar(sm_fail, ax=ax, location="right", pad=0.08, shrink=0.5)
+    cbar_fail.set_label("P (fail)", fontsize=8)
+
+    fig.tight_layout()
+    os.makedirs(os.path.dirname(out_path) or ".", exist_ok=True)
+    fig.savefig(out_path, dpi=200)
+    plt.close(fig)
+
+
+def compute_chi_square_analysis(
+    joint_counts: Counter,
+    planned_total_by_pred: Counter,
+    planned_tags: List[str],
+    predicted_tags: List[str],
+) -> Dict[str, Any]:
+    """
+    Compute chi-square analysis for the contingency table of planned vs predicted tags.
+
+    Returns dict with:
+    - observed_matrix: actual counts
+    - expected_matrix: expected counts under null hypothesis
+    - ratio_matrix: observed/expected ratios (effect size)
+    - chi_square: chi-square statistic
+    - p_value: p-value from chi-square test
+    - degrees_of_freedom: (rows-1) * (cols-1)
+    - row_totals: marginal totals for planned tags
+    - col_totals: marginal totals for predicted tags
+    - grand_total: N
+    """
+    # Build observed counts matrix
+    n_rows = len(planned_tags)
+    n_cols = len(predicted_tags)
+
+    observed = [[0] * n_cols for _ in range(n_rows)]
+    for i, planned_tag in enumerate(planned_tags):
+        for j, predicted_tag in enumerate(predicted_tags):
+            observed[i][j] = joint_counts.get((planned_tag, predicted_tag), 0)
+
+    # Marginal totals
+    row_totals = [sum(row) for row in observed]
+    col_totals = [sum(observed[i][j] for i in range(n_rows)) for j in range(n_cols)]
+    grand_total = sum(row_totals)
+
+    if grand_total == 0:
+        return {
+            "observed_matrix": observed,
+            "expected_matrix": [[0] * n_cols for _ in range(n_rows)],
+            "ratio_matrix": [[float("nan")] * n_cols for _ in range(n_rows)],
+            "chi_square": 0.0,
+            "p_value": 1.0,
+            "degrees_of_freedom": 0,
+            "row_totals": row_totals,
+            "col_totals": col_totals,
+            "grand_total": grand_total,
+        }
+
+    # Expected counts under null: E_ij = (row_i_total * col_j_total) / N
+    expected = [[0.0] * n_cols for _ in range(n_rows)]
+    for i in range(n_rows):
+        for j in range(n_cols):
+            expected[i][j] = (row_totals[i] * col_totals[j]) / grand_total
+
+    # Observed/Expected ratio (effect size)
+    ratio = [[float("nan")] * n_cols for _ in range(n_rows)]
+    for i in range(n_rows):
+        for j in range(n_cols):
+            if expected[i][j] > 0:
+                ratio[i][j] = observed[i][j] / expected[i][j]
+
+    # Chi-square statistic: sum of (O - E)^2 / E
+    chi_sq = 0.0
+    for i in range(n_rows):
+        for j in range(n_cols):
+            if expected[i][j] > 0:
+                chi_sq += (observed[i][j] - expected[i][j]) ** 2 / expected[i][j]
+
+    # Degrees of freedom
+    df = (n_rows - 1) * (n_cols - 1)
+
+    # P-value from chi-square distribution
+    p_value = None
+    try:
+        from scipy import stats  # type: ignore[import-not-found]
+        if df > 0:
+            p_value = stats.chi2.sf(chi_sq, df)
+        else:
+            p_value = 1.0
+    except ImportError:
+        # Fallback: use approximation or leave as None
+        p_value = None
+
+    return {
+        "observed_matrix": observed,
+        "expected_matrix": expected,
+        "ratio_matrix": ratio,
+        "chi_square": chi_sq,
+        "p_value": p_value,
+        "degrees_of_freedom": df,
+        "row_totals": row_totals,
+        "col_totals": col_totals,
+        "grand_total": grand_total,
+    }
+
+
+def plot_chi_square_matrices(
+    chi_result: Dict[str, Any],
+    row_labels: List[str],
+    col_labels: List[str],
+    title_prefix: str,
+    out_path_prefix: str,
+) -> None:
+    """Plot observed counts, expected counts, and O/E ratio matrices."""
+    try:
+        import matplotlib.pyplot as plt  # type: ignore[import-not-found]
+        import numpy as np  # type: ignore[import-not-found]
+    except ImportError:
+        print("matplotlib/numpy required for chi-square plots; skipping.")
+        return
+
+    observed = np.array(chi_result["observed_matrix"], dtype=float)
+    expected = np.array(chi_result["expected_matrix"], dtype=float)
+    ratio = np.array(chi_result["ratio_matrix"], dtype=float)
+
+    n_rows, n_cols = observed.shape
+
+    # Plot 1: Observed counts
+    fig, ax = plt.subplots(figsize=(max(8, n_cols * 0.7), max(6, n_rows * 0.5)))
+    im = ax.imshow(observed, aspect="auto", cmap="Blues")
+    ax.set_title(f"{title_prefix} - Observed Counts")
+    ax.set_xlabel("Predicted tag")
+    ax.set_ylabel("Planned tag")
+    ax.set_xticks(range(n_cols))
+    ax.set_yticks(range(n_rows))
+    ax.set_xticklabels(col_labels, rotation=45, ha="right")
+    ax.set_yticklabels(row_labels)
+    # Annotate cells
+    for i in range(n_rows):
+        for j in range(n_cols):
+            val = int(observed[i, j])
+            if val > 0:
+                ax.text(j, i, str(val), ha="center", va="center", fontsize=7)
+    fig.colorbar(im, ax=ax, label="Count")
+    fig.tight_layout()
+    os.makedirs(os.path.dirname(out_path_prefix) or ".", exist_ok=True)
+    fig.savefig(f"{out_path_prefix}_observed.png", dpi=200)
+    plt.close(fig)
+
+    # Plot 2: Expected counts
+    fig, ax = plt.subplots(figsize=(max(8, n_cols * 0.7), max(6, n_rows * 0.5)))
+    im = ax.imshow(expected, aspect="auto", cmap="Blues")
+    ax.set_title(f"{title_prefix} - Expected Counts (under null)")
+    ax.set_xlabel("Predicted tag")
+    ax.set_ylabel("Planned tag")
+    ax.set_xticks(range(n_cols))
+    ax.set_yticks(range(n_rows))
+    ax.set_xticklabels(col_labels, rotation=45, ha="right")
+    ax.set_yticklabels(row_labels)
+    for i in range(n_rows):
+        for j in range(n_cols):
+            val = expected[i, j]
+            if val > 0:
+                ax.text(j, i, f"{val:.1f}", ha="center", va="center", fontsize=7)
+    fig.colorbar(im, ax=ax, label="Expected Count")
+    fig.tight_layout()
+    fig.savefig(f"{out_path_prefix}_expected.png", dpi=200)
+    plt.close(fig)
+
+    # Plot 3: O/E Ratio (effect size) - use diverging colormap centered at 1
+    fig, ax = plt.subplots(figsize=(max(8, n_cols * 0.7), max(6, n_rows * 0.5)))
+    ratio_masked = np.ma.masked_invalid(ratio)
+    # Center colormap at 1.0
+    vmax = max(2.0, np.nanmax(ratio)) if not np.all(np.isnan(ratio)) else 2.0
+    vmin = min(0.5, np.nanmin(ratio)) if not np.all(np.isnan(ratio)) else 0.0
+    im = ax.imshow(ratio_masked, aspect="auto", cmap="RdYlGn", vmin=vmin, vmax=vmax)
+    ax.set_title(f"{title_prefix} - Observed/Expected Ratio (effect size)")
+    ax.set_xlabel("Predicted tag")
+    ax.set_ylabel("Planned tag")
+    ax.set_xticks(range(n_cols))
+    ax.set_yticks(range(n_rows))
+    ax.set_xticklabels(col_labels, rotation=45, ha="right")
+    ax.set_yticklabels(row_labels)
+    for i in range(n_rows):
+        for j in range(n_cols):
+            val = ratio[i, j]
+            if not math.isnan(val):
+                ax.text(j, i, f"{val:.2f}", ha="center", va="center", fontsize=7)
+    fig.colorbar(im, ax=ax, label="O/E Ratio")
+    fig.tight_layout()
+    fig.savefig(f"{out_path_prefix}_ratio.png", dpi=200)
+    plt.close(fig)
+
+
 def normalize_counts(tag_counts: Counter) -> Counter:
     total = sum(tag_counts.values())
     if total == 0:
@@ -473,6 +747,12 @@ def analyze_tokens(
             predicted_token = get_predicted_token(metadata)
 
             prompt_id = int(prompt_idx)
+            # Print prompt info for verification (once per unique prompt)
+            if prompt_id not in baseline_prompts_seen and 0 <= prompt_id < len(prompt_data):
+                prompt_entry = prompt_data[prompt_id]
+                prompt_text = prompt_entry.get("prompt", "")[:80]
+                instruct_pass_val = prompt_entry.get("instruct_pass", None)
+                print(f"[prompt_idx={prompt_id}] instruct_pass={instruct_pass_val} | prompt: {prompt_text}...")
             instruct_code = get_instruct_code(prompt_data, prompt_id)
             input_prefix_tokens = sanitize_token_list(
                 metadata.get("input_prefix_token_strings")
@@ -686,6 +966,11 @@ def analyze_tokens(
 
     joint_planned_given_pred = Counter()
     planned_total_by_pred = Counter()
+    # Separate counters for passing and failing prompts
+    joint_planned_given_pred_pass = Counter()
+    joint_planned_given_pred_fail = Counter()
+    planned_total_by_pred_pass = Counter()
+    planned_total_by_pred_fail = Counter()
     for row in rows:
         if row["plan_count"] <= 0:
             continue
@@ -706,6 +991,19 @@ def analyze_tokens(
         planned_total_by_pred[predicted_tag] += len(planned_tags)
         for planned_tag in planned_tags:
             joint_planned_given_pred[(planned_tag, predicted_tag)] += 1
+        # Track by pass/fail status
+        prompt_id = row["prompt"]
+        instruct_pass = False
+        if 0 <= prompt_id < len(prompt_data):
+            instruct_pass = prompt_data[prompt_id].get("instruct_pass", False)
+        if instruct_pass:
+            planned_total_by_pred_pass[predicted_tag] += len(planned_tags)
+            for planned_tag in planned_tags:
+                joint_planned_given_pred_pass[(planned_tag, predicted_tag)] += 1
+        else:
+            planned_total_by_pred_fail[predicted_tag] += len(planned_tags)
+            for planned_tag in planned_tags:
+                joint_planned_given_pred_fail[(planned_tag, predicted_tag)] += 1
 
     plot_tag_distribution(
         planned_tag_counts,
@@ -885,6 +1183,232 @@ def analyze_tokens(
                     row["ci_upper"],
                 ]
             )
+    # Build pass/fail split matrices
+    all_predicted_tags = sorted(
+        set(planned_total_by_pred_pass.keys()) | set(planned_total_by_pred_fail.keys())
+    )
+    all_planned_tags = sorted(
+        {p for p, _ in joint_planned_given_pred_pass.keys()}
+        | {p for p, _ in joint_planned_given_pred_fail.keys()}
+    )
+    prob_matrix_pass = []
+    prob_matrix_fail = []
+    for planned_tag in all_planned_tags:
+        row_pass = []
+        row_fail = []
+        for predicted_tag in all_predicted_tags:
+            total_pass = planned_total_by_pred_pass.get(predicted_tag, 0)
+            count_pass = joint_planned_given_pred_pass.get((planned_tag, predicted_tag), 0)
+            total_fail = planned_total_by_pred_fail.get(predicted_tag, 0)
+            count_fail = joint_planned_given_pred_fail.get((planned_tag, predicted_tag), 0)
+            if total_pass and total_pass >= min_relational_total:
+                row_pass.append(count_pass / total_pass)
+            else:
+                row_pass.append(float("nan"))
+            if total_fail and total_fail >= min_relational_total:
+                row_fail.append(count_fail / total_fail)
+            else:
+                row_fail.append(float("nan"))
+        prob_matrix_pass.append(row_pass)
+        prob_matrix_fail.append(row_fail)
+
+    plot_split_probability_matrix(
+        prob_matrix_pass,
+        prob_matrix_fail,
+        all_planned_tags,
+        all_predicted_tags,
+        "P(planned tag | planning, predicted tag)",
+        "outputs/analysis/planned_given_predicted_split_matrix.png",
+    )
+
+    # CSV with pass/fail split data
+    split_rows = []
+    for planned_tag in all_planned_tags:
+        for predicted_tag in all_predicted_tags:
+            total_pass = planned_total_by_pred_pass.get(predicted_tag, 0)
+            count_pass = joint_planned_given_pred_pass.get((planned_tag, predicted_tag), 0)
+            total_fail = planned_total_by_pred_fail.get(predicted_tag, 0)
+            count_fail = joint_planned_given_pred_fail.get((planned_tag, predicted_tag), 0)
+            prob_pass = count_pass / total_pass if total_pass else None
+            prob_fail = count_fail / total_fail if total_fail else None
+            lower_pass, upper_pass = wilson_interval(count_pass, total_pass)
+            lower_fail, upper_fail = wilson_interval(count_fail, total_fail)
+            split_rows.append({
+                "planned_tag": planned_tag,
+                "predicted_tag": predicted_tag,
+                "count_pass": count_pass,
+                "total_pass": total_pass,
+                "prob_pass": prob_pass,
+                "ci_lower_pass": lower_pass,
+                "ci_upper_pass": upper_pass,
+                "count_fail": count_fail,
+                "total_fail": total_fail,
+                "prob_fail": prob_fail,
+                "ci_lower_fail": lower_fail,
+                "ci_upper_fail": upper_fail,
+            })
+
+    with open("outputs/analysis/planned_given_predicted_split.csv", "w", newline="") as f:
+        writer = csv.writer(f, quoting=csv.QUOTE_MINIMAL)
+        writer.writerow([
+            "planned_tag", "predicted_tag",
+            "count_pass", "total_pass", "prob_pass", "ci_lower_pass", "ci_upper_pass",
+            "count_fail", "total_fail", "prob_fail", "ci_lower_fail", "ci_upper_fail",
+        ])
+        for row in split_rows:
+            writer.writerow([
+                row["planned_tag"], row["predicted_tag"],
+                row["count_pass"], row["total_pass"], row["prob_pass"],
+                row["ci_lower_pass"], row["ci_upper_pass"],
+                row["count_fail"], row["total_fail"], row["prob_fail"],
+                row["ci_lower_fail"], row["ci_upper_fail"],
+            ])
+
+    with open("outputs/analysis/planned_given_predicted_split.json", "w") as f:
+        json.dump(split_rows, f, indent=2)
+
+    print(f"Pass prompts contributing to matrix: {len(set(r['prompt'] for r in rows if r['plan_count'] > 0 and 0 <= r['prompt'] < len(prompt_data) and prompt_data[r['prompt']].get('instruct_pass')))}")
+    print(f"Fail prompts contributing to matrix: {len(set(r['prompt'] for r in rows if r['plan_count'] > 0 and 0 <= r['prompt'] < len(prompt_data) and not prompt_data[r['prompt']].get('instruct_pass')))}")
+
+    # ==================== CHI-SQUARE ANALYSIS ====================
+    # Overall chi-square analysis
+    chi_result_overall = compute_chi_square_analysis(
+        joint_planned_given_pred,
+        planned_total_by_pred,
+        all_planned_tags,
+        all_predicted_tags,
+    )
+    print(f"\n=== Chi-Square Analysis (Overall) ===")
+    print(f"Grand total (N): {chi_result_overall['grand_total']}")
+    print(f"Chi-square statistic: {chi_result_overall['chi_square']:.4f}")
+    print(f"Degrees of freedom: {chi_result_overall['degrees_of_freedom']}")
+    if chi_result_overall['p_value'] is not None:
+        print(f"P-value: {chi_result_overall['p_value']:.2e}")
+    else:
+        print("P-value: requires scipy (not installed)")
+
+    plot_chi_square_matrices(
+        chi_result_overall,
+        all_planned_tags,
+        all_predicted_tags,
+        "Overall",
+        "outputs/analysis/chi_square_overall",
+    )
+
+    # Chi-square for PASS prompts only
+    chi_result_pass = compute_chi_square_analysis(
+        joint_planned_given_pred_pass,
+        planned_total_by_pred_pass,
+        all_planned_tags,
+        all_predicted_tags,
+    )
+    print(f"\n=== Chi-Square Analysis (PASS prompts) ===")
+    print(f"Grand total (N): {chi_result_pass['grand_total']}")
+    print(f"Chi-square statistic: {chi_result_pass['chi_square']:.4f}")
+    print(f"Degrees of freedom: {chi_result_pass['degrees_of_freedom']}")
+    if chi_result_pass['p_value'] is not None:
+        print(f"P-value: {chi_result_pass['p_value']:.2e}")
+
+    plot_chi_square_matrices(
+        chi_result_pass,
+        all_planned_tags,
+        all_predicted_tags,
+        "PASS Prompts",
+        "outputs/analysis/chi_square_pass",
+    )
+
+    # Chi-square for FAIL prompts only
+    chi_result_fail = compute_chi_square_analysis(
+        joint_planned_given_pred_fail,
+        planned_total_by_pred_fail,
+        all_planned_tags,
+        all_predicted_tags,
+    )
+    print(f"\n=== Chi-Square Analysis (FAIL prompts) ===")
+    print(f"Grand total (N): {chi_result_fail['grand_total']}")
+    print(f"Chi-square statistic: {chi_result_fail['chi_square']:.4f}")
+    print(f"Degrees of freedom: {chi_result_fail['degrees_of_freedom']}")
+    if chi_result_fail['p_value'] is not None:
+        print(f"P-value: {chi_result_fail['p_value']:.2e}")
+
+    plot_chi_square_matrices(
+        chi_result_fail,
+        all_planned_tags,
+        all_predicted_tags,
+        "FAIL Prompts",
+        "outputs/analysis/chi_square_fail",
+    )
+
+    # Write chi-square results to CSV
+    chi_square_csv_rows = []
+    for i, planned_tag in enumerate(all_planned_tags):
+        for j, predicted_tag in enumerate(all_predicted_tags):
+            chi_square_csv_rows.append({
+                "planned_tag": planned_tag,
+                "predicted_tag": predicted_tag,
+                "observed_overall": chi_result_overall["observed_matrix"][i][j],
+                "expected_overall": chi_result_overall["expected_matrix"][i][j],
+                "ratio_overall": chi_result_overall["ratio_matrix"][i][j],
+                "observed_pass": chi_result_pass["observed_matrix"][i][j],
+                "expected_pass": chi_result_pass["expected_matrix"][i][j],
+                "ratio_pass": chi_result_pass["ratio_matrix"][i][j],
+                "observed_fail": chi_result_fail["observed_matrix"][i][j],
+                "expected_fail": chi_result_fail["expected_matrix"][i][j],
+                "ratio_fail": chi_result_fail["ratio_matrix"][i][j],
+            })
+
+    with open("outputs/analysis/chi_square_analysis.csv", "w", newline="") as f:
+        writer = csv.writer(f, quoting=csv.QUOTE_MINIMAL)
+        writer.writerow([
+            "planned_tag", "predicted_tag",
+            "observed_overall", "expected_overall", "ratio_overall",
+            "observed_pass", "expected_pass", "ratio_pass",
+            "observed_fail", "expected_fail", "ratio_fail",
+        ])
+        for row in chi_square_csv_rows:
+            writer.writerow([
+                row["planned_tag"], row["predicted_tag"],
+                row["observed_overall"], f"{row['expected_overall']:.2f}",
+                f"{row['ratio_overall']:.4f}" if not math.isnan(row['ratio_overall']) else "",
+                row["observed_pass"], f"{row['expected_pass']:.2f}",
+                f"{row['ratio_pass']:.4f}" if not math.isnan(row['ratio_pass']) else "",
+                row["observed_fail"], f"{row['expected_fail']:.2f}",
+                f"{row['ratio_fail']:.4f}" if not math.isnan(row['ratio_fail']) else "",
+            ])
+
+    # Write summary JSON
+    chi_summary = {
+        "overall": {
+            "grand_total": chi_result_overall["grand_total"],
+            "chi_square": chi_result_overall["chi_square"],
+            "degrees_of_freedom": chi_result_overall["degrees_of_freedom"],
+            "p_value": chi_result_overall["p_value"],
+            "row_totals": dict(zip(all_planned_tags, chi_result_overall["row_totals"])),
+            "col_totals": dict(zip(all_predicted_tags, chi_result_overall["col_totals"])),
+        },
+        "pass": {
+            "grand_total": chi_result_pass["grand_total"],
+            "chi_square": chi_result_pass["chi_square"],
+            "degrees_of_freedom": chi_result_pass["degrees_of_freedom"],
+            "p_value": chi_result_pass["p_value"],
+            "row_totals": dict(zip(all_planned_tags, chi_result_pass["row_totals"])),
+            "col_totals": dict(zip(all_predicted_tags, chi_result_pass["col_totals"])),
+        },
+        "fail": {
+            "grand_total": chi_result_fail["grand_total"],
+            "chi_square": chi_result_fail["chi_square"],
+            "degrees_of_freedom": chi_result_fail["degrees_of_freedom"],
+            "p_value": chi_result_fail["p_value"],
+            "row_totals": dict(zip(all_planned_tags, chi_result_fail["row_totals"])),
+            "col_totals": dict(zip(all_predicted_tags, chi_result_fail["col_totals"])),
+        },
+    }
+    with open("outputs/analysis/chi_square_summary.json", "w") as f:
+        json.dump(chi_summary, f, indent=2)
+
+    print(f"\nWrote chi-square analysis to outputs/analysis/chi_square_*.csv/.json/.png")
+    # ==================== END CHI-SQUARE ANALYSIS ====================
+
     with open(
         "outputs/analysis/planned_given_predicted_filtered.csv", "w", newline=""
     ) as f:
