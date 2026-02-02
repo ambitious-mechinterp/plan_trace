@@ -427,6 +427,8 @@ def compute_chi_square_analysis(
     - observed_matrix: actual counts
     - expected_matrix: expected counts under null hypothesis
     - ratio_matrix: observed/expected ratios (effect size)
+    - std_residuals_matrix: standardized residuals per cell
+    - p_value_matrix: two-tailed p-values per cell (based on standardized residuals)
     - chi_square: chi-square statistic
     - p_value: p-value from chi-square test
     - degrees_of_freedom: (rows-1) * (cols-1)
@@ -453,6 +455,8 @@ def compute_chi_square_analysis(
             "observed_matrix": observed,
             "expected_matrix": [[0] * n_cols for _ in range(n_rows)],
             "ratio_matrix": [[float("nan")] * n_cols for _ in range(n_rows)],
+            "std_residuals_matrix": [[float("nan")] * n_cols for _ in range(n_rows)],
+            "p_value_matrix": [[float("nan")] * n_cols for _ in range(n_rows)],
             "chi_square": 0.0,
             "p_value": 1.0,
             "degrees_of_freedom": 0,
@@ -473,6 +477,26 @@ def compute_chi_square_analysis(
         for j in range(n_cols):
             if expected[i][j] > 0:
                 ratio[i][j] = observed[i][j] / expected[i][j]
+
+    # Standardized residuals: (O - E) / sqrt(E)
+    # These follow approximately a standard normal distribution under null hypothesis
+    std_residuals = [[float("nan")] * n_cols for _ in range(n_rows)]
+    for i in range(n_rows):
+        for j in range(n_cols):
+            if expected[i][j] > 0:
+                std_residuals[i][j] = (observed[i][j] - expected[i][j]) / math.sqrt(expected[i][j])
+
+    # Cell-wise p-values (two-tailed test using standard normal distribution)
+    p_value_matrix = [[float("nan")] * n_cols for _ in range(n_rows)]
+    try:
+        from scipy import stats  # type: ignore[import-not-found]
+        for i in range(n_rows):
+            for j in range(n_cols):
+                if not math.isnan(std_residuals[i][j]):
+                    # Two-tailed p-value: probability of observing |z| >= |std_residual|
+                    p_value_matrix[i][j] = 2 * (1 - stats.norm.cdf(abs(std_residuals[i][j])))
+    except ImportError:
+        pass  # Leave as NaN if scipy not available
 
     # Chi-square statistic: sum of (O - E)^2 / E
     chi_sq = 0.0
@@ -500,6 +524,8 @@ def compute_chi_square_analysis(
         "observed_matrix": observed,
         "expected_matrix": expected,
         "ratio_matrix": ratio,
+        "std_residuals_matrix": std_residuals,
+        "p_value_matrix": p_value_matrix,
         "chi_square": chi_sq,
         "p_value": p_value,
         "degrees_of_freedom": df,
@@ -509,19 +535,21 @@ def compute_chi_square_analysis(
     }
 
 
-def plot_chi_square_matrices(
+def plot_chi_square_combined(
     chi_result: Dict[str, Any],
     row_labels: List[str],
     col_labels: List[str],
     title_prefix: str,
-    out_path_prefix: str,
+    out_path: str,
 ) -> None:
-    """Plot observed counts, expected counts, and O/E ratio matrices."""
+    """Plot a single combined matrix showing O/E ratio (color + text) with O and E counts beneath."""
     try:
         import matplotlib.pyplot as plt  # type: ignore[import-not-found]
+        import matplotlib.colors as mcolors  # type: ignore[import-not-found]
         import numpy as np  # type: ignore[import-not-found]
+        from scipy import stats  # type: ignore[import-not-found]
     except ImportError:
-        print("matplotlib/numpy required for chi-square plots; skipping.")
+        print("matplotlib/numpy/scipy required for chi-square plots; skipping.")
         return
 
     observed = np.array(chi_result["observed_matrix"], dtype=float)
@@ -530,71 +558,253 @@ def plot_chi_square_matrices(
 
     n_rows, n_cols = observed.shape
 
-    # Plot 1: Observed counts
-    fig, ax = plt.subplots(figsize=(max(8, n_cols * 0.7), max(6, n_rows * 0.5)))
-    im = ax.imshow(observed, aspect="auto", cmap="Blues")
-    ax.set_title(f"{title_prefix} - Observed Counts")
-    ax.set_xlabel("Predicted tag")
-    ax.set_ylabel("Planned tag")
-    ax.set_xticks(range(n_cols))
-    ax.set_yticks(range(n_rows))
-    ax.set_xticklabels(col_labels, rotation=45, ha="right")
-    ax.set_yticklabels(row_labels)
-    # Annotate cells
+    # Compute standardized residuals for each cell (approximates significance)
+    std_residuals = np.zeros((n_rows, n_cols))
     for i in range(n_rows):
         for j in range(n_cols):
-            val = int(observed[i, j])
-            if val > 0:
-                ax.text(j, i, str(val), ha="center", va="center", fontsize=7)
-    fig.colorbar(im, ax=ax, label="Count")
-    fig.tight_layout()
-    os.makedirs(os.path.dirname(out_path_prefix) or ".", exist_ok=True)
-    fig.savefig(f"{out_path_prefix}_observed.png", dpi=200)
-    plt.close(fig)
+            if expected[i, j] > 0:
+                std_residuals[i, j] = (observed[i, j] - expected[i, j]) / np.sqrt(expected[i, j])
 
-    # Plot 2: Expected counts
-    fig, ax = plt.subplots(figsize=(max(8, n_cols * 0.7), max(6, n_rows * 0.5)))
-    im = ax.imshow(expected, aspect="auto", cmap="Blues")
-    ax.set_title(f"{title_prefix} - Expected Counts (under null)")
-    ax.set_xlabel("Predicted tag")
-    ax.set_ylabel("Planned tag")
-    ax.set_xticks(range(n_cols))
-    ax.set_yticks(range(n_rows))
-    ax.set_xticklabels(col_labels, rotation=45, ha="right")
-    ax.set_yticklabels(row_labels)
-    for i in range(n_rows):
-        for j in range(n_cols):
-            val = expected[i, j]
-            if val > 0:
-                ax.text(j, i, f"{val:.1f}", ha="center", va="center", fontsize=7)
-    fig.colorbar(im, ax=ax, label="Expected Count")
-    fig.tight_layout()
-    fig.savefig(f"{out_path_prefix}_expected.png", dpi=200)
-    plt.close(fig)
+    fig, ax = plt.subplots(figsize=(max(10, n_cols * 1.0), max(8, n_rows * 0.8)))
 
-    # Plot 3: O/E Ratio (effect size) - use diverging colormap centered at 1
-    fig, ax = plt.subplots(figsize=(max(8, n_cols * 0.7), max(6, n_rows * 0.5)))
+    # Use RdBu_r (reversed Red-Blue) diverging colormap - clearer than RdYlGn
+    # Red = high ratio (over-represented), Blue = low ratio (under-represented), White = ratio~1
     ratio_masked = np.ma.masked_invalid(ratio)
-    # Center colormap at 1.0
     vmax = max(2.0, np.nanmax(ratio)) if not np.all(np.isnan(ratio)) else 2.0
     vmin = min(0.5, np.nanmin(ratio)) if not np.all(np.isnan(ratio)) else 0.0
-    im = ax.imshow(ratio_masked, aspect="auto", cmap="RdYlGn", vmin=vmin, vmax=vmax)
-    ax.set_title(f"{title_prefix} - Observed/Expected Ratio (effect size)")
+
+    # Use coolwarm or RdBu_r for better readability
+    cmap = plt.cm.RdBu_r
+    im = ax.imshow(ratio_masked, aspect="auto", cmap=cmap, vmin=vmin, vmax=vmax)
+
+    ax.set_title(f"{title_prefix}\n(Color & top number = O/E ratio; bottom = O and E counts)")
     ax.set_xlabel("Predicted tag")
     ax.set_ylabel("Planned tag")
     ax.set_xticks(range(n_cols))
     ax.set_yticks(range(n_rows))
     ax.set_xticklabels(col_labels, rotation=45, ha="right")
     ax.set_yticklabels(row_labels)
+
+    # Helper function to compute luminance and choose readable text color
+    def get_text_color(value, vmin, vmax, cmap):
+        """Choose black or white text based on background luminance."""
+        if math.isnan(value):
+            return "black"
+        # Normalize value to [0, 1] for colormap
+        norm_value = (value - vmin) / (vmax - vmin) if vmax > vmin else 0.5
+        norm_value = max(0, min(1, norm_value))
+        # Get RGBA color
+        rgba = cmap(norm_value)
+        # Compute luminance (perceived brightness)
+        r, g, b = rgba[:3]
+        luminance = 0.299 * r + 0.587 * g + 0.114 * b
+        # Use white text on dark backgrounds, black on light
+        return "white" if luminance < 0.5 else "black"
+
+    # Annotate cells with ratio (top), O and E (bottom)
     for i in range(n_rows):
         for j in range(n_cols):
-            val = ratio[i, j]
-            if not math.isnan(val):
-                ax.text(j, i, f"{val:.2f}", ha="center", va="center", fontsize=7)
-    fig.colorbar(im, ax=ax, label="O/E Ratio")
+            o_val = int(observed[i, j])
+            e_val = expected[i, j]
+            r_val = ratio[i, j]
+
+            # Choose text color based on actual background color luminance
+            text_color = get_text_color(r_val, vmin, vmax, cmap)
+
+            if not math.isnan(r_val) and e_val > 0:
+                # Top: ratio
+                ax.text(j, i - 0.25, f"{r_val:.2f}",
+                       ha="center", va="center", fontsize=9,
+                       fontweight="bold", color=text_color)
+                # Bottom: O and E counts
+                ax.text(j, i + 0.15, f"O={o_val}",
+                       ha="center", va="center", fontsize=7, color=text_color)
+                ax.text(j, i + 0.32, f"E={e_val:.1f}",
+                       ha="center", va="center", fontsize=7, color=text_color)
+            elif o_val > 0:
+                # If only observed exists
+                ax.text(j, i, f"O={o_val}",
+                       ha="center", va="center", fontsize=8, color=text_color)
+
+    cbar = fig.colorbar(im, ax=ax, label="O/E Ratio", fraction=0.046, pad=0.04)
     fig.tight_layout()
-    fig.savefig(f"{out_path_prefix}_ratio.png", dpi=200)
+    os.makedirs(os.path.dirname(out_path) or ".", exist_ok=True)
+    fig.savefig(out_path, dpi=200, bbox_inches="tight")
     plt.close(fig)
+
+
+def plot_chi_square_all_in_one(
+    chi_overall: Dict[str, Any],
+    chi_pass: Dict[str, Any],
+    chi_fail: Dict[str, Any],
+    row_labels: List[str],
+    col_labels: List[str],
+    out_path: str,
+) -> None:
+    """Experimental: Plot all three categories (overall, pass, fail) in one mega-plot.
+
+    Each cell is subdivided:
+    - Top row: Overall (spanning full width)
+    - Bottom left: Pass
+    - Bottom right: Fail
+    """
+    try:
+        import matplotlib.pyplot as plt  # type: ignore[import-not-found]
+        import matplotlib.patches as mpatches  # type: ignore[import-not-found]
+        import numpy as np  # type: ignore[import-not-found]
+    except ImportError:
+        print("matplotlib/numpy required for all-in-one plot; skipping.")
+        return
+
+    # Extract matrices
+    o_overall = np.array(chi_overall["observed_matrix"], dtype=float)
+    e_overall = np.array(chi_overall["expected_matrix"], dtype=float)
+    r_overall = np.array(chi_overall["ratio_matrix"], dtype=float)
+
+    o_pass = np.array(chi_pass["observed_matrix"], dtype=float)
+    e_pass = np.array(chi_pass["expected_matrix"], dtype=float)
+    r_pass = np.array(chi_pass["ratio_matrix"], dtype=float)
+
+    o_fail = np.array(chi_fail["observed_matrix"], dtype=float)
+    e_fail = np.array(chi_fail["expected_matrix"], dtype=float)
+    r_fail = np.array(chi_fail["ratio_matrix"], dtype=float)
+
+    n_rows, n_cols = o_overall.shape
+
+    # Compute unified O/E scale across all three
+    all_ratios = np.concatenate([r_overall.flatten(), r_pass.flatten(), r_fail.flatten()])
+    all_ratios = all_ratios[~np.isnan(all_ratios)]
+    if len(all_ratios) > 0:
+        vmax = max(2.0, np.nanmax(all_ratios))
+        vmin = min(0.5, np.nanmin(all_ratios))
+    else:
+        vmax, vmin = 2.0, 0.5
+
+    cmap = plt.cm.RdBu_r
+
+    # Helper function for text color
+    def get_text_color(value, vmin, vmax, cmap):
+        if math.isnan(value):
+            return "black"
+        norm_value = (value - vmin) / (vmax - vmin) if vmax > vmin else 0.5
+        norm_value = max(0, min(1, norm_value))
+        rgba = cmap(norm_value)
+        r, g, b = rgba[:3]
+        luminance = 0.299 * r + 0.587 * g + 0.114 * b
+        return "white" if luminance < 0.5 else "black"
+
+    # Create figure
+    fig, ax = plt.subplots(figsize=(max(14, n_cols * 1.8), max(10, n_rows * 1.2)))
+    ax.set_xlim(0, n_cols)
+    ax.set_ylim(n_rows, 0)
+    ax.set_aspect('equal')
+
+    # Draw subdivided cells
+    for i in range(n_rows):
+        for j in range(n_cols):
+            # Define subcell positions
+            x, y = j, i
+
+            # Top subcell: Overall (height 0.5 - equal to bottom row)
+            overall_rect = mpatches.Rectangle(
+                (x, y), 1, 0.5,
+                facecolor=cmap((r_overall[i, j] - vmin) / (vmax - vmin)) if not math.isnan(r_overall[i, j]) else 'lightgray',
+                edgecolor='none'
+            )
+            ax.add_patch(overall_rect)
+
+            # Bottom left subcell: Pass (height 0.5, width 0.5)
+            pass_rect = mpatches.Rectangle(
+                (x, y + 0.5), 0.5, 0.5,
+                facecolor=cmap((r_pass[i, j] - vmin) / (vmax - vmin)) if not math.isnan(r_pass[i, j]) else 'lightgray',
+                edgecolor='none'
+            )
+            ax.add_patch(pass_rect)
+
+            # Bottom right subcell: Fail (height 0.5, width 0.5)
+            fail_rect = mpatches.Rectangle(
+                (x + 0.5, y + 0.5), 0.5, 0.5,
+                facecolor=cmap((r_fail[i, j] - vmin) / (vmax - vmin)) if not math.isnan(r_fail[i, j]) else 'lightgray',
+                edgecolor='none'
+            )
+            ax.add_patch(fail_rect)
+
+            # Draw outer cell boundary only (thin black line around the entire cell)
+            cell_border = mpatches.Rectangle(
+                (x, y), 1, 1,
+                facecolor='none',
+                edgecolor='black', linewidth=0.8
+            )
+            ax.add_patch(cell_border)
+
+            # Add text annotations
+            # Overall (top subcell - now 0.5 height)
+            if not math.isnan(r_overall[i, j]) and e_overall[i, j] > 0:
+                txt_color = get_text_color(r_overall[i, j], vmin, vmax, cmap)
+                ax.text(x + 0.5, y + 0.12, f"{r_overall[i, j]:.2f}",
+                       ha='center', va='center', fontsize=7, fontweight='bold', color=txt_color)
+                ax.text(x + 0.5, y + 0.35, f"O={int(o_overall[i, j])} E={e_overall[i, j]:.1f}",
+                       ha='center', va='center', fontsize=5, color=txt_color)
+
+            # Pass (bottom left - now 0.5 height)
+            if not math.isnan(r_pass[i, j]) and e_pass[i, j] > 0:
+                txt_color = get_text_color(r_pass[i, j], vmin, vmax, cmap)
+                ax.text(x + 0.25, y + 0.62, f"{r_pass[i, j]:.2f}",
+                       ha='center', va='center', fontsize=6, fontweight='bold', color=txt_color)
+                ax.text(x + 0.25, y + 0.85, f"{int(o_pass[i, j])}/{e_pass[i, j]:.1f}",
+                       ha='center', va='center', fontsize=4, color=txt_color)
+
+            # Fail (bottom right - now 0.5 height)
+            if not math.isnan(r_fail[i, j]) and e_fail[i, j] > 0:
+                txt_color = get_text_color(r_fail[i, j], vmin, vmax, cmap)
+                ax.text(x + 0.75, y + 0.62, f"{r_fail[i, j]:.2f}",
+                       ha='center', va='center', fontsize=6, fontweight='bold', color=txt_color)
+                ax.text(x + 0.75, y + 0.85, f"{int(o_fail[i, j])}/{e_fail[i, j]:.1f}",
+                       ha='center', va='center', fontsize=4, color=txt_color)
+
+    # Set labels
+    ax.set_xticks(np.arange(n_cols) + 0.5)
+    ax.set_yticks(np.arange(n_rows) + 0.5)
+    ax.set_xticklabels(col_labels, rotation=45, ha='right')
+    ax.set_yticklabels(row_labels)
+    ax.set_xlabel("Predicted tag")
+    ax.set_ylabel("Planned tag")
+    ax.set_title("All-in-One: Overall (top) | Pass (bottom-left) | Fail (bottom-right)\n(Numbers = O/E ratio; smaller text = O/E counts)")
+
+    # Add colorbar
+    sm = plt.cm.ScalarMappable(cmap=cmap, norm=plt.Normalize(vmin=vmin, vmax=vmax))
+    sm.set_array([])
+    cbar = fig.colorbar(sm, ax=ax, label="O/E Ratio (unified scale)", fraction=0.046, pad=0.04)
+
+    # Add legend for subcells
+    legend_elements = [
+        mpatches.Patch(facecolor='white', edgecolor='black', label='Top: Overall'),
+        mpatches.Patch(facecolor='white', edgecolor='black', label='Bottom-Left: Pass'),
+        mpatches.Patch(facecolor='white', edgecolor='black', label='Bottom-Right: Fail')
+    ]
+    ax.legend(handles=legend_elements, loc='upper left', bbox_to_anchor=(1.15, 1), fontsize=8)
+
+    fig.tight_layout()
+    os.makedirs(os.path.dirname(out_path) or ".", exist_ok=True)
+    fig.savefig(out_path, dpi=200, bbox_inches='tight')
+    plt.close(fig)
+
+
+def plot_chi_square_matrices(
+    chi_result: Dict[str, Any],
+    row_labels: List[str],
+    col_labels: List[str],
+    title_prefix: str,
+    out_path_prefix: str,
+) -> None:
+    """Wrapper for backward compatibility - now uses combined plot."""
+    plot_chi_square_combined(
+        chi_result,
+        row_labels,
+        col_labels,
+        title_prefix,
+        f"{out_path_prefix}_combined.png",
+    )
 
 
 def normalize_counts(tag_counts: Counter) -> Counter:
@@ -694,11 +904,17 @@ def analyze_tokens(
     out_csv: Optional[str],
     prompt_data_path: str,
     min_relational_total: int,
+    use_random_steer: bool = True,
+    verdict_key: str = "new_verdict",
 ) -> None:
     folder = os.path.join(parent_folder, "outputs", "planning_scale", "instruct", "*")
     rows: List[Dict[str, Any]] = []
     prompt_data = load_prompt_data(prompt_data_path)
     prompt_cache: Dict[int, Dict[str, Any]] = {}
+
+    # Track statistics for file loading
+    random_steer_count = 0
+    original_count = 0
     baseline_tag_counts = Counter()
     baseline_tag_counts_per_prompt: Dict[int, Counter] = {}
     planned_candidate_tag_counts = Counter()
@@ -712,11 +928,21 @@ def analyze_tokens(
         token_files = glob.glob(fi + "/*")
         prompt_idx = fi.split("_")[-1]
         for tf in token_files:
-            planning_path = tf.replace(
-                "planning_scale", "planning_scale_classified_e"
-            ) + "/updated_planning_analysis.json"
-            if not os.path.exists(planning_path):
-                print(f"Missing file: {planning_path}")
+            # Check for random steer file first, fall back to original
+            base_path = tf.replace("planning_scale", "planning_scale_classified_e")
+            random_steer_path = os.path.join(base_path, "updated_planning_analysis_random_steer.json")
+            original_path = os.path.join(base_path, "updated_planning_analysis.json")
+
+            planning_path = None
+            if use_random_steer and os.path.exists(random_steer_path):
+                planning_path = random_steer_path
+                random_steer_count += 1
+            elif os.path.exists(original_path):
+                planning_path = original_path
+                original_count += 1
+
+            if planning_path is None:
+                print(f"Missing planning analysis file at: {base_path}")
                 continue
 
             planning_analysis = load_json(planning_path)
@@ -725,7 +951,15 @@ def analyze_tokens(
             cs_count = 0
             np_count = 0
             for key, value in planning_analysis.items():
-                verdict = value.get("new_verdict") if isinstance(value, dict) else value
+                # Extract verdict using the specified verdict_key with fallback
+                if isinstance(value, dict):
+                    verdict = value.get(verdict_key)
+                    if verdict is None:
+                        verdict = value.get("new_verdict")
+                    if verdict is None:
+                        verdict = value.get("original_verdict")
+                else:
+                    verdict = value
                 lex_tag, role_tag = classify_planned_token(key, None)
                 tag = tag_for_plot(lex_tag, role_tag)
                 if verdict == "Plan":
@@ -1287,6 +1521,22 @@ def analyze_tokens(
     else:
         print("P-value: requires scipy (not installed)")
 
+    # Show most significant cells
+    import numpy as np
+    p_vals = np.array(chi_result_overall['p_value_matrix'])
+    if not np.all(np.isnan(p_vals)):
+        sig_cells = []
+        for i, planned_tag in enumerate(all_planned_tags):
+            for j, predicted_tag in enumerate(all_predicted_tags):
+                p = p_vals[i, j]
+                if not math.isnan(p) and p < 0.05:
+                    sig_cells.append((planned_tag, predicted_tag, p, chi_result_overall['std_residuals_matrix'][i][j]))
+        sig_cells.sort(key=lambda x: x[2])
+        if sig_cells:
+            print(f"\n  Significant cells (p < 0.05): {len(sig_cells)}")
+            for planned, predicted, p, resid in sig_cells[:5]:
+                print(f"    {planned} → {predicted}: p={p:.4f}, z={resid:.2f}")
+
     plot_chi_square_matrices(
         chi_result_overall,
         all_planned_tags,
@@ -1339,6 +1589,17 @@ def analyze_tokens(
         "outputs/analysis/chi_square_fail",
     )
 
+    # Experimental: All-in-one plot
+    print("\\nGenerating experimental all-in-one combined plot...")
+    plot_chi_square_all_in_one(
+        chi_result_overall,
+        chi_result_pass,
+        chi_result_fail,
+        all_planned_tags,
+        all_predicted_tags,
+        "outputs/analysis/chi_square_all_in_one.png",
+    )
+
     # Write chi-square results to CSV
     chi_square_csv_rows = []
     for i, planned_tag in enumerate(all_planned_tags):
@@ -1349,31 +1610,43 @@ def analyze_tokens(
                 "observed_overall": chi_result_overall["observed_matrix"][i][j],
                 "expected_overall": chi_result_overall["expected_matrix"][i][j],
                 "ratio_overall": chi_result_overall["ratio_matrix"][i][j],
+                "std_residual_overall": chi_result_overall["std_residuals_matrix"][i][j],
+                "p_value_overall": chi_result_overall["p_value_matrix"][i][j],
                 "observed_pass": chi_result_pass["observed_matrix"][i][j],
                 "expected_pass": chi_result_pass["expected_matrix"][i][j],
                 "ratio_pass": chi_result_pass["ratio_matrix"][i][j],
+                "std_residual_pass": chi_result_pass["std_residuals_matrix"][i][j],
+                "p_value_pass": chi_result_pass["p_value_matrix"][i][j],
                 "observed_fail": chi_result_fail["observed_matrix"][i][j],
                 "expected_fail": chi_result_fail["expected_matrix"][i][j],
                 "ratio_fail": chi_result_fail["ratio_matrix"][i][j],
+                "std_residual_fail": chi_result_fail["std_residuals_matrix"][i][j],
+                "p_value_fail": chi_result_fail["p_value_matrix"][i][j],
             })
 
     with open("outputs/analysis/chi_square_analysis.csv", "w", newline="") as f:
         writer = csv.writer(f, quoting=csv.QUOTE_MINIMAL)
         writer.writerow([
             "planned_tag", "predicted_tag",
-            "observed_overall", "expected_overall", "ratio_overall",
-            "observed_pass", "expected_pass", "ratio_pass",
-            "observed_fail", "expected_fail", "ratio_fail",
+            "observed_overall", "expected_overall", "ratio_overall", "std_residual_overall", "p_value_overall",
+            "observed_pass", "expected_pass", "ratio_pass", "std_residual_pass", "p_value_pass",
+            "observed_fail", "expected_fail", "ratio_fail", "std_residual_fail", "p_value_fail",
         ])
         for row in chi_square_csv_rows:
             writer.writerow([
                 row["planned_tag"], row["predicted_tag"],
                 row["observed_overall"], f"{row['expected_overall']:.2f}",
                 f"{row['ratio_overall']:.4f}" if not math.isnan(row['ratio_overall']) else "",
+                f"{row['std_residual_overall']:.4f}" if not math.isnan(row['std_residual_overall']) else "",
+                f"{row['p_value_overall']:.4f}" if not math.isnan(row['p_value_overall']) else "",
                 row["observed_pass"], f"{row['expected_pass']:.2f}",
                 f"{row['ratio_pass']:.4f}" if not math.isnan(row['ratio_pass']) else "",
+                f"{row['std_residual_pass']:.4f}" if not math.isnan(row['std_residual_pass']) else "",
+                f"{row['p_value_pass']:.4f}" if not math.isnan(row['p_value_pass']) else "",
                 row["observed_fail"], f"{row['expected_fail']:.2f}",
                 f"{row['ratio_fail']:.4f}" if not math.isnan(row['ratio_fail']) else "",
+                f"{row['std_residual_fail']:.4f}" if not math.isnan(row['std_residual_fail']) else "",
+                f"{row['p_value_fail']:.4f}" if not math.isnan(row['p_value_fail']) else "",
             ])
 
     # Write summary JSON
@@ -1407,6 +1680,7 @@ def analyze_tokens(
         json.dump(chi_summary, f, indent=2)
 
     print(f"\nWrote chi-square analysis to outputs/analysis/chi_square_*.csv/.json/.png")
+    print(f"Experimental all-in-one plot: outputs/analysis/chi_square_all_in_one.png")
     # ==================== END CHI-SQUARE ANALYSIS ====================
 
     with open(
@@ -1442,6 +1716,11 @@ def analyze_tokens(
     with_pred = sum(1 for r in rows if r["predicted_token"] is not None)
     in_planned = sum(1 for r in rows if r["predicted_in_planned"])
 
+    print(f"\n=== File Loading Statistics ===")
+    print(f"Random steer files loaded: {random_steer_count}")
+    print(f"Original files loaded: {original_count}")
+    print(f"Verdict key used: {verdict_key}")
+    print(f"\n=== Analysis Statistics ===")
     print(f"Total token rows: {len(rows)}")
     print(f"With predicted token available: {with_pred}")
     if with_pred:
@@ -1484,6 +1763,23 @@ def main() -> None:
         default=5,
         help="Minimum total count for relational probabilities and matrix.",
     )
+    parser.add_argument(
+        "--use-random-steer",
+        action="store_true",
+        default=True,
+        help="Prefer random steering results if available (default: True)",
+    )
+    parser.add_argument(
+        "--no-random-steer",
+        action="store_false",
+        dest="use_random_steer",
+        help="Do not use random steering results",
+    )
+    parser.add_argument(
+        "--verdict-key",
+        default="new_new_verdict",
+        help="Verdict key to use (default: new_new_verdict for random steer, new_verdict for original)",
+    )
 
     args = parser.parse_args()
     out_csv = args.out_csv if args.out_csv else None
@@ -1493,6 +1789,8 @@ def main() -> None:
         out_csv,
         args.prompt_data,
         args.min_relational_total,
+        use_random_steer=args.use_random_steer,
+        verdict_key=args.verdict_key,
     )
 
 
