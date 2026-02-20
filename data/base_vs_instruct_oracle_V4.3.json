@@ -134,9 +134,7 @@
     "base_cs": true,
     "instruct_cs": false,
     "index": 3,
-    "base_plans_e": [
-      "return"
-    ],
+    "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
     "instruct_cs_e": true
@@ -291,9 +289,7 @@
     "base_cs": true,
     "instruct_cs": true,
     "index": 8,
-    "base_plans_e": [
-      "return"
-    ],
+    "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
     "instruct_cs_e": false
@@ -323,17 +319,15 @@
     "base_pass": false,
     "base_plans": [],
     "instruct_plans": [
-      "]",
       "+",
-      "1"
+      "1",
+      "]"
     ],
     "base_cs": true,
     "instruct_cs": true,
     "index": 9,
     "base_plans_e": [],
-    "instruct_plans_e": [
-      "+"
-    ],
+    "instruct_plans_e": [],
     "base_cs_e": true,
     "instruct_cs_e": true
   },
@@ -397,8 +391,8 @@
     "base_pass": false,
     "base_plans": [],
     "instruct_plans": [
-      "replace",
-      "if"
+      "if",
+      "replace"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -437,26 +431,16 @@
     ],
     "instruct_plans": [
       "set",
-      "()",
-      "if"
+      "if",
+      "()"
     ],
     "base_cs": true,
     "instruct_cs": true,
     "index": 12,
-    "base_plans_e": [
-      "+"
-    ],
+    "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def test_duplicate(arr):\n    return any(x in arr for x in arr)\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def test_duplicate(nums):\n    for i in range(len(nums)):\n        for j in range(i+1, len(nums)):\n            if nums[i] == nums[j]:\n                return True\n    return False\n",
-      "label": true
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -518,9 +502,9 @@
     "base_pass": false,
     "base_plans": [
       "+",
-      "%",
-      "*",
       "//",
+      "*",
+      "%",
       "while",
       "-"
     ],
@@ -534,16 +518,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def check(n):\n    return n == 2 * int(str(n)[::-1]) - 1\n",
-      "label": true
-    },
-    "instruct to base": {
-      "code": "def check(n):\n    return \"",
-      "label": false
-    },
-    "A_tag": "A1"
+    "instruct_cs_e": true
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -572,11 +547,11 @@
       "0"
     ],
     "instruct_plans": [
+      "+",
       "()",
       "int",
-      "if",
-      "+",
-      "-"
+      "-",
+      "if"
     ],
     "base_cs": true,
     "instruct_cs": false,
@@ -584,15 +559,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def find_Max_Num(digits):\n    return max(digits)\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def find_Max_Num(digits):\n    digits = [1, 2, 3]\n    max_num = digits[0]\n    for digit in digits:\n        if digit > max_num:\n            max_num = digit\n    return max_num\n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -630,15 +597,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def opposite_Signs(a,b):\n    \"\"\"\n    Checks if two integers have opposite signs.\n    :param A: The first integer.\n    :param B: The second integer.\n    :return: True if the two integers have opposite signs, False otherwise.\n    \"\"\"\n    if A < 0 and B > 0 or A > 0 and B < 0:\n        return True\n    else:\n        return False\n    # Write your code below this line\n    # Write your",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def opposite_Signs(a, b):\n  \"\"\"\n  This function checks whether the given two integers have opposite signs.\n  \n  Args:\n    A: The first integer.\n    B: The second integer.\n  \n  Returns:\n    True if the integers have opposite signs, False otherwise.\n  \"\"\"\n  return A * B < 0\n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -675,15 +634,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def is_octagonal(n):\n    return (n * (n - 1) // 2) == 0\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def is_octagonal(n):\n  return (n * (n - 1) * (2 * n + 1)) // 6 == n\n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -720,16 +671,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def count_Substrings(s):\n# Write your code here\n# Write your code here\n# Write your code here\n# Write your code here\n# Write your code here\n# Write your code here\n# Write your code here\n# Write your code here\n# Write your code here\n# Write your code here\n# Write your code here\n# Write your code here\n# Write your code here\n# Write your code here\n# Write your code here\n# Write your code here\n# Write your code",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def count_Substrings(s):\n    ...\n",
-      "label": false
-    },
-    "A_tag": "A3"
+    "instruct_cs_e": true
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -822,12 +764,9 @@
     "instruct_cs": false,
     "index": 21,
     "base_plans_e": null,
-    "instruct_plans_e": [
-      "return",
-      "1"
-    ],
+    "instruct_plans_e": [],
     "base_cs_e": false,
-    "instruct_cs_e": false
+    "instruct_cs_e": true
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1036,15 +975,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def get_equal(tuples):\n    for i in range(len(tuples)):\n        for j in range(len(tuples)):\n            if tuples[i] != tuples[j]:\n                return False\n    return True\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def get_equal(tuples):\n    \"\"\"\n    This function checks if all the given tuples have equal length.\n\n    Args:\n        tuples: A list of tuples.\n\n    Returns:\n        True if all tuples have equal length, False otherwise.\n    \"\"\"\n    if len(tuples) == 0:\n        return True\n    for tuple in tuples:\n        if len(tuple) != len(min(tuples, key=len)):\n            return False\n    return True\n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1082,15 +1013,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def comb_sort(arr):\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def comb_sort(arr):\n    for i in range(len(arr)):\n        for j in range(i + 1, len(arr)):\n            if arr[i] > arr[j]:\n                arr[i], arr[j] = arr[j], arr[i]\n    return arr\n",
-      "label": true
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1116,8 +1039,8 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "//",
-      "-"
+      "-",
+      "//"
     ],
     "instruct_plans": [
       "int",
@@ -1126,20 +1049,10 @@
     "base_cs": true,
     "instruct_cs": false,
     "index": 29,
-    "base_plans_e": [
-      "//"
-    ],
+    "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def dif_Square(n):\n    on_Square(n):\n    return True\n    return False\n    return False\n    return False\n    return False\n    return False\n    return False\n    return False\n    return False\n    return False\n    return False\n    return False\n    return False\n    return False\n    return False\n    return False\n    return False\n    return False\n    return False\n    return False\n    return False\n    return False\n    return False\n    ",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def dif_Square(n):\n    for i in range(1, int(n**0.5) + 1):\n        for j in range(i, int(n**0.5) + 1):\n            if i**2 + j**2 == n:\n                return True\n    return False\n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1172,9 +1085,7 @@
     "instruct_cs": true,
     "index": 30,
     "base_plans_e": [],
-    "instruct_plans_e": [
-      "!="
-    ],
+    "instruct_plans_e": [],
     "base_cs_e": true,
     "instruct_cs_e": true
   },
@@ -1268,8 +1179,8 @@
     "instruct_pass": true,
     "base_pass": true,
     "base_plans": [
-      "0",
-      "2"
+      "2",
+      "0"
     ],
     "instruct_plans": [],
     "base_cs": true,
@@ -1316,16 +1227,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def tetrahedral_number(n):\n    return (n * (n + 1) * (n + 2)) / 6\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def tetrahedral_number(n):\n  if n == 1:\n    return 1\n  else:\n    return n * (n + 1) * (n + 2) // 6\n",
-      "label": false
-    },
-    "A_tag": "A3"
+    "instruct_cs_e": true
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1399,15 +1301,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def get_Char(s):\n    return s[0]\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def get_Char(s):\n    sum = 0\n    for char in s:\n        sum += ord(char)\n    return chr(sum % 26 + 65)\n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1446,15 +1340,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def surfacearea_sphere(radius):\n    return 4 * math.pi * radius**2\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def surfacearea_sphere(radius):\n  return 4 * math.pi * radius * 2\n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1480,9 +1366,9 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "/",
       "+",
-      "*"
+      "*",
+      "/"
     ],
     "instruct_plans": [
       "-",
@@ -1494,15 +1380,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def centered_hexagonal_number(n):\n    return n * (n + 1) * (2 * n + 1) / 2\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def centered_hexagonal_number(n):\n    return sum(range(1, n + 1)) * 2\n",
-      "label": true
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1595,22 +1473,10 @@
     "base_cs": true,
     "instruct_cs": true,
     "index": 41,
-    "base_plans_e": [
-      "-"
-    ],
-    "instruct_plans_e": [
-      "-"
-    ],
+    "base_plans_e": [],
+    "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct (e)": {
-      "code": "def closest_num(n):\n    return n - 1\n\n",
-      "label": false
-    },
-    "instruct to base (e)": {
-      "code": null,
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1636,8 +1502,8 @@
     "instruct_pass": true,
     "base_pass": true,
     "base_plans": [
-      "0",
-      "for"
+      "for",
+      "0"
     ],
     "instruct_plans": [],
     "base_cs": true,
@@ -1709,8 +1575,8 @@
       "0"
     ],
     "instruct_plans": [
-      "0",
-      "for"
+      "for",
+      "0"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -1718,15 +1584,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def is_undulating(n):\n    if n % 1000 == 0:\n        return True\n    if n % 10000 == 0:\n        return False\n    if n % 100000 == 0:\n        return True\n    if n % 1000000 == 0:\n        return False\n    if n % 10000000 == 0:\n        return True\n    if n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def is_undulating(number):\n  if number == 0:\n    return False\n  if number < 0:\n    return False\n  return True\n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1929,9 +1787,7 @@
     "base_cs": true,
     "instruct_cs": true,
     "index": 50,
-    "base_plans_e": [
-      "+"
-    ],
+    "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
     "instruct_cs_e": true
@@ -2030,36 +1886,16 @@
     ],
     "instruct_plans": [
       "1",
-      "0",
-      "for"
+      "for",
+      "0"
     ],
     "base_cs": true,
     "instruct_cs": false,
     "index": 53,
-    "base_plans_e": [
-      "()"
-    ],
-    "instruct_plans_e": [
-      "()"
-    ],
+    "base_plans_e": [],
+    "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def snake_to_camel(snake_case_string):\n    # Your code here\n    return\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def snake_to_camel(snake_case_string):\n    return snake_case_string.replace('_', '').capitalize()\n",
-      "label": true
-    },
-    "base to instruct (e)": {
-      "code": "def snake_to_camel(snake_case_string):\n and paste your code here.\n",
-      "label": false
-    },
-    "instruct to base (e)": {
-      "code": "def snake_to_camel(snake_case_string):\n    words_snake_case = snake_case_string.replace('_', '')\n    words_camel_case = words_snake_case[0].upper() + words_snake_case[1:]\n    return words_camel_case\n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -2086,9 +1922,9 @@
     "base_pass": false,
     "base_plans": null,
     "instruct_plans": [
+      "+",
       "-",
-      "*",
-      "+"
+      "*"
     ],
     "base_cs": false,
     "instruct_cs": true,
@@ -2362,28 +2198,18 @@
       "*"
     ],
     "instruct_plans": [
-      "0",
-      "]",
       "+",
-      "*"
+      "*",
+      "]",
+      "0"
     ],
     "base_cs": true,
     "instruct_cs": true,
     "index": 62,
-    "base_plans_e": [
-      "+"
-    ],
+    "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def tuple_to_int(tuple):\n    \"\"\"\n    :param tuple:\n    :return:\n    \"\"\"\n    return tuple[0] + tuple[1] * 10 + tuple[2] * 100\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def tuple_to_int(tuple_):\n  return int(\"\".join(str(x) for x in tuple_))\n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -2441,9 +2267,7 @@
     "instruct_cs": false,
     "index": 64,
     "base_plans_e": [],
-    "instruct_plans_e": [
-      "()"
-    ],
+    "instruct_plans_e": [],
     "base_cs_e": true,
     "instruct_cs_e": true
   },
@@ -2482,15 +2306,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def search(arr):\n    for i in range(len(arr)):o\n        if arr[i] == arr[i+1]:\n            arr.pop(i)\n    return arr[0]\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def search(arr):\n  for i in range(len(arr)):\n    for j in range(i+1, len(arr)):\n      if arr[i] == arr[j]:\n        return arr[i]\n  return -1\n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -2593,11 +2409,9 @@
     "instruct_cs": true,
     "index": 68,
     "base_plans_e": [],
-    "instruct_plans_e": [
-      "*"
-    ],
+    "instruct_plans_e": [],
     "base_cs_e": false,
-    "instruct_cs_e": false
+    "instruct_cs_e": true
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -2619,9 +2433,7 @@
     "base_cs": false,
     "instruct_cs": false,
     "index": 69,
-    "base_plans_e": [
-      "if"
-    ],
+    "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
     "instruct_cs_e": true
@@ -2719,16 +2531,16 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "'",
       "1",
-      "()"
+      "()",
+      "'"
     ],
     "instruct_plans": [
-      "]",
-      "0",
       "1",
-      "[",
-      "-"
+      "0",
+      "]",
+      "-",
+      "["
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -2736,15 +2548,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def reverse_vowels(s):\n    vowels = \"aeiou\"\n    for i in range(len(s)):\n        if s[i] in vowels:\n            s = s[:i] + s[i+1:]\n    return s\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def reverse_vowels(s):\n    vowels =\n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -2838,33 +2642,23 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "/",
+      "2",
       "*",
-      "2"
+      "/"
     ],
     "instruct_plans": [
-      "-",
-      "*",
       "2",
-      "if"
+      "-",
+      "if",
+      "*"
     ],
     "base_cs": true,
     "instruct_cs": true,
     "index": 75,
-    "base_plans_e": [
-      "+"
-    ],
+    "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def hexagonal_num(n):\n    return (n * (n + 1)) / 2\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def hexagonal_num(n):\n    return (n * (n + 1) * (2 * n + 1)) // 6\n",
-      "label": true
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -2959,9 +2753,7 @@
     "instruct_cs": true,
     "index": 78,
     "base_plans_e": [],
-    "instruct_plans_e": [
-      "return"
-    ],
+    "instruct_plans_e": [],
     "base_cs_e": true,
     "instruct_cs_e": true
   },
@@ -3023,9 +2815,9 @@
     "base_pass": false,
     "base_plans": [],
     "instruct_plans": [
-      "for",
       "+",
-      "if"
+      "if",
+      "for"
     ],
     "base_cs": true,
     "instruct_cs": false,
@@ -3258,15 +3050,13 @@
     "base_pass": true,
     "base_plans": [],
     "instruct_plans": [
-      "/",
-      "*"
+      "*",
+      "/"
     ],
     "base_cs": true,
     "instruct_cs": true,
     "index": 87,
-    "base_plans_e": [
-      "/"
-    ],
+    "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
     "instruct_cs_e": true
@@ -3364,8 +3154,8 @@
     "base_pass": false,
     "base_plans": [],
     "instruct_plans": [
-      ">>",
-      "+"
+      "+",
+      ">>"
     ],
     "base_cs": true,
     "instruct_cs": false,
@@ -3505,8 +3295,8 @@
     "base_pass": false,
     "base_plans": [],
     "instruct_plans": [
-      "char",
-      "if"
+      "if",
+      "char"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -3540,8 +3330,8 @@
     "instruct_pass": true,
     "base_pass": true,
     "base_plans": [
-      "0",
-      "["
+      "[",
+      "0"
     ],
     "instruct_plans": [],
     "base_cs": true,
@@ -3610,12 +3400,12 @@
     "instruct_pass": true,
     "base_pass": false,
     "base_plans": [
-      "range",
-      "sum",
-      "if",
-      "&",
       "+",
-      "for"
+      "sum",
+      "&",
+      "for",
+      "range",
+      "if"
     ],
     "instruct_plans": [],
     "base_cs": true,
@@ -3651,12 +3441,12 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "!=",
+      "2",
       "0",
       "))",
-      "[",
-      "2",
-      "for"
+      "for",
+      "!=",
+      "["
     ],
     "instruct_plans": [
       "["
@@ -3667,15 +3457,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def odd_values_string(string):\n    return_string = ''\n    for i in range(len(string)):\n        if i % 2 == 1:\n            return_string += string[i]\n    return return_string\n",
-      "label": true
-    },
-    "instruct to base": {
-      "code": "def odd_values_string(s):\n  return ''.join(c for i, c in enumerate(s) if i % 2 != 0)\n",
-      "label": true
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -3873,9 +3655,7 @@
     "instruct_cs": true,
     "index": 104,
     "base_plans_e": [],
-    "instruct_plans_e": [
-      "return"
-    ],
+    "instruct_plans_e": [],
     "base_cs_e": true,
     "instruct_cs_e": true
   },
@@ -4017,16 +3797,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def replace_list(list1, list2):\n    list1.append(list2)\n    return list1\n",
-      "label": true
-    },
-    "instruct to base": {
-      "code": "def replace_list(list1, list2):\n  return list1[:len(list1)-1] + list2\n",
-      "label": false
-    },
-    "A_tag": "A1"
+    "instruct_cs_e": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -4048,10 +3819,7 @@
     "base_cs": false,
     "instruct_cs": false,
     "index": 109,
-    "base_plans_e": [
-      "return",
-      "):"
-    ],
+    "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
     "instruct_cs_e": true
@@ -4083,10 +3851,10 @@
       "*"
     ],
     "instruct_plans": [
-      "**",
-      "0",
+      "((",
       "2",
-      "(("
+      "**",
+      "0"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -4094,15 +3862,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def next_Perfect_Square(number):\n    return number**2\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def next_Perfect_Square(n):\n    return n + 1\n",
-      "label": true
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -4201,8 +3961,8 @@
     "base_pass": false,
     "base_plans": [],
     "instruct_plans": [
-      "/",
       "+",
+      "/",
       "))"
     ],
     "base_cs": true,
@@ -4475,8 +4235,8 @@
       "/"
     ],
     "instruct_plans": [
-      "/",
-      "]"
+      "]",
+      "/"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -4484,15 +4244,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def division_elements(tuple1, tuple2):\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def division_elements(tuple1, tuple2):\n    return tuple(x / y for x, y in zip(tuple1, tuple2))\n",
-      "label": true
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -4683,23 +4435,10 @@
     "base_cs": true,
     "instruct_cs": false,
     "index": 127,
-    "base_plans_e": [
-      "return",
-      "+"
-    ],
-    "instruct_plans_e": [
-      "div"
-    ],
+    "base_plans_e": [],
+    "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct (e)": {
-      "code": null,
-      "label": false
-    },
-    "instruct to base (e)": {
-      "code": "def find_star_num(n):\n    count = 0\n    i = 1\n    while count < n:\n        i += 1\n        count += sum(i * (i + 1) // 2 for i in range(1, i + 1))\n    return i - 1\n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -4865,15 +4604,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def substract_elements(tuple1, tuple2):\n    for i in range(len(tuple1)):\n        tuple1[i] = tuple1[i] - tuple2[i]\n    return tuple1\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def substract_elements(tuple1, tuple2):\n  result = []\n  for i in range(len(tuple1)):\n    result.append(tuple1[i] - tuple2[i])\n  return result\n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -4945,15 +4676,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def volume_cylinder(radius, height):\n    return math.pi * radius * height\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def volume_cylinder(radius, height):\n    return math.pi * radius * height\n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -5050,9 +4773,9 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "/",
       "+",
-      "*"
+      "*",
+      "/"
     ],
     "instruct_plans": [
       "*"
@@ -5063,15 +4786,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def is_num_decagonal(n):\n    return n * (n - 1) / 2\n",
-      "label": true
-    },
-    "instruct to base": {
-      "code": "def is_num_decagonal(n):\n    return (10**n) - (10**(n-1))\n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -5211,16 +4926,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def text_match_two_three(text):\n    if text.count(\"a\") == 2 and text.count(\"b\") == 3:\n        return True\n    else:\n        return False\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def text_match_two_three(text):\n  return text.count('a') > 0 and text.count('b') >= 2\n",
-      "label": false
-    },
-    "A_tag": "A3"
+    "instruct_cs_e": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -5451,8 +5157,8 @@
     "base_pass": false,
     "base_plans": null,
     "instruct_plans": [
-      "for",
-      "if"
+      "if",
+      "for"
     ],
     "base_cs": false,
     "instruct_cs": true,
@@ -5641,15 +5347,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def count_binary_seq(n):\n    if n == 0:\n        return 1\n    if n == 1:\n        return 2\n    if n == 2:\n        return 6\n    if n == 3:\n        return 20\n    return count_binary_seq(n-1) + count_binary_seq(n-2) + count_binary_seq(n-3)\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def count_binary_seq(n):\n  return 2**n\n",
-      "label": true
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "Ellen's Copy of Benchmark Questions Verification V2.ipynb",
@@ -5675,13 +5373,13 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "[",
-      "for"
+      "for",
+      "["
     ],
     "instruct_plans": [
       "+",
-      "[",
-      "not"
+      "not",
+      "["
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -5689,15 +5387,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def dict_depth(d):\n    if type(d) is dict:\n        return 1 + max(dict_depth(d[k]) for k in d)\n    else:\n        return 0\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def dict_depth(d):\n    if isinstance(d, dict):\n        return 1 + sum(dict_depth(sub) for sub in d.values())\n    else:\n        return 0\n",
-      "label": true
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "Ellen's Copy of Benchmark Questions Verification V2.ipynb",
@@ -5968,15 +5658,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": false,
-    "base to instruct": {
-      "code": "def volume_cone(radius, height):\n    return (1/3) * math.pi * radius * height\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def volume_cone(radius, height):\n    return (1/3) * math.pi * radius * height\n",
-      "label": false
-    }
+    "instruct_cs_e": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -6211,8 +5893,8 @@
       "len"
     ],
     "instruct_plans": [
-      "()",
-      "for"
+      "for",
+      "()"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -6220,15 +5902,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def check_distinct(t):\n    return set(t) == {tuple(t)}\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def check_distinct(tuple_):\n    return len(set(tuple_)) == len(tuple_)\n",
-      "label": true
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "charlessutton@: Benchmark Questions Verification V2.ipynb",
@@ -6367,15 +6041,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def bitwise_xor(a, b):\n    return tuple(a[i] ^ b[i] for i in range(len(a)))\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def bitwise_xor(*args):\n    \"\"\"\n    This function performs the bitwise XOR operation across the given tuples.\n    \"\"\"\n    return tuple(x ^ y for x, y in zip(*args))\n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -6408,9 +6074,7 @@
     "instruct_cs": true,
     "index": 174,
     "base_plans_e": [],
-    "instruct_plans_e": [
-      "()"
-    ],
+    "instruct_plans_e": [],
     "base_cs_e": true,
     "instruct_cs_e": true
   },
@@ -6450,15 +6114,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def add_nested_tuples(nested_tuple1, nested_tuple2):\n    if nested_tuple1 is not None and nested_tuple2 is not None:\n        if nested_tuple1[0] == nested_tuple2[0]:\n            if nested_tuple1[1] == nested_tuple2[1]:\n                if nested_tuple1[2] == nested_tuple2[2]:\n                    if nested_tuple1[3] == nested_tuple2[3]:\n                        if nested_tuple1[4] ==",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def add_nested_tuples(tuple1, tuple2):\n    result_of_tuple_addition(tuple1, tuple2)\n    \n    \n    \n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -6586,8 +6242,8 @@
     "instruct_plans": [
       "import",
       "int",
-      "0",
-      "for"
+      "for",
+      "0"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -6724,12 +6380,12 @@
     "instruct_pass": true,
     "base_pass": true,
     "base_plans": [
-      "%",
-      "if"
+      "if",
+      "%"
     ],
     "instruct_plans": [
-      "for",
-      "if"
+      "if",
+      "for"
     ],
     "base_cs": true,
     "instruct_cs": false,
@@ -6737,15 +6393,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def remove_odd(lst):\n    return None\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def remove_odd(nums):\n  return [x for x in nums if x % 2 == 0]\n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "charlessutton@: Benchmark Questions Verification V2.ipynb",
@@ -6848,15 +6496,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def max_Product(arr):\n    ",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def max_Product(nums):\n    if len(nums) < 2:\n        return None\n    max1 = nums[0]\n    max2 = nums[1]\n    if max1 < max2:\n        max1, max2 = max2, max1\n    for i in range(2, len(nums)):\n        if nums[i] > max1:\n            max2 = max1\n            max1 = nums[i]\n        elif nums[i",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "charlessutton@: Benchmark Questions Verification V2.ipynb",
@@ -6886,11 +6526,11 @@
       "for"
     ],
     "instruct_plans": [
-      "elements",
-      "0",
+      "+",
       "1",
-      "if",
-      "+"
+      "0",
+      "elements",
+      "if"
     ],
     "base_cs": true,
     "instruct_cs": false,
@@ -6898,15 +6538,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def group_tuples(tuples):\n    for i in range(len(tuples)):\n        for j in range(i+1, len(tuples)):\n            if tuples[i][0] == tuples[j][0]:\n                print(tuples[i][0])\n                break\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def group_tuples(tuples_list):\n    return [tuple(t) for t in set(tuple(t) for t in tuples_list)]\n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "charlessutton@: Benchmark Questions Verification V2.ipynb",
@@ -7011,15 +6643,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def cube_Sum(n):\n    return sum(i**3 for i in range(1, n+1))\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def cube_Sum(n):\n    sum = 0\n    for i in range(23):\n        if i % 2 == 0:\n            sum += i**3\n    return sum\n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "charlessutton@: Benchmark Questions Verification V2.ipynb",
@@ -7045,8 +6669,8 @@
     "instruct_pass": true,
     "base_pass": false,
     "base_plans": [
-      "]",
-      "+"
+      "+",
+      "]"
     ],
     "instruct_plans": [],
     "base_cs": true,
@@ -7081,9 +6705,9 @@
     "instruct_pass": true,
     "base_pass": false,
     "base_plans": [
-      "**",
       "+",
-      "/"
+      "/",
+      "**"
     ],
     "instruct_plans": [
       "/"
@@ -7094,16 +6718,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def find_Average_Of_Cube(n):\n    sum = 0\n    for i in range(1, n+1):\n        sum += i**3\n    return sum / n\n",
-      "label": true
-    },
-    "instruct to base": {
-      "code": "def find_Average_Of_Cube(n):\n  \"\"\"\n  This function calculates the average of cubes of the first n natural numbers.\n\n  Args:\n    n: The number of natural numbers to calculate the cubes of.\n\n  Returns:\n    The average of the cubes of the first n natural numbers.\n  \"\"\"\n  sum_of_cubes = 0\n  for i in range(1, n + 1):\n    sum_of_cubes += i**3\n  return sum_of_",
-      "label": false
-    },
-    "A_tag": "A1"
+    "instruct_cs_e": true
   },
   {
     "source_file": "charlessutton@: Benchmark Questions Verification V2.ipynb",
@@ -7268,8 +6883,8 @@
       "gap"
     ],
     "instruct_plans": [
-      "-",
-      "+"
+      "+",
+      "-"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -7277,15 +6892,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def shell_sort(arr):\n    on the first line of your code, write the following code:\n    ",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def shell_sort(arr):\n    \n\n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "charlessutton@: Benchmark Questions Verification V2.ipynb",
@@ -7323,15 +6930,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def and_tuples(a, b):\n    return tuple(a[i] and b[i] for i in range(len(a)))\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def and_tuples(tuple1, tuple2):\n    return tuple(zip(tuple1, tuple2))\n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "charlessutton@: Benchmark Questions Verification V2.ipynb",
@@ -7357,13 +6956,13 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "/",
-      "*"
+      "*",
+      "/"
     ],
     "instruct_plans": [
-      "/",
       "+",
-      "(("
+      "((",
+      "/"
     ],
     "base_cs": true,
     "instruct_cs": false,
@@ -7371,15 +6970,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def parabola_directrix(a,b,c):\n    return a*b*c\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def parabola_directrix(a, b, c):\n    return (c - a) / (2 * b)\n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "charlessutton@: Benchmark Questions Verification V2.ipynb",
@@ -7439,8 +7030,8 @@
     "base_pass": false,
     "base_plans": [],
     "instruct_plans": [
-      "/",
-      "+"
+      "+",
+      "/"
     ],
     "base_cs": true,
     "instruct_cs": false,
@@ -7470,24 +7061,10 @@
     "base_cs": false,
     "instruct_cs": false,
     "index": 202,
-    "base_plans_e": [
-      "return",
-      "if"
-    ],
-    "instruct_plans_e": [
-      "return",
-      "if"
-    ],
+    "base_plans_e": [],
+    "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": false,
-    "base to instruct (e)": {
-      "code": "def4\n",
-      "label": false
-    },
-    "instruct to base (e)": {
-      "code": "def check_greater(arr, num):\n    for i in arr:\n        if i > num:\n            return True\n    return False\n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "charlessutton@: Benchmark Questions Verification V2.ipynb",
@@ -7581,8 +7158,8 @@
     "instruct_pass": true,
     "base_pass": true,
     "base_plans": [
-      "0",
-      "if"
+      "if",
+      "0"
     ],
     "instruct_plans": [
       "0"
@@ -7591,19 +7168,9 @@
     "instruct_cs": false,
     "index": 205,
     "base_plans_e": [],
-    "instruct_plans_e": [
-      "for"
-    ],
+    "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def neg_nos(list):\n    return [i for i in list if i < 0]\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def neg_nos(nums):\n  return [ -i for i in nums]\n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "charlessutton@: Benchmark Questions Verification V2.ipynb",
@@ -7635,9 +7202,7 @@
     "base_cs": true,
     "instruct_cs": true,
     "index": 206,
-    "base_plans_e": [
-      "()"
-    ],
+    "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
     "instruct_cs_e": true
@@ -7702,15 +7267,15 @@
       "+"
     ],
     "instruct_plans": [
-      "\\",
-      "pattern",
-      "(),",
-      "match",
       "))",
       "(-",
-      "if",
+      "match",
+      "\\",
+      "?",
+      "pattern",
       "-",
-      "?"
+      "if",
+      "(),"
     ],
     "base_cs": false,
     "instruct_cs": true,
@@ -7718,15 +7283,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def find_adverb_position(sentence):\n    adverb_list = []\n    for i in range(len(sentence)):\n        if sentence[i] == '!' or sentence[i] == '?':\n            adverb_list.append(i)\n    return adverb_list\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def find_adverb_position(sentence):\n    ad_verb_position = []\n    for i in range(len(sentence)):\n        if sentence[i] == \"!\" and i > 0 and sentence[i-1] != \" \":\n            ad_verb_position.append(i)\n    return ad_verb_position\n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "charlessutton@: Benchmark Questions Verification V2.ipynb",
@@ -7755,26 +7312,16 @@
       "2"
     ],
     "instruct_plans": [
-      "*",
-      "2"
+      "2",
+      "*"
     ],
     "base_cs": true,
     "instruct_cs": false,
     "index": 209,
-    "base_plans_e": [
-      "2"
-    ],
+    "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def surfacearea_cube(side):\n    return side * 6\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def surfacearea_cube(side):\n    return side**2 * 6\n",
-      "label": true
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "charlessutton@: Benchmark Questions Verification V2.ipynb",
@@ -7800,8 +7347,8 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "/",
-      "if"
+      "if",
+      "/"
     ],
     "instruct_plans": [],
     "base_cs": true,
@@ -7847,15 +7394,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def largest_neg(nums):\n    # Your code here\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def largest_neg(nums):\n  return max(nums) if nums.count(-1) == 0 else min(nums)\n",
-      "label": true
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "charlessutton@: Benchmark Questions Verification V2.ipynb",
@@ -7980,22 +7519,10 @@
     "base_cs": false,
     "instruct_cs": false,
     "index": 215,
-    "base_plans_e": [
-      "return"
-    ],
-    "instruct_plans_e": [
-      "for"
-    ],
-    "base_cs_e": false,
-    "instruct_cs_e": true,
-    "base to instruct (e)": {
-      "code": "def_code\n",
-      "label": false
-    },
-    "instruct to base (e)": {
-      "code": "def cube_nums(nums):\n  return [num**3 for num in nums]\n",
-      "label": false
-    }
+    "base_plans_e": [],
+    "instruct_plans_e": [],
+    "base_cs_e": true,
+    "instruct_cs_e": true
   },
   {
     "source_file": "charlessutton@: Benchmark Questions Verification V2.ipynb",
@@ -8067,16 +7594,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def extract_string(string_list, size):\n    return [string for string in string_list if len(string) == size]\n",
-      "label": true
-    },
-    "instruct to base": {
-      "code": "def extract_string(string_list, size):\n    return [string_list[i:i+size] for i in range(0, len(string_list), size)]\n",
-      "label": true
-    },
-    "A_tag": "A1"
+    "instruct_cs_e": true
   },
   {
     "source_file": "charlessutton@: Benchmark Questions Verification V2.ipynb",
@@ -8146,15 +7664,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def loss_amount(amount,loss):\n    if amount > loss:\n        return amount - loss\n    else:\n        return 0\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def loss_amount(original_amount, sale_amount):\n    if original_amount > sale_amount:\n        return original_amount - sale_amount\n    else:\n        return 0\n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "charlessutton@: Benchmark Questions Verification V2.ipynb",
@@ -8249,8 +7759,8 @@
     "base_pass": false,
     "base_plans": [],
     "instruct_plans": [
-      "0",
-      "["
+      "[",
+      "0"
     ],
     "base_cs": false,
     "instruct_cs": true,
@@ -8348,23 +7858,10 @@
     "base_cs": true,
     "instruct_cs": true,
     "index": 225,
-    "base_plans_e": [
-      "return"
-    ],
-    "instruct_plans_e": [
-      "return",
-      "*"
-    ],
+    "base_plans_e": [],
+    "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct (e)": {
-      "code": "def rectangle_area(length, width):\n    return length * width\n",
-      "label": false
-    },
-    "instruct to base (e)": {
-      "code": "def_area = lambda x, y: x * y\n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "charlessutton@: Benchmark Questions Verification V2.ipynb",
@@ -8537,15 +8034,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def max_subarray_product(arr):\n    \"\"\"\n    :type arr: List[int]\n    :rtype: int\n    \"\"\"\n    # Your code here\n    return 0\n\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def max_subarray_product(nums):\n  max_so_far = nums[0]\n  min_so_far = nums[0]\n  max_product = nums[0]\n  for i in range(1, len(nums)):\n    current_max = max(nums[i], nums[i] * max_so_far)\n    current_min = min(nums[i], nums[i] * min_so_far)\n    max_so_far =",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "charlessutton@: Benchmark Questions Verification V2.ipynb",
@@ -8571,10 +8060,10 @@
     "instruct_pass": true,
     "base_pass": true,
     "base_plans": [
+      "!=",
       "]",
-      "key",
       "[",
-      "!="
+      "key"
     ],
     "instruct_plans": [
       "for"
@@ -8585,15 +8074,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def check_value(dictionary, value):\n    \"\"\"\n    Check if all values are same in a dictionary.\n    :param dictionary: dictionary to check\n    :param value: value to check\n    :return: True if all values are same, False otherwise\n    \"\"\"\n    return all(value == d for d in dictionary.values())\n",
-      "label": true
-    },
-    "instruct to base": {
-      "code": "def check_value(d, val):\n    return d.values() == [val]\n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "charlessutton@: Benchmark Questions Verification V2.ipynb",
@@ -8620,8 +8101,8 @@
     "base_pass": false,
     "base_plans": [
       "]",
-      "key",
-      "["
+      "[",
+      "key"
     ],
     "instruct_plans": [],
     "base_cs": true,
@@ -8693,8 +8174,8 @@
       "["
     ],
     "instruct_plans": [
-      "]",
-      "-"
+      "-",
+      "]"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -8702,15 +8183,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def add_pairwise(tuple):\nreturn tuple\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def add_pairwise(data):\n    return (\n        data[0] + data[1],\n        data[2] + data[3],\n        data[4] + data[5],\n    )\n\n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "charlessutton@: Benchmark Questions Verification V2.ipynb",
@@ -8878,9 +8351,7 @@
     "base_cs": true,
     "instruct_cs": true,
     "index": 239,
-    "base_plans_e": [
-      "+"
-    ],
+    "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
     "instruct_cs_e": true
@@ -8920,15 +8391,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def is_lower(string):\n    return\n    return True\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def is_lower(text):\n    return value\n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "charlessutton@: Benchmark Questions Verification V2.ipynb",
@@ -9022,9 +8485,9 @@
     "instruct_pass": true,
     "base_pass": true,
     "base_plans": [
-      "%",
       "if",
-      "for"
+      "for",
+      "%"
     ],
     "instruct_plans": [
       "if"
@@ -9035,15 +8498,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def Split(list):\n    return list(filter(lambda x: x % 2 != 0, list))\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def Split(nums):\n  return [i for i in nums if i % 2 != 0]\n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -9070,17 +8525,15 @@
     "base_pass": true,
     "base_plans": null,
     "instruct_plans": [
-      "**",
       "range",
-      "for"
+      "for",
+      "**"
     ],
     "base_cs": false,
     "instruct_cs": true,
     "index": 244,
     "base_plans_e": null,
-    "instruct_plans_e": [
-      "range"
-    ],
+    "instruct_plans_e": [],
     "base_cs_e": false,
     "instruct_cs_e": true
   },
@@ -9108,12 +8561,12 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "^",
-      "range",
-      "%",
       "j",
-      "if",
-      "for"
+      "^",
+      "for",
+      "%",
+      "range",
+      "if"
     ],
     "instruct_plans": [],
     "base_cs": true,
@@ -9349,9 +8802,7 @@
     "instruct_cs": false,
     "index": 252,
     "base_plans_e": [],
-    "instruct_plans_e": [
-      "return"
-    ],
+    "instruct_plans_e": [],
     "base_cs_e": true,
     "instruct_cs_e": true
   },
@@ -9458,15 +8909,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def empty_list(n):\n    return [{}] * n\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def empty_list(n):\n  return [{}() for _ in range(n)]\n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -9488,11 +8931,9 @@
     "base_cs": false,
     "instruct_cs": false,
     "index": 256,
-    "base_plans_e": [
-      "return"
-    ],
+    "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": false,
+    "base_cs_e": true,
     "instruct_cs_e": false
   },
   {
@@ -9587,9 +9028,9 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "**",
       "+",
-      "*"
+      "*",
+      "**"
     ],
     "instruct_plans": [
       "+",
@@ -9601,15 +9042,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def surfacearea_cylinder(radius,height):\n    return 2*math.pi*radius*height\n",
-      "label": true
-    },
-    "instruct to base": {
-      "code": "def surfacearea_cylinder(radius, height):\n    return 2 * 3.141592653589793 * radius * radius * height\n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -9717,16 +9150,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def interleave_lists(list1, list2, list3):\n    # your code here\n    return []\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def interleave_lists(list1, list2, list3):\n    return [x for x in list1] + [x for x in list2] + [x for x in list3]\n",
-      "label": false
-    },
-    "A_tag": "A3"
+    "instruct_cs_e": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -9748,25 +9172,12 @@
     "base_cs": true,
     "instruct_cs": true,
     "index": 263,
-    "base_plans_e": [
-      "return",
-      "#",
-      "-"
-    ],
+    "base_plans_e": [],
     "instruct_plans_e": [
-      "return",
       "-"
     ],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct (e)": {
-      "code": "def find_dissimilar(tuple1, tuple2):\n    return tuple(set(tuple1) - set(tuple2))\n",
-      "label": false
-    },
-    "instruct to base (e)": {
-      "code": "def find_dissimilar(tuple1, tuple2):\n    return tuple(set(tuple1) - set(tuple2))\n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -9896,9 +9307,9 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
+      "if",
       "]",
-      "[",
-      "if"
+      "["
     ],
     "instruct_plans": [
       "()"
@@ -9909,15 +9320,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def find_adverbs(string):\n    adverbs = []\n    for i in range(len(string)):\n        if string[i:i+5] == 'ly':\n            adverbs.append(string[i:i+5])\n    return adverbs\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def find_adverbs(text):\n):\n    words = text.split()\n    for i in range(len(words)):\n        if words[i].endswith(\"ly\"):\n            return words[i], i\n    return None, -1\n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -10053,15 +9456,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def big_diff(lst):\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def big_diff(data):\n  if data is None:\n    return None\n  return max(data)\n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -10094,9 +9489,7 @@
     "instruct_cs": true,
     "index": 272,
     "base_plans_e": [],
-    "instruct_plans_e": [
-      "for"
-    ],
+    "instruct_plans_e": [],
     "base_cs_e": true,
     "instruct_cs_e": true
   },
@@ -10157,8 +9550,8 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "0",
-      "],"
+      "],",
+      "0"
     ],
     "instruct_plans": [
       "-"
@@ -10169,15 +9562,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def swap_List(list):\n    return [list[len(list)-1], list[0]]\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def swap_List(lst):\n    \"\"\"\n    This function swaps the first and last elements of a list.\n    \"\"\"\n    return lst[0], lst[-1]\n",
-      "label": true
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -10240,9 +9625,9 @@
     "base_pass": false,
     "base_plans": [],
     "instruct_plans": [
-      "[]",
       "if",
-      "for"
+      "for",
+      "[]"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -10311,15 +9696,15 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "]",
+      "if",
       "for",
       "[",
-      "if"
+      "]"
     ],
     "instruct_plans": [
+      "else",
       "]",
-      "%",
-      "else"
+      "%"
     ],
     "base_cs": true,
     "instruct_cs": false,
@@ -10327,15 +9712,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def min_Swaps(a,b):\nif len(a) != len(b):\nreturn \"Not Possible\"\na = list(a)\nb = list(b)\nfor i in range(len(a)):\nif a[i] != b[i]:\nif a[i] == \"0\":\na[i] = \"1\"\nelse:\na[i] = \"0\"\nif a == b:\nreturn 0\nelse:\nreturn 1 +",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def min_Swaps(binary1, binary2):\n    n = len(binary1)\n    count = 0\n    for i in range(n):\n        if binary1[i] != binary2[i]:\n            count += 1\n    if count == 0:\n        return \"Not Possible\"\n    return count\n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -10394,8 +9771,8 @@
     "instruct_pass": true,
     "base_pass": false,
     "base_plans": [
-      "**",
-      "int"
+      "int",
+      "**"
     ],
     "instruct_plans": [
       "if"
@@ -10403,21 +9780,10 @@
     "base_cs": true,
     "instruct_cs": true,
     "index": 280,
-    "base_plans_e": [
-      "int"
-    ],
+    "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def armstrong_number(n):\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def armstrong_number(n):\n  sum = 0\n  temp = n\n  while temp > 0:\n    digit = temp % 10\n    sum += digit ** len(str(n))\n    temp //= 10\n  return sum == n\n",
-      "label": false
-    },
-    "A_tag": "A3"
+    "instruct_cs_e": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -10511,9 +9877,9 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
+      "if",
       "]",
-      "[",
-      "if"
+      "["
     ],
     "instruct_plans": [
       "]"
@@ -10524,15 +9890,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def first_repeated_char(s):\n    for_char = \"\"\n    for char in s:\n        if s.count(char) > 1:\n            for_char = char\n            break\n    return for_char\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def first_repeated_char(s):\n  for i in range(len(s)):\n    for j in range(i + 1, len(s)):\n      if s[i] == s[j]:\n        return s[i]\n  return None\n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -10563,11 +9921,9 @@
     "instruct_cs": true,
     "index": 284,
     "base_plans_e": [],
-    "instruct_plans_e": [
-      "**"
-    ],
+    "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": false
+    "instruct_cs_e": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -10671,16 +10027,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def radian_degree(degrees):\n    return degrees * (360 / 180)\n\n",
-      "label": true
-    },
-    "instruct to base": {
-      "code": "def radian_degree(degrees):\n    return degrees * (pi / 180)\n",
-      "label": false
-    },
-    "A_tag": "A1"
+    "instruct_cs_e": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -10710,8 +10057,8 @@
     ],
     "instruct_plans": [
       "-",
-      "0",
-      "for"
+      "for",
+      "0"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -10719,15 +10066,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def bell_Number(n):\n    if n == 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def bell_Number(n):\n    if n == 1:\n        return 1\n    if n == 2:\n        return 2\n    if n == 3:\n        return 5\n    return bell_Number(n-1) + bell_Number(n-2)\n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -10754,8 +10093,8 @@
     "base_pass": false,
     "base_plans": [],
     "instruct_plans": [
-      "-",
-      "+"
+      "+",
+      "-"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -10836,16 +10175,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def merge(l):\n    return [l]\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def merge(lst):\n    return []\n",
-      "label": false
-    },
-    "A_tag": "A3"
+    "instruct_cs_e": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -10976,11 +10306,11 @@
       "-"
     ],
     "instruct_plans": [
-      "]",
       "else",
-      "('",
+      "]",
+      "-",
       "[",
-      "-"
+      "('"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -10988,15 +10318,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def min_Jumps(d,n):\n    i = 0\n    while True:\n        if i == 0:\n            print(\"min_Jumps(1,1)\")\n        elif i == 1:\n            print(\"min_Jumps(2,2)\")\n        elif i == 2:\n            print(\"min_Jumps(3,3)\")\n        elif i == 3:\n            print(\"min_Jumps(4,4)\")\n        elif i == 4",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def min_Jumps(pos, target):\n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -11128,9 +10450,9 @@
     "base_pass": false,
     "base_plans": [],
     "instruct_plans": [
-      "/",
       "-",
-      "if"
+      "if",
+      "/"
     ],
     "base_cs": true,
     "instruct_cs": false,
@@ -11160,23 +10482,10 @@
     "base_cs": false,
     "instruct_cs": false,
     "index": 300,
-    "base_plans_e": [
-      "return",
-      "for"
-    ],
-    "instruct_plans_e": [
-      "return"
-    ],
+    "base_plans_e": [],
+    "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct (e)": {
-      "code": "def nth_nums(nums, n):\n    return [num**n for num in nums]\n",
-      "label": false
-    },
-    "instruct to base (e)": {
-      "code": "def_",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -11213,16 +10522,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def is_upper(string):\n    return string in uppercase\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def is_upper(text):\n    return text\n",
-      "label": false
-    },
-    "A_tag": "A3"
+    "instruct_cs_e": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -11287,8 +10587,8 @@
       "*"
     ],
     "instruct_plans": [
-      "/",
-      "*"
+      "*",
+      "/"
     ],
     "base_cs": true,
     "instruct_cs": false,
@@ -11296,15 +10596,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def triangle_area(radius):\n    if radius = 0\n    if radius = 0\n    return 0\n    return 0\n    return 0\n    return 0\n    return 0\n    return 0\n    return 0\n    return 0\n    return 0\n    return 0\n    return 0\n    return 0\n    return 0\n    return 0\n    return 0\n    return 0\n    return 0\n    return 0",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def triangle_area(radius):\n  if radius == 0:\n    return None\n  else:\n    return math.pi * radius**2 / 2\n\n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -11374,16 +10666,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def Split(list):\n    even_list = []\n    for i in list:\n        if i % 2 == 0:\n            even_list.append(i)\n    return even_list\n",
-      "label": true
-    },
-    "instruct to base": {
-      "code": "def Split(nums):\n  evenNumbers = []\n  for num in nums:\n    if num % 2 == 0:\n      evenNumbers.append(num)\n  return evenNumbers\n",
-      "label": false
-    },
-    "A_tag": "A1"
+    "instruct_cs_e": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -11475,8 +10758,8 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "^",
-      "for"
+      "for",
+      "^"
     ],
     "instruct_plans": [],
     "base_cs": true,
@@ -11511,17 +10794,17 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "range",
-      "],",
+      "len",
       "j",
-      "if",
-      "len"
+      "],",
+      "range",
+      "if"
     ],
     "instruct_plans": [
+      "+",
       "-",
       "!=",
-      "*",
-      "+"
+      "*"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -11529,15 +10812,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def heap_sort(arr):\n    # Write your code here\n    return arr\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def heap_sort(arr):\n  \"\"\"\n  Sorts a list using the heap sort algorithm.\n\n  Args:\n    arr: The list to be sorted.\n\n  Returns:\n    The sorted list.\n  \"\"\"\n  n = len(arr)\n  for i in range(n // 2 - 1, -1, -1):\n    heapify(arr, n, i)\n  for i in range(n - 1, 0, -1):\n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -11597,9 +10872,9 @@
     "base_pass": false,
     "base_plans": [],
     "instruct_plans": [
+      "((",
       "-",
-      "*",
-      "(("
+      "*"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -11667,9 +10942,9 @@
     "base_pass": false,
     "base_plans": [],
     "instruct_plans": [
-      "char",
+      "if",
       "0",
-      "if"
+      "char"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -11703,9 +10978,9 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "/",
       "+",
-      "*"
+      "*",
+      "/"
     ],
     "instruct_plans": [
       "+",
@@ -11717,15 +10992,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def is_nonagonal(n):\n    return (n * (n + 1)) / 2\n",
-      "label": true
-    },
-    "instruct to base": {
-      "code": "def is_nonagonal(n):\n  return sum(range(1, n + 1)) * (n + 1) // 2\n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -11830,10 +11097,7 @@
     "instruct_cs": true,
     "index": 317,
     "base_plans_e": [],
-    "instruct_plans_e": [
-      "/",
-      "+"
-    ],
+    "instruct_plans_e": [],
     "base_cs_e": true,
     "instruct_cs_e": true
   },
@@ -11867,9 +11131,7 @@
     "base_cs": true,
     "instruct_cs": false,
     "index": 318,
-    "base_plans_e": [
-      "()"
-    ],
+    "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
     "instruct_cs_e": true
@@ -11895,23 +11157,10 @@
     "base_cs": false,
     "instruct_cs": false,
     "index": 319,
-    "base_plans_e": [
-      "return",
-      "for"
-    ],
-    "instruct_plans_e": [
-      "for"
-    ],
+    "base_plans_e": [],
+    "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct (e)": {
-      "code": "def:\n    ",
-      "label": false
-    },
-    "instruct to base (e)": {
-      "code": "def solve(list1, list2):\n    count = 0\n    for i in range(len(list1)):\n        if list1[i] == list2[i]:\n            count += 1\n    return count\n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -11974,8 +11223,8 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "()",
-      "if"
+      "if",
+      "()"
     ],
     "instruct_plans": [
       "-"
@@ -11983,20 +11232,10 @@
     "base_cs": true,
     "instruct_cs": false,
     "index": 321,
-    "base_plans_e": [
-      "()"
-    ],
+    "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def extract_quotation(string):\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def extract_quotation(text):\n    return [word for word in text.split() if word.startswith('\"') and word.endswith('\"')]\n",
-      "label": true
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -12034,15 +11273,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def multiply_elements(t):\nreturn tuple(t[i] * t[i+1] for i in range(len(t)-1))\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def multiply_elements(t):\n  \n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -12272,11 +11503,11 @@
     "base_pass": false,
     "base_plans": [],
     "instruct_plans": [
-      "right",
-      "mid",
+      "+",
       "0",
       "else",
-      "+"
+      "right",
+      "mid"
     ],
     "base_cs": true,
     "instruct_cs": false,
@@ -12313,8 +11544,8 @@
       "match"
     ],
     "instruct_plans": [
-      "[",
-      "match"
+      "match",
+      "["
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -12322,16 +11553,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def check_str(str):\n    return str[0] in \"aeiou\"\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def check_str(s):\n    return re.match(r'^[aeiouAEIOU]*', s) is not None\n",
-      "label": false
-    },
-    "A_tag": "A3"
+    "instruct_cs_e": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -12456,13 +11678,13 @@
     "instruct_pass": false,
     "base_pass": true,
     "base_plans": [
+      "for",
       "]",
-      "[",
-      "for"
+      "["
     ],
     "instruct_plans": [
-      "1",
-      "len"
+      "len",
+      "1"
     ],
     "base_cs": true,
     "instruct_cs": false,
@@ -12470,15 +11692,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def all_Characters_Same(string):\n    return string.count(string) == 1\n",
-      "label": true
-    },
-    "instruct to base": {
-      "code": "def all_Characters_Same(text):\n    return text.lower() == text.lower()\n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -12508,28 +11722,18 @@
       "*"
     ],
     "instruct_plans": [
-      "/",
       "-",
       "*",
+      "/",
       "))"
     ],
     "base_cs": true,
     "instruct_cs": true,
     "index": 335,
     "base_plans_e": [],
-    "instruct_plans_e": [
-      "-"
-    ],
+    "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def area_tetrahedron(n):\n    return 15.588457268119894 * n**2\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def area_tetrahedron(n):\n  \n    return math.sqrt(n * (n + 2) * (n + 1) * (n - 1))\n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -12661,9 +11865,9 @@
       "/"
     ],
     "instruct_plans": [
-      "/",
+      "*",
       "**",
-      "*"
+      "/"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -12671,16 +11875,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def sector_area(radius, angle):\n    if angle > 360:\n        return None\n    return radius * radius * (angle / 360)\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def sector_area(radius, angle):\n    if angle > 360:\n        return None\n    return (radius * radius * angle / 360)\n",
-      "label": true
-    },
-    "A_tag": "A2"
+    "instruct_cs_e": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -12732,17 +11927,15 @@
     "base_pass": false,
     "base_plans": [],
     "instruct_plans": [
-      "[",
       "+",
-      "0"
+      "0",
+      "["
     ],
     "base_cs": true,
     "instruct_cs": true,
     "index": 341,
     "base_plans_e": [],
-    "instruct_plans_e": [
-      "+"
-    ],
+    "instruct_plans_e": [],
     "base_cs_e": true,
     "instruct_cs_e": true
   },
@@ -12766,9 +11959,7 @@
     "base_cs": false,
     "instruct_cs": false,
     "index": 342,
-    "base_plans_e": [
-      "return"
-    ],
+    "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
     "instruct_cs_e": true
@@ -12988,15 +12179,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def text_match_zero_one(text):\n    return text.count('a') == text.count('b')\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def text_match_zero_one(text):\n  if 'a' in text and 'b' in text:\n    return True\n  return False\n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -13056,8 +12239,8 @@
     "instruct_pass": true,
     "base_pass": false,
     "base_plans": [
-      "for",
-      "if"
+      "if",
+      "for"
     ],
     "instruct_plans": [],
     "base_cs": true,
@@ -13161,8 +12344,8 @@
     "base_pass": false,
     "base_plans": [],
     "instruct_plans": [
-      "[",
-      "else"
+      "else",
+      "["
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -13304,16 +12487,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def pair_wise(lst):\n    \"\"\"\n    :param lst:\n    :return:\n    \"\"\"\n    result = []\n    for i in range(len(lst) - 1):\n        result.append((lst[i], lst[i + 1]))\n    return result\n",
-      "label": true
-    },
-    "instruct to base": {
-      "code": "def pair_wise(lst):\n    return [(x, y) for x in lst for y in lst[1:] if x == y]\n",
-      "label": false
-    },
-    "A_tag": "A1"
+    "instruct_cs_e": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -13371,24 +12545,10 @@
     "base_cs": true,
     "instruct_cs": true,
     "index": 359,
-    "base_plans_e": [
-      "return",
-      "for"
-    ],
-    "instruct_plans_e": [
-      "return",
-      "not"
-    ],
+    "base_plans_e": [],
+    "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct (e)": {
-      "code": "def main():\n    pass\n",
-      "label": false
-    },
-    "instruct to base (e)": {
-      "code": "def __init__(self, list1, list2):\n    self.list1 = list1\n    self.list2 = list2\n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -13425,15 +12585,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": false,
-    "instruct_cs_e": false,
-    "base to instruct": {
-      "code": "def odd_num_sum(n):\n    sum = 0\n    for i in range(1, n+ 1, 2):\n        sum += i ** 4\n    return sum\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def odd_num_sum(n):\n    sum = 0\n    for i in range(1, n):\n        sum += i + 1\n    return sum\n",
-      "label": false
-    }
+    "instruct_cs_e": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -13528,8 +12680,8 @@
     "base_pass": false,
     "base_plans": [],
     "instruct_plans": [
-      "),",
-      "-"
+      "-",
+      "),"
     ],
     "base_cs": false,
     "instruct_cs": true,
@@ -13563,13 +12715,13 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "]",
       "-",
-      "',"
+      "',",
+      "]"
     ],
     "instruct_plans": [
-      "]",
-      "-"
+      "-",
+      "]"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -13577,15 +12729,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def count_vowels(s):\n# Write your code here\nassert count_vowels(\"python\") == 1\nassert count_vowels(\"python\") == 1\nassert count_vowels(\"python\") == 1\nassert count_vowels(\"python\") == 1\nassert count_vowels(\"python\") == 1\nassert count_vowels(\"python\") == 1\nassert count_vowels(\"python\") == 1\nassert count_vowels(\"python\") == ",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def count_vowels(s):\n  \"\"\"\n  Counts the number of vowels that have vowels as their neighbors in the given string.\n  \"\"\"\n  count = 0\n  for i in range(len(s)):\n    if s[i] in 'aeiouAEIOU':\n      for j in range(i+1, len(s)):\n        if s[j] in 'aeiouAEIOU':\n          count += 1\n  return count\n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -13682,8 +12826,8 @@
     "base_pass": false,
     "base_plans": [],
     "instruct_plans": [
-      "int",
-      "="
+      "=",
+      "int"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -13788,15 +12932,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": false,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def mul_even_odd(lst):\n    even_product = 1\n    odd_product = 1\n    return sum(map(lambda x: x % 2, lst))\n",
-      "label": false
-    },
-    "instruct to base": {
-      "code": "def mul_even_odd(nums):\n    even_product = 1\n    odd_product = 1\n    for i in range(len(nums)):\n        if nums[i] % 2 == 0:\n            even_product *= nums[i]\n        else:\n            odd_product *= nums[i]\n    return even_product * odd_product\n",
-      "label": false
-    }
+    "instruct_cs_e": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -13820,9 +12956,7 @@
     "instruct_cs": false,
     "index": 371,
     "base_plans_e": [],
-    "instruct_plans_e": [
-      "return"
-    ],
+    "instruct_plans_e": [],
     "base_cs_e": true,
     "instruct_cs_e": true
   },
@@ -13988,8 +13122,8 @@
     "instruct_pass": true,
     "base_pass": true,
     "base_plans": [
-      "for",
-      "if"
+      "if",
+      "for"
     ],
     "instruct_plans": [],
     "base_cs": false,
@@ -14170,8 +13304,8 @@
     "base_plans": [],
     "instruct_plans": [
       "&",
-      "-",
-      "(("
+      "((",
+      "-"
     ],
     "base_cs": true,
     "instruct_cs": false,
@@ -14250,16 +13384,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true,
-    "base to instruct": {
-      "code": "def test_three_equal(a,b,c):\n    if a == b and b == c:\n        return 3\n    elif a == b or b == c or a == c:\n        return 2\n    else:\n        return 0\n",
-      "label": true
-    },
-    "instruct to base": {
-      "code": "def test_three_equal(a, b, c):\n    if a == b or b == c or c == a:\n        return 3\n    else:\n        return 0\n",
-      "label": false
-    },
-    "A_tag": "A1"
+    "instruct_cs_e": true
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -14320,10 +13445,7 @@
     "instruct_cs": true,
     "index": 385,
     "base_plans_e": null,
-    "instruct_plans_e": [
-      "return",
-      "="
-    ],
+    "instruct_plans_e": [],
     "base_cs_e": false,
     "instruct_cs_e": true
   },
@@ -14452,8 +13574,8 @@
     "instruct_pass": true,
     "base_pass": true,
     "base_plans": [
-      "%",
-      "if"
+      "if",
+      "%"
     ],
     "instruct_plans": [],
     "base_cs": true,

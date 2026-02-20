@@ -56,12 +56,15 @@
     },
     "instruct_pass": true,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "return"
+    ],
     "instruct_plans": [
-      "int"
+      "int",
+      "return"
     ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 1,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -129,14 +132,14 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "return"
+    ],
     "instruct_plans": [],
     "base_cs": true,
     "instruct_cs": false,
     "index": 3,
-    "base_plans_e": [
-      "return"
-    ],
+    "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
     "instruct_cs_e": true
@@ -163,8 +166,8 @@
     "index": 4,
     "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
-    "instruct_cs_e": true
+    "base_cs_e": false,
+    "instruct_cs_e": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -189,10 +192,15 @@
     },
     "instruct_pass": true,
     "base_pass": false,
-    "base_plans": [],
-    "instruct_plans": [],
+    "base_plans": [
+      "return"
+    ],
+    "instruct_plans": [
+      "]",
+      "return"
+    ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 5,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -225,14 +233,15 @@
     "base_plans": [],
     "instruct_plans": [
       "1",
+      "return",
       "["
     ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 6,
     "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
+    "base_cs_e": false,
     "instruct_cs_e": true
   },
   {
@@ -260,11 +269,12 @@
     "base_pass": false,
     "base_plans": [],
     "instruct_plans": [
+      "0",
       "+",
-      "0"
+      "return"
     ],
     "base_cs": false,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 7,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -286,16 +296,16 @@
     "model_output": "def find_Volume(base, height, width):\n    return base * height * width\n",
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "*"
+    ],
     "instruct_plans": [],
-    "base_cs": true,
+    "base_cs": false,
     "instruct_cs": true,
     "index": 8,
-    "base_plans_e": [
-      "return"
-    ],
+    "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
+    "base_cs_e": false,
     "instruct_cs_e": false
   },
   {
@@ -323,18 +333,16 @@
     "base_pass": false,
     "base_plans": [],
     "instruct_plans": [
-      "+",
       "1",
-      "]"
+      "]",
+      "+"
     ],
     "base_cs": true,
     "instruct_cs": true,
     "index": 9,
     "base_plans_e": [],
-    "instruct_plans_e": [
-      "+"
-    ],
-    "base_cs_e": true,
+    "instruct_plans_e": [],
+    "base_cs_e": false,
     "instruct_cs_e": true
   },
   {
@@ -365,11 +373,11 @@
       "*"
     ],
     "base_cs": false,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 10,
     "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
+    "base_cs_e": false,
     "instruct_cs_e": true
   },
   {
@@ -432,20 +440,19 @@
     "instruct_pass": true,
     "base_pass": true,
     "base_plans": [
+      "if",
       "+",
-      "if"
+      "return"
     ],
     "instruct_plans": [
-      "set",
       "if",
-      "()"
+      "()",
+      "set"
     ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 12,
-    "base_plans_e": [
-      "+"
-    ],
+    "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
     "instruct_cs_e": true
@@ -473,12 +480,16 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
-    "instruct_plans": [
-      "1"
+    "base_plans": [
+      "return"
     ],
-    "base_cs": true,
-    "instruct_cs": true,
+    "instruct_plans": [
+      "%",
+      "1",
+      "return"
+    ],
+    "base_cs": false,
+    "instruct_cs": false,
     "index": 13,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -509,18 +520,19 @@
     "instruct_pass": true,
     "base_pass": false,
     "base_plans": [
-      "+",
-      "//",
+      "return",
       "*",
+      "-",
       "%",
       "while",
-      "-"
+      "+",
+      "//"
     ],
     "instruct_plans": [
-      "-",
-      "*"
+      "*",
+      "-"
     ],
-    "base_cs": true,
+    "base_cs": false,
     "instruct_cs": true,
     "index": 14,
     "base_plans_e": [],
@@ -552,22 +564,23 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "0"
+      "0",
+      "return"
     ],
     "instruct_plans": [
-      "+",
-      "()",
-      "int",
       "-",
+      "+",
+      "int",
+      "()",
       "if"
     ],
-    "base_cs": true,
+    "base_cs": false,
     "instruct_cs": false,
     "index": 15,
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -594,6 +607,7 @@
     "instruct_pass": true,
     "base_pass": true,
     "base_plans": [
+      "return",
       "*"
     ],
     "instruct_plans": [
@@ -668,13 +682,15 @@
     "instruct_pass": true,
     "base_pass": false,
     "base_plans": [
+      "return",
       "-"
     ],
     "instruct_plans": [
-      "int"
+      "int",
+      "return"
     ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 18,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -706,10 +722,11 @@
     "base_pass": true,
     "base_plans": [],
     "instruct_plans": [
-      "not"
+      "not",
+      "return"
     ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 19,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -742,14 +759,17 @@
     "base_plans": [
       "-"
     ],
-    "instruct_plans": [],
-    "base_cs": true,
-    "instruct_cs": true,
+    "instruct_plans": [
+      "+",
+      "-"
+    ],
+    "base_cs": false,
+    "instruct_cs": false,
     "index": 20,
     "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
-    "instruct_cs_e": true
+    "base_cs_e": false,
+    "instruct_cs_e": false
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -772,10 +792,7 @@
     "instruct_cs": false,
     "index": 21,
     "base_plans_e": null,
-    "instruct_plans_e": [
-      "1",
-      "return"
-    ],
+    "instruct_plans_e": [],
     "base_cs_e": false,
     "instruct_cs_e": false
   },
@@ -802,13 +819,16 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
-    "instruct_plans": [
-      "+",
-      "not"
+    "base_plans": [
+      "return"
     ],
-    "base_cs": true,
-    "instruct_cs": true,
+    "instruct_plans": [
+      "not",
+      "+",
+      "return"
+    ],
+    "base_cs": false,
+    "instruct_cs": false,
     "index": 22,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -839,9 +859,11 @@
     "instruct_pass": true,
     "base_pass": true,
     "base_plans": [],
-    "instruct_plans": [],
+    "instruct_plans": [
+      "return"
+    ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 23,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -873,10 +895,11 @@
     "base_pass": false,
     "base_plans": null,
     "instruct_plans": [
+      "]",
       "-"
     ],
     "base_cs": false,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 24,
     "base_plans_e": null,
     "instruct_plans_e": [],
@@ -907,9 +930,11 @@
     "instruct_pass": true,
     "base_pass": false,
     "base_plans": null,
-    "instruct_plans": [],
+    "instruct_plans": [
+      "-"
+    ],
     "base_cs": false,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 25,
     "base_plans_e": null,
     "instruct_plans_e": [],
@@ -941,6 +966,7 @@
     "base_pass": false,
     "base_plans": [],
     "instruct_plans": [
+      "if",
       "-"
     ],
     "base_cs": false,
@@ -975,13 +1001,15 @@
     "instruct_pass": true,
     "base_pass": true,
     "base_plans": [
-      "for"
+      "for",
+      "return"
     ],
     "instruct_plans": [
-      "0"
+      "0",
+      "return"
     ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 27,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -1012,19 +1040,21 @@
     "instruct_pass": true,
     "base_pass": true,
     "base_plans": [
+      "if",
       "+",
-      "if"
+      "return"
     ],
     "instruct_plans": [
+      "return",
       "-"
     ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 28,
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1050,8 +1080,9 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "-",
-      "//"
+      "//",
+      "return",
+      "-"
     ],
     "instruct_plans": [
       "int",
@@ -1060,12 +1091,10 @@
     "base_cs": true,
     "instruct_cs": false,
     "index": 29,
-    "base_plans_e": [
-      "//"
-    ],
+    "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1090,17 +1119,18 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "return"
+    ],
     "instruct_plans": [
-      "for"
+      "for",
+      "return"
     ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 30,
     "base_plans_e": [],
-    "instruct_plans_e": [
-      "!="
-    ],
+    "instruct_plans_e": [],
     "base_cs_e": true,
     "instruct_cs_e": true
   },
@@ -1135,7 +1165,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1160,7 +1190,9 @@
     },
     "instruct_pass": true,
     "base_pass": true,
-    "base_plans": [],
+    "base_plans": [
+      "return"
+    ],
     "instruct_plans": [],
     "base_cs": true,
     "instruct_cs": true,
@@ -1194,8 +1226,9 @@
     "instruct_pass": true,
     "base_pass": true,
     "base_plans": [
+      "0",
       "2",
-      "0"
+      "return"
     ],
     "instruct_plans": [],
     "base_cs": true,
@@ -1230,14 +1263,15 @@
     "instruct_pass": true,
     "base_pass": false,
     "base_plans": [
-      "-",
-      "*"
+      "*",
+      "-"
     ],
     "instruct_plans": [
+      "return",
       "*"
     ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 34,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -1279,7 +1313,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1305,7 +1339,9 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "for"
+      "%",
+      "for",
+      "return"
     ],
     "instruct_plans": [
       "sum"
@@ -1354,8 +1390,8 @@
     "index": 37,
     "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
-    "instruct_cs_e": true
+    "base_cs_e": false,
+    "instruct_cs_e": false
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1381,13 +1417,14 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
+      "/",
       "+",
-      "*",
-      "/"
+      "*"
     ],
     "instruct_plans": [
-      "-",
-      "*"
+      "*",
+      "return",
+      "-"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -1423,6 +1460,7 @@
     "base_plans": [],
     "instruct_plans": [
       "]",
+      "return",
       "["
     ],
     "base_cs": false,
@@ -1464,7 +1502,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1484,17 +1522,15 @@
     "base_plans": [
       "-"
     ],
-    "instruct_plans": [],
+    "instruct_plans": [
+      "-"
+    ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 41,
-    "base_plans_e": [
-      "-"
-    ],
-    "instruct_plans_e": [
-      "-"
-    ],
-    "base_cs_e": true,
+    "base_plans_e": [],
+    "instruct_plans_e": [],
+    "base_cs_e": false,
     "instruct_cs_e": true
   },
   {
@@ -1521,8 +1557,8 @@
     "instruct_pass": true,
     "base_pass": true,
     "base_plans": [
-      "for",
-      "0"
+      "0",
+      "for"
     ],
     "instruct_plans": [],
     "base_cs": true,
@@ -1590,12 +1626,14 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "-",
-      "0"
+      "0",
+      "return",
+      "-"
     ],
     "instruct_plans": [
+      "0",
       "for",
-      "0"
+      "return"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -1636,7 +1674,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": false,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1671,7 +1709,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1703,8 +1741,8 @@
     "index": 47,
     "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
-    "instruct_cs_e": true
+    "base_cs_e": false,
+    "instruct_cs_e": false
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1730,9 +1768,11 @@
     "instruct_pass": true,
     "base_pass": false,
     "base_plans": null,
-    "instruct_plans": [],
+    "instruct_plans": [
+      "return"
+    ],
     "base_cs": false,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 48,
     "base_plans_e": null,
     "instruct_plans_e": [],
@@ -1764,7 +1804,10 @@
     },
     "instruct_pass": true,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "/",
+      "return"
+    ],
     "instruct_plans": [
       "/"
     ],
@@ -1800,15 +1843,16 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "2"
+      "2",
+      "return"
     ],
-    "instruct_plans": [],
-    "base_cs": true,
-    "instruct_cs": true,
+    "instruct_plans": [
+      "return"
+    ],
+    "base_cs": false,
+    "instruct_cs": false,
     "index": 50,
-    "base_plans_e": [
-      "+"
-    ],
+    "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
     "instruct_cs_e": true
@@ -1869,7 +1913,9 @@
     },
     "instruct_pass": true,
     "base_pass": true,
-    "base_plans": [],
+    "base_plans": [
+      "return"
+    ],
     "instruct_plans": [],
     "base_cs": true,
     "instruct_cs": true,
@@ -1903,23 +1949,20 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
+      "()",
       "replace"
     ],
     "instruct_plans": [
       "1",
-      "for",
-      "0"
+      "0",
+      "for"
     ],
     "base_cs": true,
     "instruct_cs": false,
     "index": 53,
-    "base_plans_e": [
-      "()"
-    ],
-    "instruct_plans_e": [
-      "()"
-    ],
-    "base_cs_e": true,
+    "base_plans_e": [],
+    "instruct_plans_e": [],
+    "base_cs_e": false,
     "instruct_cs_e": true
   },
   {
@@ -1948,16 +1991,16 @@
     "base_plans": null,
     "instruct_plans": [
       "+",
-      "-",
-      "*"
+      "*",
+      "-"
     ],
     "base_cs": false,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 54,
     "base_plans_e": null,
     "instruct_plans_e": [],
     "base_cs_e": false,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -1982,11 +2025,13 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "0"
+    ],
     "instruct_plans": [
       "for"
     ],
-    "base_cs": true,
+    "base_cs": false,
     "instruct_cs": true,
     "index": 55,
     "base_plans_e": [],
@@ -2017,15 +2062,17 @@
     },
     "instruct_pass": true,
     "base_pass": true,
-    "base_plans": [],
+    "base_plans": [
+      "if"
+    ],
     "instruct_plans": [],
-    "base_cs": true,
+    "base_cs": false,
     "instruct_cs": false,
     "index": 56,
     "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
-    "instruct_cs_e": true
+    "base_cs_e": false,
+    "instruct_cs_e": false
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -2059,7 +2106,7 @@
     "index": 57,
     "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
+    "base_cs_e": false,
     "instruct_cs_e": false
   },
   {
@@ -2085,14 +2132,16 @@
     },
     "instruct_pass": true,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "return"
+    ],
     "instruct_plans": [],
-    "base_cs": true,
+    "base_cs": false,
     "instruct_cs": false,
     "index": 58,
     "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
+    "base_cs_e": false,
     "instruct_cs_e": true
   },
   {
@@ -2120,14 +2169,15 @@
     "base_pass": false,
     "base_plans": [],
     "instruct_plans": [
-      "()"
+      "()",
+      "return"
     ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 59,
     "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
+    "base_cs_e": false,
     "instruct_cs_e": true
   },
   {
@@ -2153,15 +2203,19 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
-    "instruct_plans": [],
-    "base_cs": true,
-    "instruct_cs": true,
+    "base_plans": [
+      "return"
+    ],
+    "instruct_plans": [
+      "return"
+    ],
+    "base_cs": false,
+    "instruct_cs": false,
     "index": 60,
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -2186,10 +2240,15 @@
     },
     "instruct_pass": true,
     "base_pass": true,
-    "base_plans": [],
-    "instruct_plans": [],
-    "base_cs": true,
-    "instruct_cs": true,
+    "base_plans": [
+      "if",
+      "return"
+    ],
+    "instruct_plans": [
+      "if"
+    ],
+    "base_cs": false,
+    "instruct_cs": false,
     "index": 61,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -2220,23 +2279,24 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "*"
+      "+",
+      "return",
+      "*",
+      "["
     ],
     "instruct_plans": [
-      "+",
-      "*",
       "]",
-      "0"
+      "0",
+      "+",
+      "*"
     ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 62,
-    "base_plans_e": [
-      "+"
-    ],
+    "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -2262,7 +2322,8 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "for"
+      "for",
+      "return"
     ],
     "instruct_plans": [],
     "base_cs": true,
@@ -2294,11 +2355,9 @@
     "instruct_cs": false,
     "index": 64,
     "base_plans_e": [],
-    "instruct_plans_e": [
-      "()"
-    ],
-    "base_cs_e": true,
-    "instruct_cs_e": true
+    "instruct_plans_e": [],
+    "base_cs_e": false,
+    "instruct_cs_e": false
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -2324,10 +2383,12 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "+"
+      "+",
+      "-"
     ],
     "instruct_plans": [
-      "+"
+      "+",
+      "return"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -2365,7 +2426,7 @@
       "-"
     ],
     "base_cs": false,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 66,
     "base_plans_e": null,
     "instruct_plans_e": [],
@@ -2433,16 +2494,16 @@
     "base_plans": [
       "*"
     ],
-    "instruct_plans": [],
-    "base_cs": false,
-    "instruct_cs": true,
-    "index": 68,
-    "base_plans_e": [],
-    "instruct_plans_e": [
+    "instruct_plans": [
       "*"
     ],
+    "base_cs": false,
+    "instruct_cs": false,
+    "index": 68,
+    "base_plans_e": [],
+    "instruct_plans_e": [],
     "base_cs_e": false,
-    "instruct_cs_e": false
+    "instruct_cs_e": true
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -2464,11 +2525,9 @@
     "base_cs": false,
     "instruct_cs": false,
     "index": 69,
-    "base_plans_e": [
-      "if"
-    ],
+    "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
+    "base_cs_e": false,
     "instruct_cs_e": true
   },
   {
@@ -2495,9 +2554,11 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [],
-    "instruct_plans": [],
+    "instruct_plans": [
+      "return"
+    ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 70,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -2531,9 +2592,11 @@
       "if",
       "for"
     ],
-    "instruct_plans": [],
+    "instruct_plans": [
+      "return"
+    ],
     "base_cs": false,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 71,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -2564,16 +2627,21 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
+      "return",
+      "]",
+      "']",
+      "'",
       "1",
-      "()",
-      "'"
+      "()"
     ],
     "instruct_plans": [
-      "1",
-      "0",
+      "set",
+      "return",
       "]",
       "-",
-      "["
+      "0",
+      "[",
+      "1"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -2642,9 +2710,11 @@
     "base_plans": [
       "for"
     ],
-    "instruct_plans": [],
+    "instruct_plans": [
+      "return"
+    ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 74,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -2675,22 +2745,21 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
+      "/",
       "2",
-      "*",
-      "/"
+      "*"
     ],
     "instruct_plans": [
+      "*",
+      "return",
       "2",
       "-",
-      "if",
-      "*"
+      "if"
     ],
     "base_cs": true,
     "instruct_cs": true,
     "index": 75,
-    "base_plans_e": [
-      "+"
-    ],
+    "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
     "instruct_cs_e": true
@@ -2723,7 +2792,16 @@
     "base_plans": [
       "/"
     ],
-    "instruct_plans": [],
+    "instruct_plans": [
+      "use",
+      "any",
+      "The",
+      "_",
+      "be",
+      "[",
+      "**",
+      "="
+    ],
     "base_cs": true,
     "instruct_cs": true,
     "index": 76,
@@ -2755,10 +2833,14 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
-    "instruct_plans": [],
+    "base_plans": [
+      "return"
+    ],
+    "instruct_plans": [
+      "return"
+    ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 77,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -2783,15 +2865,15 @@
     "instruct_pass": true,
     "base_pass": true,
     "base_plans": [],
-    "instruct_plans": [],
+    "instruct_plans": [
+      "*"
+    ],
     "base_cs": false,
     "instruct_cs": true,
     "index": 78,
     "base_plans_e": [],
-    "instruct_plans_e": [
-      "return"
-    ],
-    "base_cs_e": true,
+    "instruct_plans_e": [],
+    "base_cs_e": false,
     "instruct_cs_e": true
   },
   {
@@ -2817,7 +2899,9 @@
     },
     "instruct_pass": true,
     "base_pass": true,
-    "base_plans": [],
+    "base_plans": [
+      "return"
+    ],
     "instruct_plans": [],
     "base_cs": true,
     "instruct_cs": false,
@@ -2850,18 +2934,20 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
-    "instruct_plans": [
-      "+",
-      "if",
-      "for"
+    "base_plans": [
+      "+"
     ],
-    "base_cs": true,
+    "instruct_plans": [
+      "for",
+      "if",
+      "+"
+    ],
+    "base_cs": false,
     "instruct_cs": false,
     "index": 80,
     "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
+    "base_cs_e": false,
     "instruct_cs_e": true
   },
   {
@@ -2895,7 +2981,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": false,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "Mike's Copy of Benchmark Questions Verification V2.ipynb",
@@ -2920,10 +3006,13 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "len"
+    ],
     "instruct_plans": [
       "if",
-      "for"
+      "for",
+      "return"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -2957,8 +3046,9 @@
     "instruct_pass": true,
     "base_pass": true,
     "base_plans": [
-      "-",
-      "0"
+      "0",
+      "+",
+      "-"
     ],
     "instruct_plans": [],
     "base_cs": true,
@@ -3017,7 +3107,9 @@
     },
     "instruct_pass": true,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "return"
+    ],
     "instruct_plans": [],
     "base_cs": true,
     "instruct_cs": false,
@@ -3085,17 +3177,18 @@
     },
     "instruct_pass": true,
     "base_pass": true,
-    "base_plans": [],
+    "base_plans": [
+      "/",
+      "*"
+    ],
     "instruct_plans": [
-      "*",
-      "/"
+      "/",
+      "*"
     ],
     "base_cs": true,
     "instruct_cs": true,
     "index": 87,
-    "base_plans_e": [
-      "/"
-    ],
+    "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
     "instruct_cs_e": true
@@ -3123,10 +3216,15 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
-    "instruct_plans": [],
+    "base_plans": [
+      "+",
+      "return"
+    ],
+    "instruct_plans": [
+      "return"
+    ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 88,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -3156,12 +3254,15 @@
     },
     "instruct_pass": true,
     "base_pass": false,
-    "base_plans": [],
-    "instruct_plans": [
-      "%"
+    "base_plans": [
+      "return"
     ],
-    "base_cs": true,
-    "instruct_cs": true,
+    "instruct_plans": [
+      "%",
+      "return"
+    ],
+    "base_cs": false,
+    "instruct_cs": false,
     "index": 89,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -3202,7 +3303,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -3228,7 +3329,8 @@
     "instruct_pass": true,
     "base_pass": true,
     "base_plans": [
-      "if"
+      "if",
+      "return"
     ],
     "instruct_plans": [],
     "base_cs": true,
@@ -3300,7 +3402,7 @@
       "*"
     ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 93,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -3332,10 +3434,13 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "return"
+    ],
     "instruct_plans": [
       "if",
-      "char"
+      "char",
+      "return"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -3369,8 +3474,9 @@
     "instruct_pass": true,
     "base_pass": true,
     "base_plans": [
-      "[",
-      "0"
+      "0",
+      "return",
+      "["
     ],
     "instruct_plans": [],
     "base_cs": true,
@@ -3405,15 +3511,17 @@
     },
     "instruct_pass": false,
     "base_pass": true,
-    "base_plans": [],
+    "base_plans": [
+      "if"
+    ],
     "instruct_plans": [],
-    "base_cs": true,
+    "base_cs": false,
     "instruct_cs": false,
     "index": 96,
     "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
-    "instruct_cs_e": true
+    "base_cs_e": false,
+    "instruct_cs_e": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -3439,16 +3547,19 @@
     "instruct_pass": true,
     "base_pass": false,
     "base_plans": [
-      "+",
-      "sum",
+      "range",
       "&",
       "for",
-      "range",
-      "if"
+      "return",
+      "+",
+      "if",
+      "sum"
     ],
-    "instruct_plans": [],
+    "instruct_plans": [
+      "return"
+    ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 97,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -3480,18 +3591,22 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "2",
-      "0",
-      "))",
       "for",
+      "return",
+      "))",
+      "2",
       "!=",
-      "["
+      "%",
+      "0",
+      "[",
+      "if"
     ],
     "instruct_plans": [
+      "return",
       "["
     ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 98,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -3521,15 +3636,19 @@
     },
     "instruct_pass": true,
     "base_pass": false,
-    "base_plans": [],
-    "instruct_plans": [],
-    "base_cs": true,
-    "instruct_cs": true,
+    "base_plans": [
+      "return"
+    ],
+    "instruct_plans": [
+      "return"
+    ],
+    "base_cs": false,
+    "instruct_cs": false,
     "index": 99,
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": false,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -3556,7 +3675,8 @@
     "base_pass": false,
     "base_plans": [
       "&",
-      "<<"
+      "<<",
+      "return"
     ],
     "instruct_plans": [],
     "base_cs": true,
@@ -3590,17 +3710,20 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "return"
+    ],
     "instruct_plans": [
+      "()",
       "+",
-      "()"
+      "return"
     ],
     "base_cs": true,
     "instruct_cs": true,
     "index": 101,
     "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
+    "base_cs_e": false,
     "instruct_cs_e": true
   },
   {
@@ -3689,15 +3812,15 @@
     "instruct_pass": true,
     "base_pass": false,
     "base_plans": [],
-    "instruct_plans": [],
+    "instruct_plans": [
+      "*"
+    ],
     "base_cs": true,
     "instruct_cs": true,
     "index": 104,
     "base_plans_e": [],
-    "instruct_plans_e": [
-      "return"
-    ],
-    "base_cs_e": true,
+    "instruct_plans_e": [],
+    "base_cs_e": false,
     "instruct_cs_e": true
   },
   {
@@ -3758,7 +3881,8 @@
     "base_pass": false,
     "base_plans": null,
     "instruct_plans": [
-      "if"
+      "if",
+      "return"
     ],
     "base_cs": false,
     "instruct_cs": true,
@@ -3800,7 +3924,7 @@
     "index": 107,
     "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
+    "base_cs_e": false,
     "instruct_cs_e": true
   },
   {
@@ -3860,13 +3984,10 @@
     "base_cs": false,
     "instruct_cs": false,
     "index": 109,
-    "base_plans_e": [
-      "):",
-      "return"
-    ],
+    "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
-    "instruct_cs_e": true
+    "base_cs_e": false,
+    "instruct_cs_e": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -3895,10 +4016,10 @@
       "*"
     ],
     "instruct_plans": [
-      "((",
-      "2",
       "**",
-      "0"
+      "0",
+      "((",
+      "2"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -3966,8 +4087,13 @@
     },
     "instruct_pass": true,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "0"
+    ],
     "instruct_plans": [
+      "]",
+      "return",
+      "_",
       "-"
     ],
     "base_cs": true,
@@ -4003,10 +4129,13 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "/"
+    ],
     "instruct_plans": [
-      "+",
       "/",
+      "+",
+      "return",
       "))"
     ],
     "base_cs": true,
@@ -4044,12 +4173,12 @@
       "if"
     ],
     "instruct_plans": [],
-    "base_cs": true,
+    "base_cs": false,
     "instruct_cs": false,
     "index": 114,
     "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
+    "base_cs_e": false,
     "instruct_cs_e": false
   },
   {
@@ -4243,7 +4372,9 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": null,
-    "instruct_plans": [],
+    "instruct_plans": [
+      "["
+    ],
     "base_cs": false,
     "instruct_cs": true,
     "index": 120,
@@ -4276,11 +4407,13 @@
     "instruct_pass": true,
     "base_pass": true,
     "base_plans": [
-      "/"
+      "/",
+      "return"
     ],
     "instruct_plans": [
       "]",
-      "/"
+      "/",
+      "return"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -4356,7 +4489,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -4388,8 +4521,8 @@
     "index": 124,
     "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
-    "instruct_cs_e": true
+    "base_cs_e": false,
+    "instruct_cs_e": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -4449,7 +4582,9 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "+"
+    ],
     "instruct_plans": [],
     "base_cs": true,
     "instruct_cs": false,
@@ -4474,18 +4609,15 @@
     "model_output": "def find_star_num(n):\n    return 100 * n + 100 * (n - 1) + 100 * (n - 2) + 100 * (n - 3) + 100 * (n - 4) + 100 * (n - 5) + 100 * (n - 6) + 100 * (n - 7) + 100 * (n - 8) + 100 * (n - 9) + 100 * (n - 10) + 100 * (n - 11) + 100 * (n - 12) + 100 * (n - 13) + 100 * (n - 14) + 100 * (",
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "return"
+    ],
     "instruct_plans": [],
     "base_cs": true,
     "instruct_cs": false,
     "index": 127,
-    "base_plans_e": [
-      "+",
-      "return"
-    ],
-    "instruct_plans_e": [
-      "div"
-    ],
+    "base_plans_e": [],
+    "instruct_plans_e": [],
     "base_cs_e": true,
     "instruct_cs_e": true
   },
@@ -4512,7 +4644,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": false,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -4537,15 +4669,17 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "if"
+    ],
     "instruct_plans": [],
-    "base_cs": true,
+    "base_cs": false,
     "instruct_cs": false,
     "index": 129,
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -4570,7 +4704,9 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "return"
+    ],
     "instruct_plans": [
       "**"
     ],
@@ -4641,6 +4777,7 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
+      "return",
       "["
     ],
     "instruct_plans": [
@@ -4678,7 +4815,9 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "if"
+    ],
     "instruct_plans": [],
     "base_cs": true,
     "instruct_cs": false,
@@ -4789,13 +4928,15 @@
     "base_plans": [
       "if"
     ],
-    "instruct_plans": [],
+    "instruct_plans": [
+      "]"
+    ],
     "base_cs": false,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 136,
     "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
+    "base_cs_e": false,
     "instruct_cs_e": false
   },
   {
@@ -4822,9 +4963,9 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
+      "/",
       "+",
-      "*",
-      "/"
+      "*"
     ],
     "instruct_plans": [
       "*"
@@ -4860,7 +5001,9 @@
     },
     "instruct_pass": true,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "return"
+    ],
     "instruct_plans": [
       "for"
     ],
@@ -4903,7 +5046,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -4937,8 +5080,8 @@
     "index": 140,
     "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
-    "instruct_cs_e": true
+    "base_cs_e": false,
+    "instruct_cs_e": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -4964,13 +5107,15 @@
     "instruct_pass": true,
     "base_pass": false,
     "base_plans": [
-      "1"
+      "1",
+      "return"
     ],
     "instruct_plans": [
-      "1"
+      "1",
+      "return"
     ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 141,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -5042,7 +5187,7 @@
     "index": 143,
     "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
+    "base_cs_e": false,
     "instruct_cs_e": false
   },
   {
@@ -5069,13 +5214,15 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [],
-    "instruct_plans": [],
+    "instruct_plans": [
+      "return"
+    ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 144,
     "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
+    "base_cs_e": false,
     "instruct_cs_e": true
   },
   {
@@ -5101,12 +5248,17 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "0",
+      "return"
+    ],
     "instruct_plans": [
-      "if"
+      "]",
+      "if",
+      "-"
     ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 145,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -5207,15 +5359,16 @@
     "base_plans": null,
     "instruct_plans": [
       "if",
-      "for"
+      "for",
+      "return"
     ],
     "base_cs": false,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 148,
     "base_plans_e": null,
     "instruct_plans_e": [],
     "base_cs_e": false,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "Ellen's Copy of Benchmark Questions Verification V2.ipynb",
@@ -5241,12 +5394,14 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "+",
+      "0",
+      "+"
+    ],
+    "instruct_plans": [
       "0"
     ],
-    "instruct_plans": [],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 149,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -5277,11 +5432,12 @@
     "instruct_pass": true,
     "base_pass": true,
     "base_plans": [
+      "for",
       "+",
-      "for"
+      "return"
     ],
     "instruct_plans": [],
-    "base_cs": true,
+    "base_cs": false,
     "instruct_cs": true,
     "index": 150,
     "base_plans_e": [
@@ -5322,7 +5478,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "Ellen's Copy of Benchmark Questions Verification V2.ipynb",
@@ -5388,10 +5544,11 @@
       "**"
     ],
     "instruct_plans": [
-      "=="
+      "==",
+      "return"
     ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 153,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -5426,8 +5583,9 @@
       "["
     ],
     "instruct_plans": [
-      "+",
       "not",
+      "+",
+      "return",
       "["
     ],
     "base_cs": true,
@@ -5461,7 +5619,9 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "return"
+    ],
     "instruct_plans": [
       "-"
     ],
@@ -5503,7 +5663,7 @@
     "index": 156,
     "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
+    "base_cs_e": false,
     "instruct_cs_e": false
   },
   {
@@ -5530,7 +5690,8 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "+"
+      "+",
+      "),"
     ],
     "instruct_plans": [],
     "base_cs": true,
@@ -5538,7 +5699,7 @@
     "index": 157,
     "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
+    "base_cs_e": false,
     "instruct_cs_e": true
   },
   {
@@ -5565,7 +5726,8 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "+"
+      "+",
+      "return"
     ],
     "instruct_plans": [],
     "base_cs": true,
@@ -5599,7 +5761,9 @@
     },
     "instruct_pass": true,
     "base_pass": true,
-    "base_plans": [],
+    "base_plans": [
+      "return"
+    ],
     "instruct_plans": [],
     "base_cs": true,
     "instruct_cs": true,
@@ -5631,8 +5795,8 @@
     "index": 160,
     "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
-    "instruct_cs_e": true
+    "base_cs_e": false,
+    "instruct_cs_e": false
   },
   {
     "source_file": "Ellen's Copy of Benchmark Questions Verification V2.ipynb",
@@ -5657,10 +5821,12 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "return"
+    ],
     "instruct_plans": [
-      "-",
-      "()"
+      "()",
+      "-"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -5668,7 +5834,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "Ellen's Copy of Benchmark Questions Verification V2.ipynb",
@@ -5706,7 +5872,7 @@
     "index": 162,
     "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
+    "base_cs_e": false,
     "instruct_cs_e": false
   },
   {
@@ -5735,9 +5901,11 @@
     "base_plans": [
       "**"
     ],
-    "instruct_plans": [],
+    "instruct_plans": [
+      "return"
+    ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 163,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -5768,6 +5936,7 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
+      "return",
       "-"
     ],
     "instruct_plans": [],
@@ -5803,10 +5972,11 @@
     "instruct_pass": true,
     "base_pass": true,
     "base_plans": [
-      "])"
+      "])",
+      "return"
     ],
     "instruct_plans": [],
-    "base_cs": true,
+    "base_cs": false,
     "instruct_cs": false,
     "index": 165,
     "base_plans_e": [],
@@ -5837,7 +6007,10 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "(",
+      "the"
+    ],
     "instruct_plans": [],
     "base_cs": true,
     "instruct_cs": false,
@@ -5939,11 +6112,12 @@
     "instruct_pass": true,
     "base_pass": true,
     "base_plans": [
+      "return",
       "len"
     ],
     "instruct_plans": [
-      "for",
-      "()"
+      "()",
+      "for"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -5976,7 +6150,9 @@
     },
     "instruct_pass": true,
     "base_pass": true,
-    "base_plans": [],
+    "base_plans": [
+      "return"
+    ],
     "instruct_plans": [],
     "base_cs": true,
     "instruct_cs": true,
@@ -6009,7 +6185,9 @@
     },
     "instruct_pass": true,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "return"
+    ],
     "instruct_plans": [],
     "base_cs": true,
     "instruct_cs": true,
@@ -6043,7 +6221,8 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "for"
+      "for",
+      "return"
     ],
     "instruct_plans": [],
     "base_cs": true,
@@ -6052,7 +6231,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -6082,7 +6261,8 @@
       "["
     ],
     "instruct_plans": [
-      "]"
+      "]",
+      "return"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -6115,17 +6295,18 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "return"
+    ],
     "instruct_plans": [
+      "()",
       "if"
     ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 174,
     "base_plans_e": [],
-    "instruct_plans_e": [
-      "()"
-    ],
+    "instruct_plans_e": [],
     "base_cs_e": true,
     "instruct_cs_e": true
   },
@@ -6154,6 +6335,7 @@
     "base_pass": false,
     "base_plans": [
       "]",
+      "+",
       "["
     ],
     "instruct_plans": [
@@ -6164,8 +6346,8 @@
     "index": 175,
     "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
-    "instruct_cs_e": true
+    "base_cs_e": false,
+    "instruct_cs_e": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -6190,14 +6372,18 @@
     },
     "instruct_pass": true,
     "base_pass": true,
-    "base_plans": [],
-    "instruct_plans": [],
+    "base_plans": [
+      "return"
+    ],
+    "instruct_plans": [
+      "return"
+    ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 176,
     "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
+    "base_cs_e": false,
     "instruct_cs_e": false
   },
   {
@@ -6224,14 +6410,16 @@
     "instruct_pass": true,
     "base_pass": true,
     "base_plans": [],
-    "instruct_plans": [],
+    "instruct_plans": [
+      "if"
+    ],
     "base_cs": true,
     "instruct_cs": true,
     "index": 177,
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -6257,9 +6445,12 @@
     "instruct_pass": true,
     "base_pass": true,
     "base_plans": [],
-    "instruct_plans": [],
+    "instruct_plans": [
+      "%",
+      "return"
+    ],
     "base_cs": false,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 178,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -6289,15 +6480,18 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "return"
+    ],
     "instruct_plans": [
-      "import",
-      "int",
       "for",
-      "0"
+      "return",
+      "0",
+      "import",
+      "int"
     ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 179,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -6329,15 +6523,16 @@
     "base_pass": false,
     "base_plans": null,
     "instruct_plans": [
+      "return",
       "*"
     ],
     "base_cs": false,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 180,
     "base_plans_e": null,
     "instruct_plans_e": [],
     "base_cs_e": false,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -6362,15 +6557,19 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
-    "instruct_plans": [],
-    "base_cs": true,
-    "instruct_cs": true,
+    "base_plans": [
+      "return"
+    ],
+    "instruct_plans": [
+      "return"
+    ],
+    "base_cs": false,
+    "instruct_cs": false,
     "index": 181,
     "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
-    "instruct_cs_e": true
+    "base_cs_e": false,
+    "instruct_cs_e": false
   },
   {
     "source_file": "charlessutton@: Benchmark Questions Verification V2.ipynb",
@@ -6397,10 +6596,11 @@
     "base_pass": false,
     "base_plans": [],
     "instruct_plans": [
-      "]"
+      "]",
+      "()"
     ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 182,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -6431,8 +6631,9 @@
     "instruct_pass": true,
     "base_pass": true,
     "base_plans": [
+      "%",
       "if",
-      "%"
+      "for"
     ],
     "instruct_plans": [
       "if",
@@ -6536,12 +6737,14 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "*"
+      "*",
+      "return"
     ],
     "instruct_plans": [
-      "for"
+      "for",
+      "return"
     ],
-    "base_cs": true,
+    "base_cs": false,
     "instruct_cs": true,
     "index": 186,
     "base_plans_e": [],
@@ -6574,13 +6777,14 @@
     "base_pass": false,
     "base_plans": [
       "if",
-      "for"
+      "for",
+      "return"
     ],
     "instruct_plans": [
-      "+",
-      "1",
       "0",
+      "+",
       "elements",
+      "1",
       "if"
     ],
     "base_cs": true,
@@ -6650,9 +6854,11 @@
     "instruct_pass": true,
     "base_pass": false,
     "base_plans": [],
-    "instruct_plans": [],
+    "instruct_plans": [
+      "*"
+    ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 189,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -6688,7 +6894,7 @@
     "instruct_plans": [
       "1"
     ],
-    "base_cs": true,
+    "base_cs": false,
     "instruct_cs": false,
     "index": 190,
     "base_plans_e": [],
@@ -6720,8 +6926,10 @@
     "instruct_pass": true,
     "base_pass": false,
     "base_plans": [
+      "1",
+      "]",
       "+",
-      "]"
+      "["
     ],
     "instruct_plans": [],
     "base_cs": true,
@@ -6756,9 +6964,10 @@
     "instruct_pass": true,
     "base_pass": false,
     "base_plans": [
-      "+",
+      "**",
       "/",
-      "**"
+      "+",
+      "return"
     ],
     "instruct_plans": [
       "/"
@@ -6827,10 +7036,15 @@
     },
     "instruct_pass": true,
     "base_pass": true,
-    "base_plans": [],
-    "instruct_plans": [],
-    "base_cs": true,
-    "instruct_cs": true,
+    "base_plans": [
+      "if",
+      "return"
+    ],
+    "instruct_plans": [
+      "return"
+    ],
+    "base_cs": false,
+    "instruct_cs": false,
     "index": 194,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -6861,7 +7075,9 @@
     "instruct_pass": true,
     "base_pass": true,
     "base_plans": [
-      "if"
+      "%",
+      "if",
+      "for"
     ],
     "instruct_plans": [],
     "base_cs": true,
@@ -6895,10 +7111,14 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
-    "instruct_plans": [],
+    "base_plans": [
+      "return"
+    ],
+    "instruct_plans": [
+      "return"
+    ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 196,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -6930,15 +7150,17 @@
     "base_pass": true,
     "base_plans": [
       "while",
-      "-",
-      "gap"
+      "gap",
+      "return",
+      "-"
     ],
     "instruct_plans": [
       "+",
+      "return",
       "-"
     ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 197,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -6972,8 +7194,8 @@
       "sum"
     ],
     "instruct_plans": [
-      "+",
-      "for"
+      "for",
+      "+"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -7007,13 +7229,13 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "*",
-      "/"
+      "/",
+      "*"
     ],
     "instruct_plans": [
-      "+",
       "((",
-      "/"
+      "/",
+      "+"
     ],
     "base_cs": true,
     "instruct_cs": false,
@@ -7081,8 +7303,8 @@
     "base_pass": false,
     "base_plans": [],
     "instruct_plans": [
-      "+",
-      "/"
+      "/",
+      "+"
     ],
     "base_cs": true,
     "instruct_cs": false,
@@ -7090,7 +7312,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "charlessutton@: Benchmark Questions Verification V2.ipynb",
@@ -7112,14 +7334,8 @@
     "base_cs": false,
     "instruct_cs": false,
     "index": 202,
-    "base_plans_e": [
-      "if",
-      "return"
-    ],
-    "instruct_plans_e": [
-      "if",
-      "return"
-    ],
+    "base_plans_e": [],
+    "instruct_plans_e": [],
     "base_cs_e": true,
     "instruct_cs_e": false
   },
@@ -7147,10 +7363,11 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "1"
+      "1",
+      "return"
     ],
     "instruct_plans": [],
-    "base_cs": true,
+    "base_cs": false,
     "instruct_cs": false,
     "index": 203,
     "base_plans_e": [],
@@ -7188,7 +7405,7 @@
     "index": 204,
     "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
+    "base_cs_e": false,
     "instruct_cs_e": true
   },
   {
@@ -7215,8 +7432,9 @@
     "instruct_pass": true,
     "base_pass": true,
     "base_plans": [
-      "if",
-      "0"
+      "0",
+      "for",
+      "if"
     ],
     "instruct_plans": [
       "0"
@@ -7225,9 +7443,7 @@
     "instruct_cs": false,
     "index": 205,
     "base_plans_e": [],
-    "instruct_plans_e": [
-      "for"
-    ],
+    "instruct_plans_e": [],
     "base_cs_e": true,
     "instruct_cs_e": true
   },
@@ -7255,15 +7471,16 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "()"
+      "()",
+      "return"
     ],
-    "instruct_plans": [],
+    "instruct_plans": [
+      "return"
+    ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 206,
-    "base_plans_e": [
-      "()"
-    ],
+    "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
     "instruct_cs_e": true
@@ -7328,13 +7545,14 @@
       "+"
     ],
     "instruct_plans": [
+      "return",
       "))",
       "(-",
-      "match",
-      "\\",
       "?",
-      "pattern",
       "-",
+      "pattern",
+      "\\",
+      "match",
       "if",
       "(),"
     ],
@@ -7379,12 +7597,10 @@
     "base_cs": true,
     "instruct_cs": false,
     "index": 209,
-    "base_plans_e": [
-      "2"
-    ],
+    "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "charlessutton@: Benchmark Questions Verification V2.ipynb",
@@ -7410,11 +7626,11 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "if",
-      "/"
+      "/",
+      "if"
     ],
     "instruct_plans": [],
-    "base_cs": true,
+    "base_cs": false,
     "instruct_cs": false,
     "index": 210,
     "base_plans_e": [],
@@ -7446,13 +7662,15 @@
     "instruct_pass": false,
     "base_pass": true,
     "base_plans": [
+      "return",
       "*"
     ],
     "instruct_plans": [
-      "for"
+      "for",
+      "return"
     ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 211,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -7482,7 +7700,9 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "for"
+    ],
     "instruct_plans": [
       "+"
     ],
@@ -7492,7 +7712,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": false,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "charlessutton@: Benchmark Questions Verification V2.ipynb",
@@ -7517,17 +7737,20 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "return",
+      "*"
+    ],
     "instruct_plans": [
       "]"
     ],
-    "base_cs": true,
+    "base_cs": false,
     "instruct_cs": false,
     "index": 213,
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "charlessutton@: Benchmark Questions Verification V2.ipynb",
@@ -7553,9 +7776,11 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [],
-    "instruct_plans": [],
+    "instruct_plans": [
+      "if"
+    ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 214,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -7582,14 +7807,10 @@
     "base_cs": false,
     "instruct_cs": false,
     "index": 215,
-    "base_plans_e": [
-      "return"
-    ],
-    "instruct_plans_e": [
-      "for"
-    ],
+    "base_plans_e": [],
+    "instruct_plans_e": [],
     "base_cs_e": false,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "charlessutton@: Benchmark Questions Verification V2.ipynb",
@@ -7614,7 +7835,9 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "return"
+    ],
     "instruct_plans": [
       "*"
     ],
@@ -7624,7 +7847,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": false,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "charlessutton@: Benchmark Questions Verification V2.ipynb",
@@ -7660,7 +7883,7 @@
     "index": 217,
     "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
+    "base_cs_e": false,
     "instruct_cs_e": true
   },
   {
@@ -7686,7 +7909,9 @@
     },
     "instruct_pass": true,
     "base_pass": true,
-    "base_plans": [],
+    "base_plans": [
+      "replace"
+    ],
     "instruct_plans": [],
     "base_cs": true,
     "instruct_cs": true,
@@ -7723,9 +7948,10 @@
       "-"
     ],
     "instruct_plans": [
-      "price"
+      "price",
+      "-"
     ],
-    "base_cs": true,
+    "base_cs": false,
     "instruct_cs": true,
     "index": 219,
     "base_plans_e": [],
@@ -7790,7 +8016,8 @@
     "instruct_pass": true,
     "base_pass": true,
     "base_plans": [
-      "0"
+      "0",
+      "return"
     ],
     "instruct_plans": [],
     "base_cs": true,
@@ -7798,7 +8025,7 @@
     "index": 221,
     "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
+    "base_cs_e": false,
     "instruct_cs_e": true
   },
   {
@@ -7826,15 +8053,16 @@
     "base_pass": false,
     "base_plans": [],
     "instruct_plans": [
-      "[",
-      "0"
+      "0",
+      "return",
+      "["
     ],
     "base_cs": false,
     "instruct_cs": true,
     "index": 222,
     "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
+    "base_cs_e": false,
     "instruct_cs_e": true
   },
   {
@@ -7861,11 +8089,14 @@
     "instruct_pass": true,
     "base_pass": true,
     "base_plans": [
-      "1"
+      "1",
+      "for"
     ],
-    "instruct_plans": [],
+    "instruct_plans": [
+      "for"
+    ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 223,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -7920,19 +8151,18 @@
     "model_output": "def rectangle_area(length, width):\n    return length * width\n",
     "instruct_pass": true,
     "base_pass": true,
-    "base_plans": [],
-    "instruct_plans": [],
-    "base_cs": true,
-    "instruct_cs": true,
-    "index": 225,
-    "base_plans_e": [
-      "return"
-    ],
-    "instruct_plans_e": [
-      "return",
+    "base_plans": [
       "*"
     ],
-    "base_cs_e": true,
+    "instruct_plans": [
+      "*"
+    ],
+    "base_cs": false,
+    "instruct_cs": false,
+    "index": 225,
+    "base_plans_e": [],
+    "instruct_plans_e": [],
+    "base_cs_e": false,
     "instruct_cs_e": true
   },
   {
@@ -8000,7 +8230,7 @@
     "index": 227,
     "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
+    "base_cs_e": false,
     "instruct_cs_e": true
   },
   {
@@ -8027,10 +8257,11 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "for"
+      "for",
+      "return"
     ],
     "instruct_plans": [],
-    "base_cs": true,
+    "base_cs": false,
     "instruct_cs": true,
     "index": 228,
     "base_plans_e": [],
@@ -8095,9 +8326,13 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "for"
+      "for",
+      "return",
+      "*"
     ],
     "instruct_plans": [
+      "if",
+      "return",
       "*"
     ],
     "base_cs": true,
@@ -8132,10 +8367,10 @@
     "instruct_pass": true,
     "base_pass": true,
     "base_plans": [
-      "!=",
+      "key",
       "]",
-      "[",
-      "key"
+      "!=",
+      "["
     ],
     "instruct_plans": [
       "for"
@@ -8172,9 +8407,11 @@
     "instruct_pass": true,
     "base_pass": false,
     "base_plans": [
+      "return",
       "]",
       "[",
-      "key"
+      "key",
+      "if"
     ],
     "instruct_plans": [],
     "base_cs": true,
@@ -8183,7 +8420,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "charlessutton@: Benchmark Questions Verification V2.ipynb",
@@ -8209,9 +8446,12 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": null,
-    "instruct_plans": [],
+    "instruct_plans": [
+      "return",
+      "*"
+    ],
     "base_cs": false,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 233,
     "base_plans_e": null,
     "instruct_plans_e": [],
@@ -8243,19 +8483,22 @@
     "base_pass": false,
     "base_plans": [
       "]",
+      "+",
+      "return",
       "["
     ],
     "instruct_plans": [
-      "-",
-      "]"
+      "]",
+      "return",
+      "-"
     ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 234,
     "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
-    "instruct_cs_e": true
+    "base_cs_e": false,
+    "instruct_cs_e": false
   },
   {
     "source_file": "charlessutton@: Benchmark Questions Verification V2.ipynb",
@@ -8281,11 +8524,15 @@
     "instruct_pass": true,
     "base_pass": false,
     "base_plans": [
+      "return",
       "*"
     ],
-    "instruct_plans": [],
+    "instruct_plans": [
+      "return",
+      "*"
+    ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 235,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -8318,7 +8565,9 @@
     "base_plans": [
       "-"
     ],
-    "instruct_plans": [],
+    "instruct_plans": [
+      "-"
+    ],
     "base_cs": true,
     "instruct_cs": true,
     "index": 236,
@@ -8416,16 +8665,16 @@
     },
     "instruct_pass": true,
     "base_pass": true,
-    "base_plans": [],
+    "base_plans": [
+      "return"
+    ],
     "instruct_plans": [
       "0"
     ],
     "base_cs": true,
     "instruct_cs": true,
     "index": 239,
-    "base_plans_e": [
-      "+"
-    ],
+    "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
     "instruct_cs_e": true
@@ -8490,7 +8739,9 @@
     },
     "instruct_pass": true,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "replace"
+    ],
     "instruct_plans": [],
     "base_cs": true,
     "instruct_cs": true,
@@ -8526,7 +8777,9 @@
     "base_plans": [
       "%"
     ],
-    "instruct_plans": [],
+    "instruct_plans": [
+      "]"
+    ],
     "base_cs": true,
     "instruct_cs": true,
     "index": 242,
@@ -8559,9 +8812,9 @@
     "instruct_pass": true,
     "base_pass": true,
     "base_plans": [
+      "%",
       "if",
-      "for",
-      "%"
+      "for"
     ],
     "instruct_plans": [
       "if"
@@ -8599,17 +8852,16 @@
     "base_pass": true,
     "base_plans": null,
     "instruct_plans": [
+      "**",
       "range",
       "for",
-      "**"
+      "-"
     ],
     "base_cs": false,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 244,
     "base_plans_e": null,
-    "instruct_plans_e": [
-      "range"
-    ],
+    "instruct_plans_e": [],
     "base_cs_e": false,
     "instruct_cs_e": true
   },
@@ -8637,11 +8889,12 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "j",
-      "^",
+      "range",
       "for",
       "%",
-      "range",
+      "j",
+      "+",
+      "^",
       "if"
     ],
     "instruct_plans": [],
@@ -8710,15 +8963,16 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "if"
+      "if",
+      "return"
     ],
     "instruct_plans": [],
-    "base_cs": true,
+    "base_cs": false,
     "instruct_cs": false,
     "index": 247,
     "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
+    "base_cs_e": false,
     "instruct_cs_e": true
   },
   {
@@ -8787,7 +9041,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -8812,8 +9066,12 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
-    "instruct_plans": [],
+    "base_plans": [
+      "for"
+    ],
+    "instruct_plans": [
+      "for"
+    ],
     "base_cs": true,
     "instruct_cs": true,
     "index": 250,
@@ -8878,11 +9136,9 @@
     "instruct_cs": false,
     "index": 252,
     "base_plans_e": [],
-    "instruct_plans_e": [
-      "return"
-    ],
-    "base_cs_e": true,
-    "instruct_cs_e": true
+    "instruct_plans_e": [],
+    "base_cs_e": false,
+    "instruct_cs_e": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -8940,12 +9196,15 @@
     },
     "instruct_pass": true,
     "base_pass": true,
-    "base_plans": [],
+    "base_plans": [
+      "+",
+      "return"
+    ],
     "instruct_plans": [
       "-"
     ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 254,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -9009,9 +9268,7 @@
     "base_cs": false,
     "instruct_cs": false,
     "index": 256,
-    "base_plans_e": [
-      "return"
-    ],
+    "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": false,
     "instruct_cs_e": false
@@ -9040,7 +9297,9 @@
     "instruct_pass": false,
     "base_pass": true,
     "base_plans": [
-      "for"
+      "if",
+      "for",
+      "return"
     ],
     "instruct_plans": [],
     "base_cs": true,
@@ -9074,7 +9333,9 @@
     },
     "instruct_pass": true,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "return"
+    ],
     "instruct_plans": [],
     "base_cs": true,
     "instruct_cs": false,
@@ -9108,21 +9369,21 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
+      "**",
       "+",
-      "*",
-      "**"
+      "*"
     ],
     "instruct_plans": [
       "+",
       "*"
     ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 259,
     "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
-    "instruct_cs_e": true
+    "base_cs_e": false,
+    "instruct_cs_e": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -9150,14 +9411,16 @@
     "base_plans": [
       "for"
     ],
-    "instruct_plans": [],
+    "instruct_plans": [
+      "-"
+    ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 260,
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -9182,9 +9445,12 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "return"
+    ],
     "instruct_plans": [
       "int",
+      "return",
       "-"
     ],
     "base_cs": true,
@@ -9222,14 +9488,15 @@
       "for"
     ],
     "instruct_plans": [
-      "[]"
+      "[]",
+      "return"
     ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 262,
     "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
+    "base_cs_e": false,
     "instruct_cs_e": true
   },
   {
@@ -9247,22 +9514,21 @@
     "model_output": "def find_dissimilar(tuple1, tuple2):\n    # Write your code here\n    return tuple(set(tuple1) - set(tuple2))\n",
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
-    "instruct_plans": [],
-    "base_cs": true,
-    "instruct_cs": true,
-    "index": 263,
-    "base_plans_e": [
-      "#",
-      "-",
-      "return"
+    "base_plans": [
+      "-"
     ],
+    "instruct_plans": [
+      "-"
+    ],
+    "base_cs": true,
+    "instruct_cs": false,
+    "index": 263,
+    "base_plans_e": [],
     "instruct_plans_e": [
-      "-",
-      "return"
+      "-"
     ],
     "base_cs_e": true,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -9287,12 +9553,15 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "*"
+    ],
     "instruct_plans": [
-      "+"
+      "+",
+      "*"
     ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 264,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -9330,7 +9599,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": false,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -9355,10 +9624,12 @@
     },
     "instruct_pass": true,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "-"
+    ],
     "instruct_plans": [
-      "-",
-      "*"
+      "*",
+      "-"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -9392,14 +9663,16 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "if",
+      "return",
       "]",
-      "["
+      "+",
+      "[",
+      "if"
     ],
     "instruct_plans": [
       "()"
     ],
-    "base_cs": true,
+    "base_cs": false,
     "instruct_cs": false,
     "index": 267,
     "base_plans_e": [],
@@ -9496,15 +9769,17 @@
     },
     "instruct_pass": true,
     "base_pass": true,
-    "base_plans": [],
+    "base_plans": [
+      "return"
+    ],
     "instruct_plans": [],
-    "base_cs": true,
+    "base_cs": false,
     "instruct_cs": false,
     "index": 270,
     "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
-    "instruct_cs_e": true
+    "base_cs_e": false,
+    "instruct_cs_e": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -9530,18 +9805,20 @@
     "instruct_pass": true,
     "base_pass": true,
     "base_plans": [
+      "return",
       "-"
     ],
     "instruct_plans": [
+      "return",
       "-"
     ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 271,
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -9569,14 +9846,14 @@
     "base_plans": [
       "if"
     ],
-    "instruct_plans": [],
+    "instruct_plans": [
+      "if"
+    ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 272,
     "base_plans_e": [],
-    "instruct_plans_e": [
-      "for"
-    ],
+    "instruct_plans_e": [],
     "base_cs_e": true,
     "instruct_cs_e": true
   },
@@ -9603,10 +9880,15 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
-    "instruct_plans": [],
+    "base_plans": [
+      "sin",
+      "return"
+    ],
+    "instruct_plans": [
+      "*"
+    ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 273,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -9637,8 +9919,8 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "],",
-      "0"
+      "0",
+      "],"
     ],
     "instruct_plans": [
       "-"
@@ -9649,7 +9931,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -9676,6 +9958,8 @@
     "base_pass": false,
     "base_plans": [
       "+",
+      "return",
+      "*",
       "))"
     ],
     "instruct_plans": [],
@@ -9712,9 +9996,10 @@
     "base_pass": false,
     "base_plans": [],
     "instruct_plans": [
+      "[]",
       "if",
       "for",
-      "[]"
+      "return"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -9722,7 +10007,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -9748,16 +10033,19 @@
     "instruct_pass": false,
     "base_pass": true,
     "base_plans": [
+      "return",
       "-"
     ],
-    "instruct_plans": [],
-    "base_cs": true,
-    "instruct_cs": true,
+    "instruct_plans": [
+      "-"
+    ],
+    "base_cs": false,
+    "instruct_cs": false,
     "index": 277,
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -9783,15 +10071,16 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "if",
       "for",
+      "return",
+      "]",
       "[",
-      "]"
+      "if"
     ],
     "instruct_plans": [
-      "else",
+      "%",
       "]",
-      "%"
+      "else"
     ],
     "base_cs": true,
     "instruct_cs": false,
@@ -9858,8 +10147,9 @@
     "instruct_pass": true,
     "base_pass": false,
     "base_plans": [
+      "**",
       "int",
-      "**"
+      "return"
     ],
     "instruct_plans": [
       "if"
@@ -9867,11 +10157,9 @@
     "base_cs": true,
     "instruct_cs": true,
     "index": 280,
-    "base_plans_e": [
-      "int"
-    ],
+    "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
+    "base_cs_e": false,
     "instruct_cs_e": true
   },
   {
@@ -9906,7 +10194,7 @@
     "index": 281,
     "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
+    "base_cs_e": false,
     "instruct_cs_e": true
   },
   {
@@ -9932,7 +10220,9 @@
     },
     "instruct_pass": true,
     "base_pass": true,
-    "base_plans": [],
+    "base_plans": [
+      "return"
+    ],
     "instruct_plans": [],
     "base_cs": true,
     "instruct_cs": true,
@@ -9966,8 +10256,9 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "if",
       "]",
+      "if",
+      "return",
       "["
     ],
     "instruct_plans": [
@@ -10004,15 +10295,16 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "**",
+      "return"
+    ],
     "instruct_plans": [],
     "base_cs": true,
     "instruct_cs": true,
     "index": 284,
     "base_plans_e": [],
-    "instruct_plans_e": [
-      "**"
-    ],
+    "instruct_plans_e": [],
     "base_cs_e": true,
     "instruct_cs_e": false
   },
@@ -10039,10 +10331,15 @@
     },
     "instruct_pass": true,
     "base_pass": false,
-    "base_plans": [],
-    "instruct_plans": [],
+    "base_plans": [
+      "#"
+    ],
+    "instruct_plans": [
+      "()",
+      "return"
+    ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 285,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -10073,7 +10370,9 @@
     "instruct_pass": true,
     "base_pass": false,
     "base_plans": [],
-    "instruct_plans": [],
+    "instruct_plans": [
+      "return"
+    ],
     "base_cs": false,
     "instruct_cs": true,
     "index": 286,
@@ -10112,7 +10411,7 @@
     "instruct_plans": [
       "/"
     ],
-    "base_cs": true,
+    "base_cs": false,
     "instruct_cs": false,
     "index": 287,
     "base_plans_e": [],
@@ -10144,14 +10443,17 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
+      "else",
+      "+",
       "-"
     ],
     "instruct_plans": [
-      "-",
+      "]",
+      "0",
       "for",
-      "0"
+      "-"
     ],
-    "base_cs": true,
+    "base_cs": false,
     "instruct_cs": true,
     "index": 288,
     "base_plans_e": [],
@@ -10182,17 +10484,19 @@
     },
     "instruct_pass": true,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "+"
+    ],
     "instruct_plans": [
       "+",
       "-"
     ],
-    "base_cs": true,
-    "instruct_cs": true,
+    "base_cs": false,
+    "instruct_cs": false,
     "index": 289,
     "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
+    "base_cs_e": false,
     "instruct_cs_e": true
   },
   {
@@ -10220,8 +10524,8 @@
     "base_pass": false,
     "base_plans": [],
     "instruct_plans": [
-      "-",
-      "row"
+      "row",
+      "-"
     ],
     "base_cs": true,
     "instruct_cs": false,
@@ -10260,12 +10564,12 @@
     "instruct_plans": [
       "0"
     ],
-    "base_cs": true,
+    "base_cs": false,
     "instruct_cs": true,
     "index": 291,
     "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
+    "base_cs_e": false,
     "instruct_cs_e": true
   },
   {
@@ -10291,8 +10595,12 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
-    "instruct_plans": [],
+    "base_plans": [
+      "return"
+    ],
+    "instruct_plans": [
+      "of"
+    ],
     "base_cs": true,
     "instruct_cs": true,
     "index": 292,
@@ -10332,7 +10640,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": false,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -10368,7 +10676,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -10394,16 +10702,20 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
+      "+",
       "-"
     ],
     "instruct_plans": [
-      "else",
+      "*",
+      "return",
+      "('",
       "]",
       "-",
+      "+",
       "[",
-      "('"
+      "else"
     ],
-    "base_cs": true,
+    "base_cs": false,
     "instruct_cs": true,
     "index": 295,
     "base_plans_e": [],
@@ -10469,7 +10781,9 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "return"
+    ],
     "instruct_plans": [
       "char"
     ],
@@ -10504,7 +10818,10 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "#",
+      "return"
+    ],
     "instruct_plans": [
       "-"
     ],
@@ -10541,9 +10858,9 @@
     "base_pass": false,
     "base_plans": [],
     "instruct_plans": [
-      "-",
+      "/",
       "if",
-      "/"
+      "-"
     ],
     "base_cs": true,
     "instruct_cs": false,
@@ -10573,15 +10890,10 @@
     "base_cs": false,
     "instruct_cs": false,
     "index": 300,
-    "base_plans_e": [
-      "for",
-      "return"
-    ],
-    "instruct_plans_e": [
-      "return"
-    ],
-    "base_cs_e": true,
-    "instruct_cs_e": true
+    "base_plans_e": [],
+    "instruct_plans_e": [],
+    "base_cs_e": false,
+    "instruct_cs_e": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -10644,8 +10956,8 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "],",
-      "0"
+      "0",
+      "],"
     ],
     "instruct_plans": [],
     "base_cs": true,
@@ -10683,16 +10995,16 @@
       "*"
     ],
     "instruct_plans": [
-      "*",
-      "/"
+      "/",
+      "*"
     ],
     "base_cs": true,
     "instruct_cs": false,
     "index": 303,
     "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
-    "instruct_cs_e": true
+    "base_cs_e": false,
+    "instruct_cs_e": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -10751,17 +11063,18 @@
     "instruct_pass": true,
     "base_pass": false,
     "base_plans": [
-      "else"
+      "else",
+      "return"
     ],
     "instruct_plans": [
       "_"
     ],
-    "base_cs": true,
+    "base_cs": false,
     "instruct_cs": true,
     "index": 305,
     "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
+    "base_cs_e": false,
     "instruct_cs_e": true
   },
   {
@@ -10787,8 +11100,12 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
-    "instruct_plans": [],
+    "base_plans": [
+      "return"
+    ],
+    "instruct_plans": [
+      "where"
+    ],
     "base_cs": true,
     "instruct_cs": true,
     "index": 306,
@@ -10890,17 +11207,19 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "len",
-      "j",
-      "],",
       "range",
-      "if"
+      "return",
+      "],",
+      "j",
+      "if",
+      "len"
     ],
     "instruct_plans": [
-      "+",
-      "-",
+      "return",
+      "*",
       "!=",
-      "*"
+      "-",
+      "+"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -10933,9 +11252,11 @@
     },
     "instruct_pass": false,
     "base_pass": true,
-    "base_plans": [],
+    "base_plans": [
+      "return"
+    ],
     "instruct_plans": [],
-    "base_cs": true,
+    "base_cs": false,
     "instruct_cs": false,
     "index": 310,
     "base_plans_e": [],
@@ -10966,11 +11287,13 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "return"
+    ],
     "instruct_plans": [
       "((",
-      "-",
-      "*"
+      "*",
+      "-"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -11003,7 +11326,10 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "for",
+      "return"
+    ],
     "instruct_plans": [],
     "base_cs": true,
     "instruct_cs": true,
@@ -11036,19 +11362,22 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "return"
+    ],
     "instruct_plans": [
-      "if",
       "0",
-      "char"
+      "char",
+      "return",
+      "if"
     ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 313,
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -11074,9 +11403,9 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
+      "/",
       "+",
-      "*",
-      "/"
+      "*"
     ],
     "instruct_plans": [
       "+",
@@ -11116,6 +11445,7 @@
     "base_plans": [],
     "instruct_plans": [
       "range",
+      "return",
       "-"
     ],
     "base_cs": true,
@@ -11185,18 +11515,18 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "return"
+    ],
     "instruct_plans": [
-      "/"
+      "/",
+      "_"
     ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 317,
     "base_plans_e": [],
-    "instruct_plans_e": [
-      "+",
-      "/"
-    ],
+    "instruct_plans_e": [],
     "base_cs_e": true,
     "instruct_cs_e": true
   },
@@ -11230,11 +11560,9 @@
     "base_cs": true,
     "instruct_cs": false,
     "index": 318,
-    "base_plans_e": [
-      "()"
-    ],
+    "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
+    "base_cs_e": false,
     "instruct_cs_e": true
   },
   {
@@ -11258,13 +11586,8 @@
     "base_cs": false,
     "instruct_cs": false,
     "index": 319,
-    "base_plans_e": [
-      "for",
-      "return"
-    ],
-    "instruct_plans_e": [
-      "for"
-    ],
+    "base_plans_e": [],
+    "instruct_plans_e": [],
     "base_cs_e": true,
     "instruct_cs_e": true
   },
@@ -11292,7 +11615,9 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "return"
+    ],
     "instruct_plans": [
       "int"
     ],
@@ -11330,7 +11655,8 @@
     "base_pass": false,
     "base_plans": [
       "if",
-      "()"
+      "()",
+      "return"
     ],
     "instruct_plans": [
       "-"
@@ -11338,9 +11664,7 @@
     "base_cs": true,
     "instruct_cs": false,
     "index": 321,
-    "base_plans_e": [
-      "()"
-    ],
+    "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
     "instruct_cs_e": true
@@ -11406,7 +11730,9 @@
     },
     "instruct_pass": true,
     "base_pass": true,
-    "base_plans": [],
+    "base_plans": [
+      "for"
+    ],
     "instruct_plans": [
       "for"
     ],
@@ -11442,10 +11768,15 @@
     },
     "instruct_pass": true,
     "base_pass": false,
-    "base_plans": [],
-    "instruct_plans": [],
+    "base_plans": [
+      "return"
+    ],
+    "instruct_plans": [
+      "return",
+      "-"
+    ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 324,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -11483,7 +11814,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": false,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -11508,10 +11839,14 @@
     },
     "instruct_pass": true,
     "base_pass": true,
-    "base_plans": [],
-    "instruct_plans": [],
+    "base_plans": [
+      "return"
+    ],
+    "instruct_plans": [
+      "return"
+    ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 326,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -11541,7 +11876,9 @@
     },
     "instruct_pass": true,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "return"
+    ],
     "instruct_plans": [],
     "base_cs": true,
     "instruct_cs": false,
@@ -11576,10 +11913,14 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
-    "instruct_plans": [],
+    "base_plans": [
+      "return"
+    ],
+    "instruct_plans": [
+      "return"
+    ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 328,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -11609,20 +11950,22 @@
     },
     "instruct_pass": true,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "return"
+    ],
     "instruct_plans": [
-      "+",
-      "0",
-      "else",
+      "mid",
       "right",
-      "mid"
+      "0",
+      "+",
+      "else"
     ],
     "base_cs": true,
     "instruct_cs": false,
     "index": 329,
     "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
+    "base_cs_e": false,
     "instruct_cs_e": true
   },
   {
@@ -11661,7 +12004,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -11719,7 +12062,9 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "return"
+    ],
     "instruct_plans": [],
     "base_cs": true,
     "instruct_cs": false,
@@ -11752,10 +12097,15 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
-    "instruct_plans": [],
+    "base_plans": [
+      "return",
+      "["
+    ],
+    "instruct_plans": [
+      "return"
+    ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 333,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -11786,13 +12136,13 @@
     "instruct_pass": false,
     "base_pass": true,
     "base_plans": [
-      "for",
       "]",
+      "for",
       "["
     ],
     "instruct_plans": [
-      "len",
-      "1"
+      "1",
+      "len"
     ],
     "base_cs": true,
     "instruct_cs": false,
@@ -11826,22 +12176,21 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "-",
-      "*"
+      "*(",
+      "*",
+      "-"
     ],
     "instruct_plans": [
-      "-",
-      "*",
+      "))",
       "/",
-      "))"
+      "*",
+      "-"
     ],
     "base_cs": true,
     "instruct_cs": true,
     "index": 335,
     "base_plans_e": [],
-    "instruct_plans_e": [
-      "-"
-    ],
+    "instruct_plans_e": [],
     "base_cs_e": true,
     "instruct_cs_e": true
   },
@@ -11868,15 +12217,17 @@
     },
     "instruct_pass": true,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "+"
+    ],
     "instruct_plans": [],
-    "base_cs": true,
+    "base_cs": false,
     "instruct_cs": false,
     "index": 336,
     "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
-    "instruct_cs_e": true
+    "base_cs_e": false,
+    "instruct_cs_e": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -11903,7 +12254,8 @@
     "base_pass": true,
     "base_plans": [],
     "instruct_plans": [
-      "item"
+      "item",
+      "return"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -11945,8 +12297,8 @@
     "index": 338,
     "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
-    "instruct_cs_e": true
+    "base_cs_e": false,
+    "instruct_cs_e": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -11975,9 +12327,9 @@
       "/"
     ],
     "instruct_plans": [
-      "*",
       "**",
-      "/"
+      "/",
+      "*"
     ],
     "base_cs": true,
     "instruct_cs": true,
@@ -12002,15 +12354,17 @@
     "model_output": "def lcs_of_three(s1, s2, s3):\n    # Write your code here\n    return 0\n",
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "#"
+    ],
     "instruct_plans": [],
-    "base_cs": true,
+    "base_cs": false,
     "instruct_cs": false,
     "index": 340,
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -12037,17 +12391,16 @@
     "base_pass": false,
     "base_plans": [],
     "instruct_plans": [
-      "+",
       "0",
+      "+",
+      "return",
       "["
     ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 341,
     "base_plans_e": [],
-    "instruct_plans_e": [
-      "+"
-    ],
+    "instruct_plans_e": [],
     "base_cs_e": true,
     "instruct_cs_e": true
   },
@@ -12071,12 +12424,10 @@
     "base_cs": false,
     "instruct_cs": false,
     "index": 342,
-    "base_plans_e": [
-      "return"
-    ],
+    "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
-    "instruct_cs_e": true
+    "base_cs_e": false,
+    "instruct_cs_e": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -12101,17 +12452,19 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "+"
+    ],
     "instruct_plans": [
       "+"
     ],
-    "base_cs": true,
+    "base_cs": false,
     "instruct_cs": false,
     "index": 343,
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -12136,16 +12489,18 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "return"
+    ],
     "instruct_plans": [
       "*"
     ],
-    "base_cs": true,
+    "base_cs": false,
     "instruct_cs": false,
     "index": 344,
     "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
+    "base_cs_e": false,
     "instruct_cs_e": true
   },
   {
@@ -12173,8 +12528,8 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "+",
-      "else"
+      "else",
+      "+"
     ],
     "instruct_plans": [],
     "base_cs": true,
@@ -12182,7 +12537,7 @@
     "index": 345,
     "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
+    "base_cs_e": false,
     "instruct_cs_e": false
   },
   {
@@ -12242,12 +12597,15 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "return"
+    ],
     "instruct_plans": [
-      "()"
+      "()",
+      "return"
     ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 347,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -12281,14 +12639,16 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      ".*"
+      ".*",
+      "return"
     ],
     "instruct_plans": [
+      ".*",
       "\",",
-      ".*"
+      "return"
     ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 348,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -12318,9 +12678,11 @@
     },
     "instruct_pass": true,
     "base_pass": true,
-    "base_plans": [],
+    "base_plans": [
+      "return"
+    ],
     "instruct_plans": [],
-    "base_cs": true,
+    "base_cs": false,
     "instruct_cs": false,
     "index": 349,
     "base_plans_e": [],
@@ -12362,7 +12724,7 @@
     "index": 350,
     "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
+    "base_cs_e": false,
     "instruct_cs_e": false
   },
   {
@@ -12390,9 +12752,13 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
-    "instruct_plans": [],
-    "base_cs": true,
+    "base_plans": [
+      "return"
+    ],
+    "instruct_plans": [
+      "return"
+    ],
+    "base_cs": false,
     "instruct_cs": true,
     "index": 351,
     "base_plans_e": [],
@@ -12456,12 +12822,14 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "return"
+    ],
     "instruct_plans": [
       "else",
       "["
     ],
-    "base_cs": true,
+    "base_cs": false,
     "instruct_cs": true,
     "index": 353,
     "base_plans_e": [],
@@ -12493,7 +12861,8 @@
     "instruct_pass": true,
     "base_pass": true,
     "base_plans": [
-      "]"
+      "]",
+      "return"
     ],
     "instruct_plans": [],
     "base_cs": true,
@@ -12528,12 +12897,16 @@
     },
     "instruct_pass": true,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "return",
+      "len"
+    ],
     "instruct_plans": [
-      "0"
+      "0",
+      "return"
     ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 355,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -12595,7 +12968,7 @@
     "instruct_plans": [
       "-"
     ],
-    "base_cs": true,
+    "base_cs": false,
     "instruct_cs": false,
     "index": 357,
     "base_plans_e": [],
@@ -12627,16 +13000,19 @@
     },
     "instruct_pass": true,
     "base_pass": false,
-    "base_plans": [],
-    "instruct_plans": [
+    "base_plans": [
       "0"
     ],
+    "instruct_plans": [
+      "0",
+      "return"
+    ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 358,
     "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
+    "base_cs_e": false,
     "instruct_cs_e": true
   },
   {
@@ -12654,19 +13030,17 @@
     "model_output": "def Diff(list1, list2):\n    return [x for x in list1 if x not in list2]\n",
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
-    "instruct_plans": [],
+    "base_plans": [
+      "return"
+    ],
+    "instruct_plans": [
+      "return"
+    ],
     "base_cs": true,
     "instruct_cs": true,
     "index": 359,
-    "base_plans_e": [
-      "for",
-      "return"
-    ],
-    "instruct_plans_e": [
-      "return",
-      "not"
-    ],
+    "base_plans_e": [],
+    "instruct_plans_e": [],
     "base_cs_e": true,
     "instruct_cs_e": true
   },
@@ -12730,9 +13104,12 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "0",
+      "return"
+    ],
     "instruct_plans": [],
-    "base_cs": true,
+    "base_cs": false,
     "instruct_cs": false,
     "index": 361,
     "base_plans_e": [],
@@ -12763,12 +13140,15 @@
     },
     "instruct_pass": true,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "return"
+    ],
     "instruct_plans": [
+      "()",
       "for"
     ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 362,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -12800,11 +13180,12 @@
     "base_pass": false,
     "base_plans": [],
     "instruct_plans": [
-      "-",
-      "),"
+      "0",
+      "),",
+      "-"
     ],
     "base_cs": false,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 363,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -12835,16 +13216,18 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [
-      "-",
+      "]",
       "',",
-      "]"
+      "return",
+      "-"
     ],
     "instruct_plans": [
-      "-",
-      "]"
+      "]",
+      "return",
+      "-"
     ],
-    "base_cs": true,
-    "instruct_cs": true,
+    "base_cs": false,
+    "instruct_cs": false,
     "index": 364,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -12874,7 +13257,9 @@
     },
     "instruct_pass": true,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "return"
+    ],
     "instruct_plans": [
       "()"
     ],
@@ -12909,12 +13294,15 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "return"
+    ],
     "instruct_plans": [
+      "return",
       "-"
     ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 366,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -12944,19 +13332,23 @@
     },
     "instruct_pass": true,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "+",
+      "return"
+    ],
     "instruct_plans": [
+      "int",
       "=",
-      "int"
+      "return"
     ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 367,
     "base_plans_e": [],
     "instruct_plans_e": [
       "="
     ],
-    "base_cs_e": true,
+    "base_cs_e": false,
     "instruct_cs_e": true
   },
   {
@@ -12982,7 +13374,9 @@
     },
     "instruct_pass": true,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "return"
+    ],
     "instruct_plans": [],
     "base_cs": true,
     "instruct_cs": false,
@@ -13008,9 +13402,15 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": [],
-    "instruct_plans": [],
+    "instruct_plans": [
+      "*",
+      "(((",
+      "elif",
+      "%",
+      "+"
+    ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 369,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -13052,7 +13452,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": false,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -13076,11 +13476,9 @@
     "instruct_cs": false,
     "index": 371,
     "base_plans_e": [],
-    "instruct_plans_e": [
-      "return"
-    ],
+    "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -13106,15 +13504,19 @@
     },
     "instruct_pass": true,
     "base_pass": true,
-    "base_plans": [],
-    "instruct_plans": [],
-    "base_cs": true,
-    "instruct_cs": true,
+    "base_plans": [
+      "return"
+    ],
+    "instruct_plans": [
+      "return"
+    ],
+    "base_cs": false,
+    "instruct_cs": false,
     "index": 372,
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -13172,12 +13574,16 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "0",
+      "if"
+    ],
     "instruct_plans": [
+      "0",
       "),"
     ],
-    "base_cs": true,
-    "instruct_cs": true,
+    "base_cs": false,
+    "instruct_cs": false,
     "index": 374,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -13209,15 +13615,19 @@
     "instruct_pass": true,
     "base_pass": false,
     "base_plans": [
+      "]",
+      "return",
       "["
     ],
-    "instruct_plans": [],
+    "instruct_plans": [
+      "return"
+    ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 375,
     "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
+    "base_cs_e": false,
     "instruct_cs_e": false
   },
   {
@@ -13254,7 +13664,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -13279,14 +13689,17 @@
     },
     "instruct_pass": true,
     "base_pass": true,
-    "base_plans": [],
+    "base_plans": [
+      "return"
+    ],
     "instruct_plans": [
-      "-",
+      "1",
       "!=",
-      "1"
+      "return",
+      "-"
     ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 377,
     "base_plans_e": [],
     "instruct_plans_e": [],
@@ -13386,7 +13799,9 @@
     },
     "instruct_pass": true,
     "base_pass": true,
-    "base_plans": [],
+    "base_plans": [
+      "return"
+    ],
     "instruct_plans": [],
     "base_cs": true,
     "instruct_cs": false,
@@ -13394,7 +13809,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -13425,8 +13840,8 @@
     "base_pass": true,
     "base_plans": [],
     "instruct_plans": [
-      "&",
       "((",
+      "&",
       "-"
     ],
     "base_cs": true,
@@ -13435,7 +13850,7 @@
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -13461,7 +13876,9 @@
     },
     "instruct_pass": true,
     "base_pass": true,
-    "base_plans": [],
+    "base_plans": [
+      "replace"
+    ],
     "instruct_plans": [],
     "base_cs": true,
     "instruct_cs": true,
@@ -13500,12 +13917,12 @@
     "instruct_plans": [
       "or"
     ],
-    "base_cs": true,
+    "base_cs": false,
     "instruct_cs": false,
     "index": 383,
     "base_plans_e": [],
     "instruct_plans_e": [],
-    "base_cs_e": true,
+    "base_cs_e": false,
     "instruct_cs_e": true
   },
   {
@@ -13533,7 +13950,9 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "return"
+    ],
     "instruct_plans": [],
     "base_cs": true,
     "instruct_cs": false,
@@ -13562,15 +13981,14 @@
     "instruct_pass": true,
     "base_pass": false,
     "base_plans": null,
-    "instruct_plans": [],
+    "instruct_plans": [
+      "="
+    ],
     "base_cs": false,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 385,
     "base_plans_e": null,
-    "instruct_plans_e": [
-      "=",
-      "return"
-    ],
+    "instruct_plans_e": [],
     "base_cs_e": false,
     "instruct_cs_e": true
   },
@@ -13602,7 +14020,7 @@
       "="
     ],
     "base_cs": false,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 386,
     "base_plans_e": null,
     "instruct_plans_e": [],
@@ -13640,7 +14058,7 @@
     "base_plans_e": null,
     "instruct_plans_e": [],
     "base_cs_e": false,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -13666,14 +14084,16 @@
     "instruct_pass": false,
     "base_pass": false,
     "base_plans": null,
-    "instruct_plans": [],
+    "instruct_plans": [
+      "return"
+    ],
     "base_cs": false,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 388,
     "base_plans_e": null,
     "instruct_plans_e": [],
     "base_cs_e": false,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -13699,17 +14119,21 @@
     "instruct_pass": true,
     "base_pass": true,
     "base_plans": [
+      "%",
       "if",
-      "%"
+      "0",
+      "return"
     ],
-    "instruct_plans": [],
+    "instruct_plans": [
+      "if"
+    ],
     "base_cs": true,
-    "instruct_cs": true,
+    "instruct_cs": false,
     "index": 389,
     "base_plans_e": [],
     "instruct_plans_e": [],
     "base_cs_e": true,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -13742,7 +14166,7 @@
     "base_plans_e": null,
     "instruct_plans_e": [],
     "base_cs_e": false,
-    "instruct_cs_e": true
+    "instruct_cs_e": false
   },
   {
     "source_file": "Benchmark Questions Verification V2.ipynb",
@@ -13767,9 +14191,11 @@
     },
     "instruct_pass": false,
     "base_pass": false,
-    "base_plans": [],
+    "base_plans": [
+      "]"
+    ],
     "instruct_plans": [],
-    "base_cs": true,
+    "base_cs": false,
     "instruct_cs": false,
     "index": 391,
     "base_plans_e": [],
